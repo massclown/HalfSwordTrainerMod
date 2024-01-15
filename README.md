@@ -36,13 +36,22 @@ UE4SS.dll
 4) Copy the entire `LogicMods` folder of the release into the `Content\Paks` folder of your Half Sword demo installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Content\Paks`)
 
-5) Enable the `HalfSwordTrainerMod` and `BPModLoaderMod` in your UE4SS mod loader configuration (`\Mods\mods.txt`)
+5) Enable the `HalfSwordTrainerMod` and `BPModLoaderMod` in your UE4SS mod loader configuration (`\Mods\mods.txt`).
+The file should look like this:
+```
+...
+BPModLoaderMod : 1
+...
+HalfSwordTrainerMod : 1
+...
+```
+
 
 6) Enjoy the game and support the developers.
 
 ## How to use the mod
 
-The mod adds a HUD on top of the game to show you variuos player stats.
+The mod adds a HUD on top of the game to show you various player stats.
 
 The mod adds a few keyboard shortcuts to trigger its functions.
 
