@@ -108,3 +108,4 @@ File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 * Half Sword developers, https://halfswordgames.com/
 * UE4SS developers, https://github.com/UE4SS-RE/RE-UE4SS
 * Bjorn Swenson, developer of `maf`, https://github.com/bjornbytes/maf
+* TheLich from nexusmods for caching code
