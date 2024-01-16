@@ -35,7 +35,7 @@ local TJH = 0  -- "Torso Joint Health"
 local HRJH = 0 -- "Hand R Joint Health"
 local ARJH = 0 -- "Arm R Joint Health"
 local SRJH = 0 -- "Shoulder R Joint Health"
-local HLHJ = 0 -- "Hand L Joint Health"
+local HLJH = 0 -- "Hand L Joint Health"
 local ALJH = 0 -- "Arm L Joint Health"
 local SLJH = 0 -- "Shoulder L Joint Health"
 local TRJH = 0 -- "Thigh R Joint Health"
@@ -55,6 +55,8 @@ local PlayerInstance = nil
 local WorldMapInstance = nil
 -- A flag to prevent the ClientRestart hook to fire twice
 local waitingAfterRestartLock = false
+-- If restarting, attempt to exit asyc loops
+local restarting = false
 
 local VerboseLogging = true
 function Log(Message, AlwaysLog)
@@ -81,22 +83,28 @@ local loadout = {
 }
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, NewPawn)
+    restarting = true
     Log("Client Restart hook triggered\n")
     -- Somehow ClientRestart hook always triggers twice on each start or restart.
     -- No idea why, so we just lock and wait, and only do what we need once.
     if not waitingAfterRestartLock then
         waitingAfterRestartLock = not waitingAfterRestartLock
-        ExecuteWithDelay(2000, function()
+        ExecuteWithDelay(1000, function()
             Log("Delayed caching\n")
-            CacheModUIWidget()
-            CacheMapInstance()
-            CachePlayerInstance()
-            CachePlayerStats()
-            CacheLevel()
-
+            ExecuteInGameThread(function ()
+                CacheModUIWidget()
+                CacheMapInstance()
+                CachePlayerInstance()
+                CachePlayerStats()
+                CacheLevel()
+            end)
             -- Update HP meter forever 5 times per second
             LoopAsync(200, function()
                 CachePlayerStats()
+                if restarting and not waitingAfterRestartLock then
+                    Log("Terminating async loop\n")
+                    return true
+                end
                 return false -- Loops forever
             end)
 
@@ -105,6 +113,7 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, New
     else
         Log("Not caching, lock active\n")
     end
+    restarting = false
 end)
 
 -- We hook the creation of Character class objects, those are NPCs usually
@@ -163,31 +172,57 @@ function CachePlayerStats()
         SetTextBoxText("TextBox_Invulnerability",
             string.format("Invulnerability : %s", Invulnerable and "ON" or "OFF"))
         --
-        PlayerScore         = PlayerInstance['Score']
+        PlayerScore = WorldMapInstance['Score']
+        SetTextBoxText("TextBox_Score", string.format("Score : %d", PlayerScore))
         PlayerConsciousness = PlayerInstance['Consciousness']
+        SetTextBoxText("TextBox_Cons", string.format("Consciousness : %.2f", PlayerConsciousness))
+
         --
-        HH                  = PlayerInstance['Head Health']
-        NH                  = PlayerInstance['Neck Health']
-        BH                  = PlayerInstance['Body Health']
-        ARH                 = PlayerInstance['Arm_R Health']
-        ALH                 = PlayerInstance['Arm_L Health']
-        LRH                 = PlayerInstance['Leg_R Health']
-        LLH                 = PlayerInstance['Leg_L Health']
+        HH  = PlayerInstance['Head Health']
+        NH  = PlayerInstance['Neck Health']
+        BH  = PlayerInstance['Body Health']
+        ARH = PlayerInstance['Arm_R Health']
+        ALH = PlayerInstance['Arm_L Health']
+        LRH = PlayerInstance['Leg_R Health']
+        LLH = PlayerInstance['Leg_L Health']
         --
-        HJH                 = PlayerInstance['Head Joint Health']
-        TJH                 = PlayerInstance['Torso Joint Health']
-        HRJH                = PlayerInstance['Hand R Joint Health']
-        ARJH                = PlayerInstance['Arm R Joint Health']
-        SRJH                = PlayerInstance['Shoulder R Joint Health']
-        HLHJ                = PlayerInstance['Hand L Joint Health']
-        ALJH                = PlayerInstance['Arm L Joint Health']
-        SLJH                = PlayerInstance['Shoulder L Joint Health']
-        TRJH                = PlayerInstance['Thigh R Joint Health']
-        LRJH                = PlayerInstance['Leg R Joint Health']
-        FRJH                = PlayerInstance['Foot R Joint Health']
-        TLJH                = PlayerInstance['Thigh L Joint Health']
-        LLJH                = PlayerInstance['Leg L Joint Health']
-        FLJH                = PlayerInstance['Foot L Joint Health']
+        SetTextBoxText("TextBox_HH", string.format("%.0f", HH))
+        SetTextBoxText("TextBox_NH", string.format("%.0f", NH))
+        SetTextBoxText("TextBox_BH", string.format("%.0f", BH))
+        SetTextBoxText("TextBox_ARH", string.format("%.0f", ARH))
+        SetTextBoxText("TextBox_ALH", string.format("%.0f", ALH))
+        SetTextBoxText("TextBox_LRH", string.format("%.0f", LRH))
+        SetTextBoxText("TextBox_LLH", string.format("%.0f", LLH))
+        --
+        HJH  = PlayerInstance['Head Joint Health']
+        TJH  = PlayerInstance['Torso Joint Health']
+        HRJH = PlayerInstance['Hand R Joint Health']
+        ARJH = PlayerInstance['Arm R Joint Health']
+        SRJH = PlayerInstance['Shoulder R Joint Health']
+        HLJH = PlayerInstance['Hand L Joint Health']
+        ALJH = PlayerInstance['Arm L Joint Health']
+        SLJH = PlayerInstance['Shoulder L Joint Health']
+        TRJH = PlayerInstance['Thigh R Joint Health']
+        LRJH = PlayerInstance['Leg R Joint Health']
+        FRJH = PlayerInstance['Foot R Joint Health']
+        TLJH = PlayerInstance['Thigh L Joint Health']
+        LLJH = PlayerInstance['Leg L Joint Health']
+        FLJH = PlayerInstance['Foot L Joint Health']
+        --
+        SetTextBoxText("TextBox_HJH", string.format("%.0f", HJH))
+        SetTextBoxText("TextBox_TJH", string.format("%.0f", TJH))
+        SetTextBoxText("TextBox_HRJH", string.format("%.0f", HRJH))
+        SetTextBoxText("TextBox_ARJH", string.format("%.0f", ARJH))
+        SetTextBoxText("TextBox_SRJH", string.format("%.0f", SRJH))
+        SetTextBoxText("TextBox_HLJH", string.format("%.0f", HLJH))
+        SetTextBoxText("TextBox_ALJH", string.format("%.0f", ALJH))
+        SetTextBoxText("TextBox_SLJH", string.format("%.0f", SLJH))
+        SetTextBoxText("TextBox_TRJH", string.format("%.0f", TRJH))
+        SetTextBoxText("TextBox_LRJH", string.format("%.0f", LRJH))
+        SetTextBoxText("TextBox_FRJH", string.format("%.0f", FRJH))
+        SetTextBoxText("TextBox_TLJH", string.format("%.0f", TLJH))
+        SetTextBoxText("TextBox_LLJH", string.format("%.0f", LLJH))
+        SetTextBoxText("TextBox_FLJH", string.format("%.0f", FLJH))
         --
     end
     CacheLevel()
