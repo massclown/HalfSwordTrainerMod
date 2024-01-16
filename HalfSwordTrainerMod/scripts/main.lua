@@ -11,13 +11,41 @@ local savedRegenRate = 0
 local maxRSR = 1000
 local maxMP = 200
 local maxRegenRate = 10000
--- Variables tracking things we change
+
+-- Variables tracking things we change or want to observe and display in HUD
 local SuperStrength = false
 local Invulnerable = false
 local level = 0
+local PlayerScore = 0
 local PlayerHealth = 0
+local PlayerConsciousness = 0
 
--- UI-related stuff
+-- Player body detailed health data
+local HH = 0  -- 'Head Health'
+local NH = 0  -- 'Neck Health'
+local BH = 0  -- 'Body Health'
+local ARH = 0 -- 'Arm_R Health'
+local ALH = 0 -- 'Arm_L Health'
+local LRH = 0 -- 'Leg_R Health'
+local LLH = 0 -- 'Leg_L Health'
+
+-- Player joint detailed health data
+local HJH = 0  -- "Head Joint Health"
+local TJH = 0  -- "Torso Joint Health"
+local HRJH = 0 -- "Hand R Joint Health"
+local ARJH = 0 -- "Arm R Joint Health"
+local SRJH = 0 -- "Shoulder R Joint Health"
+local HLHJ = 0 -- "Hand L Joint Health"
+local ALJH = 0 -- "Arm L Joint Health"
+local SLJH = 0 -- "Shoulder L Joint Health"
+local TRJH = 0 -- "Thigh R Joint Health"
+local LRJH = 0 -- "Leg R Joint Health"
+local FRJH = 0 -- "Foot R Joint Health"
+local TLJH = 0 -- "Thigh L Joint Health"
+local LLJH = 0 -- "Leg L Joint Health"
+local FLJH = 0 -- "Foot L Joint Health"
+
+-- Various UI-related stuff
 local ModUIVisible = true
 local ModUIWidgetInstance = nil
 -- Instances of classes we need
@@ -54,7 +82,7 @@ local loadout = {
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, NewPawn)
     Log("Client Restart hook triggered\n")
-    -- Somehow ClientRestart hook always triggers twice on each start or restart. 
+    -- Somehow ClientRestart hook always triggers twice on each start or restart.
     -- No idea why, so we just lock and wait, and only do what we need once.
     if not waitingAfterRestartLock then
         waitingAfterRestartLock = not waitingAfterRestartLock
@@ -134,6 +162,33 @@ function CachePlayerStats()
         Invulnerable = PlayerInstance['Invulnerable']
         SetTextBoxText("TextBox_Invulnerability",
             string.format("Invulnerability : %s", Invulnerable and "ON" or "OFF"))
+        --
+        PlayerScore         = PlayerInstance['Score']
+        PlayerConsciousness = PlayerInstance['Consciousness']
+        --
+        HH                  = PlayerInstance['Head Health']
+        NH                  = PlayerInstance['Neck Health']
+        BH                  = PlayerInstance['Body Health']
+        ARH                 = PlayerInstance['Arm_R Health']
+        ALH                 = PlayerInstance['Arm_L Health']
+        LRH                 = PlayerInstance['Leg_R Health']
+        LLH                 = PlayerInstance['Leg_L Health']
+        --
+        HJH                 = PlayerInstance['Head Joint Health']
+        TJH                 = PlayerInstance['Torso Joint Health']
+        HRJH                = PlayerInstance['Hand R Joint Health']
+        ARJH                = PlayerInstance['Arm R Joint Health']
+        SRJH                = PlayerInstance['Shoulder R Joint Health']
+        HLHJ                = PlayerInstance['Hand L Joint Health']
+        ALJH                = PlayerInstance['Arm L Joint Health']
+        SLJH                = PlayerInstance['Shoulder L Joint Health']
+        TRJH                = PlayerInstance['Thigh R Joint Health']
+        LRJH                = PlayerInstance['Leg R Joint Health']
+        FRJH                = PlayerInstance['Foot R Joint Health']
+        TLJH                = PlayerInstance['Thigh L Joint Health']
+        LLJH                = PlayerInstance['Leg L Joint Health']
+        FLJH                = PlayerInstance['Foot L Joint Health']
+        --
     end
     CacheLevel()
 end
@@ -232,6 +287,8 @@ function GetPlayerLocation()
     return location
 end
 
+-- We spawn the loadout in a circle, rotating a displacement vector a bit
+-- with every item
 function SpawnLoadoutAroundPlayer()
     local PlayerLocation = GetPlayerLocation()
     local DeltaLocation = maf.vec3(300.0, 0.0, 200.0)
