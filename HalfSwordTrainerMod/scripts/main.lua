@@ -84,6 +84,11 @@ local loadout = {
     "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C"
 }
 
+local all_armor = {}
+local all_weapons = {}
+local all_characters = {}
+local all_objects = {}
+
 -- The caching code logic is taken from TheLich at nexusmods (Grounded QoL mod)
 local cache = {}
 cache.objects = {}
@@ -107,7 +112,7 @@ cache.mt.__index = function(obj, key)
         end
         if newObj == nil or not newObj:IsValid() then
             newObj = nil
-            ErrLogf("Failed to find and cache object [%s][%s], retrying...\n", key, className)
+            ErrLogf("Failed to find and cache object [%s][%s]\n", key, className)
         end
         obj.objects[key] = newObj
     end
@@ -138,6 +143,12 @@ function InitMyMod()
             ErrLog("UI Spawn Widget not found!\n")
             return
         end
+
+        PopulateArmorComboBox()
+        PopulateWeaponComboBox()
+        PopulateNPCComboBox()
+        PopulateObjectComboBox()
+
         LoopAsync(250, function()
             HUD_UpdatePlayerStats()
             return false
@@ -365,21 +376,57 @@ end
 
 ------------------------------------------------------------------------------
 function PopulateArmorComboBox()
+    local ComboBox_Armor = cache.ui_spawn['ComboBox_Armor']
+
+    local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_armor.txt", "r");
+    for line in file:lines() do
+        fkey = ExtractHumanName(line)
+        all_armor[fkey] = line
+        ComboBox_Armor:AddOption(fkey)
+    end
 
 end
 
 function PopulateWeaponComboBox()
+    local ComboBox_Weapon = cache.ui_spawn['ComboBox_Weapon']
+
+    local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_weapons.txt", "r");
+    for line in file:lines() do
+        fkey = ExtractHumanName(line)
+        all_weapons[fkey] = line
+        ComboBox_Weapon:AddOption(fkey)
+    end
 
 end
 
 function PopulateNPCComboBox()
+    local ComboBox_NPC = cache.ui_spawn['ComboBox_NPC']
+
+    local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_characters.txt", "r");
+    for line in file:lines() do
+        fkey = ExtractHumanName(line)
+        all_characters[fkey] = line
+        ComboBox_NPC:AddOption(fkey)
+    end
 
 end
 
 function PopulateObjectComboBox()
+    local ComboBox_Object = cache.ui_spawn['ComboBox_Object']
+
+    local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_objects.txt", "r");
+    for line in file:lines() do
+        fkey = ExtractHumanName(line)
+        all_objects[fkey] = line
+        ComboBox_Object:AddOption(fkey)
+    end
 
 end
 
+function ExtractHumanName(BPFullClassName)
+    hname = string.match(BPFullClassName, "/([%w_]+)%.[%w_]+$")
+    return hname
+end
 ------------------------------------------------------------------------------
 -- We hook the restart event, which somehow fires twice per restart
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
