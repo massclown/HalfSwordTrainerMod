@@ -1,5 +1,6 @@
--- Half Sword Trainer Mod v0.3 by massclown
--- Needs UE4SS to work and a Blueprint mod HSTM_UI (see repo)
+-- Half Sword Trainer Mod v0.4 by massclown
+-- https://github.com/massclown/HalfSwordTrainerMod
+-- Requirements: UE4SS 2.5.2 (or newer) a Blueprint mod HSTM_UI (see repo)
 
 local maf = require 'maf'
 local UEHelpers = require("UEHelpers")
@@ -50,6 +51,8 @@ local FLJH = 0 -- "Foot L Joint Health"
 local ModUIHUDVisible = true
 local ModUISpawnVisible = true
 
+local spawnedThings = {}
+
 function Log(Message)
     print("[HalfSwordTrainerMod] " .. Message)
 end
@@ -59,11 +62,11 @@ function Logf(...)
 end
 
 function ErrLog(Message)
-    print("[HalfSwordTrainerMod] [ERROR]" .. Message)
+    print("[HalfSwordTrainerMod] [ERROR] " .. Message)
 end
 
 function ErrLogf(...)
-    print("[HalfSwordTrainerMod] [ERROR]" .. string.format(...))
+    print("[HalfSwordTrainerMod] [ERROR] " .. string.format(...))
 end
 
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
@@ -84,6 +87,7 @@ local loadout = {
     "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C"
 }
 
+-- Item/NPC tables for the spawn menus
 local all_armor = {}
 local all_weapons = {}
 local all_characters = {}
@@ -111,8 +115,8 @@ cache.mt.__index = function(obj, key)
             newObj = FindFirstOf(className)
         end
         if newObj == nil or not newObj:IsValid() then
+            ErrLogf("Failed to find and cache object [%s][%s][%s]\n", key, className, not newObj and "nil" or "invalid")
             newObj = nil
-            ErrLogf("Failed to find and cache object [%s][%s]\n", key, className)
         end
         obj.objects[key] = newObj
     end
@@ -121,6 +125,25 @@ end
 setmetatable(cache, cache.mt)
 -----------------------------
 
+function ValidateCachedObjects()
+    local map = cache.map
+    local ui_hud = cache.ui_hud
+    local ui_spawn = cache.ui_spawn
+    if not map or not map:IsValid() then
+        ErrLogf("Map not found! (%s)\n", not map and "nil" or "invalid")
+        return false
+    end
+    if not ui_hud or not ui_hud:IsValid() then
+        ErrLogf("UI HUD Widget not found! (%s)\n", not map and "nil" or "invalid")
+        return false
+    end
+    if not ui_spawn or not ui_spawn:IsValid() then
+        ErrLogf("UI Spawn Widget not found! (%s)\n", not map and "nil" or "invalid")
+        return false
+    end
+    return true
+end
+
 local lastInitTimestamp = -1
 -- This gets added to the hook later
 function InitMyMod()
@@ -128,19 +151,9 @@ function InitMyMod()
     local delta = curInitTimestamp - lastInitTimestamp
     if lastInitTimestamp == -1 or (delta > 1) then
         Log("Client Restart hook triggered\n")
-        local map = cache.map
-        local ui_hud = cache.ui_hud
-        local ui_spawn = cache.ui_spawn
-        if not map or not map:IsValid() then
-            ErrLog("Map not found!\n")
-            return
-        end
-        if not ui_hud or not ui_hud:IsValid() then
-            ErrLog("UI HUD Widget not found!\n")
-            return
-        end
-        if not ui_spawn or not ui_spawn:IsValid() then
-            ErrLog("UI Spawn Widget not found!\n")
+
+        if not ValidateCachedObjects() then
+            ErrLog("Objects not found, exiting\n")
             return
         end
 
@@ -148,8 +161,16 @@ function InitMyMod()
         PopulateWeaponComboBox()
         PopulateNPCComboBox()
         PopulateObjectComboBox()
+        
+        if spawnedThings then
+            spawnedThings = nil
+        end
 
         LoopAsync(250, function()
+            if not ValidateCachedObjects() then
+                ErrLog("Objects not found, skipping loop\n")
+                return false
+            end    
             HUD_UpdatePlayerStats()
             return false
         end)
@@ -165,20 +186,16 @@ end
 function HUD_UpdatePlayerStats()
     local player = cache.map['Player Willie']
     PlayerHealth = player['Health']
-    SetTextBoxText(cache.ui_hud, "TextBox_HP", string.format("HP : %.2f", PlayerHealth))
     Invulnerable = player['Invulnerable']
-    SetTextBoxText(cache.ui_hud, "TextBox_Invulnerability",
-        string.format("Invulnerability : %s", Invulnerable and "ON" or "OFF"))
-
-    SetTextBoxText(cache.ui_hud, "TextBox_SuperStrength",
-        string.format("Super Strength : %s", SuperStrength and "ON" or "OFF"))
-
+    cache.ui_hud['HUD_HP_Value'] = PlayerHealth
+    cache.ui_hud['HUD_Invuln_Value'] = Invulnerable
+    cache.ui_hud['HUD_SuperStrength_Value'] = SuperStrength
     --
     PlayerScore = cache.map['Score']
-    SetTextBoxText(cache.ui_hud, "TextBox_Score", string.format("Score : %d", PlayerScore))
-    PlayerConsciousness = player['Consciousness']
-    SetTextBoxText(cache.ui_hud, "TextBox_Cons", string.format("Consciousness : %.2f", PlayerConsciousness))
+    cache.ui_hud['HUD_Score_Value'] = PlayerScore
 
+    PlayerConsciousness = player['Consciousness']
+    cache.ui_hud['HUD_Cons_Value'] = PlayerConsciousness
     --
     HH  = player['Head Health']
     NH  = player['Neck Health']
@@ -188,13 +205,13 @@ function HUD_UpdatePlayerStats()
     LRH = player['Leg_R Health']
     LLH = player['Leg_L Health']
     --
-    SetTextBoxText(cache.ui_hud, "TextBox_HH", string.format("%.0f", HH))
-    SetTextBoxText(cache.ui_hud, "TextBox_NH", string.format("%.0f", NH))
-    SetTextBoxText(cache.ui_hud, "TextBox_BH", string.format("%.0f", BH))
-    SetTextBoxText(cache.ui_hud, "TextBox_ARH", string.format("%.0f", ARH))
-    SetTextBoxText(cache.ui_hud, "TextBox_ALH", string.format("%.0f", ALH))
-    SetTextBoxText(cache.ui_hud, "TextBox_LRH", string.format("%.0f", LRH))
-    SetTextBoxText(cache.ui_hud, "TextBox_LLH", string.format("%.0f", LLH))
+    cache.ui_hud['HUD_HH'] = HH
+    cache.ui_hud['HUD_NH'] = NH
+    cache.ui_hud['HUD_BH'] = BH
+    cache.ui_hud['HUD_ARH'] = ARH
+    cache.ui_hud['HUD_ALH'] = ALH
+    cache.ui_hud['HUD_LRH'] = LRH
+    cache.ui_hud['HUD_LLH'] = LLH
     --
     HJH  = player['Head Joint Health']
     TJH  = player['Torso Joint Health']
@@ -211,20 +228,21 @@ function HUD_UpdatePlayerStats()
     LLJH = player['Leg L Joint Health']
     FLJH = player['Foot L Joint Health']
     --
-    SetTextBoxText(cache.ui_hud, "TextBox_HJH", string.format("%.0f", HJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_TJH", string.format("%.0f", TJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_HRJH", string.format("%.0f", HRJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_ARJH", string.format("%.0f", ARJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_SRJH", string.format("%.0f", SRJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_HLJH", string.format("%.0f", HLJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_ALJH", string.format("%.0f", ALJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_SLJH", string.format("%.0f", SLJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_TRJH", string.format("%.0f", TRJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_LRJH", string.format("%.0f", LRJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_FRJH", string.format("%.0f", FRJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_TLJH", string.format("%.0f", TLJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_LLJH", string.format("%.0f", LLJH))
-    SetTextBoxText(cache.ui_hud, "TextBox_FLJH", string.format("%.0f", FLJH))
+    cache.ui_hud['HUD_HJH'] = HJH
+    cache.ui_hud['HUD_TJH'] = TJH
+    cache.ui_hud['HUD_HRJH'] = HRJH
+    cache.ui_hud['HUD_ARJH'] = ARJH
+    cache.ui_hud['HUD_SRJH'] = SRJH
+    cache.ui_hud['HUD_HLJH'] = HLJH
+    cache.ui_hud['HUD_ALJH'] = ALJH
+    cache.ui_hud['HUD_SLJH'] = SLJH
+    cache.ui_hud['HUD_TRJH'] = TRJH
+    cache.ui_hud['HUD_LRJH'] = LRJH
+    cache.ui_hud['HUD_FRJH'] = FRJH
+    cache.ui_hud['HUD_TLJH'] = TLJH
+    cache.ui_hud['HUD_LLJH'] = LLJH
+    cache.ui_hud['HUD_FLJH'] = FLJH
+
     --
     HUD_CacheLevel()
 end
@@ -242,8 +260,7 @@ function ToggleSuperStrength()
         player['Muscle Power'] = savedMP
     end
     Log("SuperStrength = " .. tostring(SuperStrength) .. "\n")
-    SetTextBoxText(cache.ui_hud, "TextBox_SuperStrength",
-        string.format("Super Strength : %s", SuperStrength and "ON" or "OFF"))
+    cache.ui_hud['HUD_SuperStrength_Value'] = SuperStrength
 end
 
 function ToggleInvulnerability()
@@ -258,8 +275,7 @@ function ToggleInvulnerability()
     end
     player['Invulnerable'] = Invulnerable
     Log("Invulnerable = " .. tostring(Invulnerable) .. "\n")
-    SetTextBoxText(cache.ui_hud, "TextBox_Invulnerability",
-        string.format("Invulnerability : %s", Invulnerable and "ON" or "OFF"))
+    cache.ui_hud['HUD_Invuln_Value'] = Invulnerable
 end
 
 -- 99 is the z-order set in UI HUD blueprint in UE5 editor
@@ -282,36 +298,33 @@ function ToggleModUI()
     end
 end
 
---[[
-    TextBox_HP
-    TextBox_Level
-    TextBox_Invulnerability
-    TextBox_SuperStrength
-]]
-function SetTextBoxText(Widget, TextBoxName, TextString)
-    local textbox = Widget[TextBoxName]
-    if textbox then
-        textbox:SetText(FText(TextString))
-    else
-        Log(string.format("[ERROR] TextBox %s not found\n", TextBoxName))
-    end
-end
-
 function SpawnActorByClassPath(FullClassPath, SpawnLocation)
     -- TODO Load missing assets
     -- WARN only spawns loaded assets now!
     --
     local ActorClass = StaticFindObject(FullClassPath)
-    if not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
+    if ActorClass == nil or not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
 
     local World = UEHelpers:GetWorld()
-    if not World:IsValid() then error("[ERROR] World is not valid") end
+    if World == nil or not World:IsValid() then error("[ERROR] World is not valid") end
     local Actor = World:SpawnActor(ActorClass, SpawnLocation, {})
-    if not Actor:IsValid() then
+    if Actor == nil or not Actor:IsValid() then
         Log(string.format("[ERROR] Actor for \"%s\" is not valid\n", FullClassPath))
     else
+        table.insert(spawnedThings, Actor)
         Log(string.format("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f}\n",
             Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z))
+    end
+end
+
+function UndoLastSpawn()
+    if spawnedThings then
+        if #spawnedThings > 0 then
+            local actorToDespawn = spawnedThings[#spawnedThings]
+            if actorToDespawn and actorToDespawn:IsValid() then
+                actorToDespawn:Destroy()
+            end
+        end
     end
 end
 
@@ -350,12 +363,12 @@ end
 function HUD_SetLevel(Level)
     cache.map['Level'] = Level
     Log(string.format("Set Level = %d\n", Level))
-    SetTextBoxText(cache.ui_hud, "TextBox_Level", string.format("Level : %d", level))
+    cache.ui_hud['HUD_Level_Value'] = Level
 end
 
 function HUD_CacheLevel()
     level = cache.map['Level']
-    SetTextBoxText(cache.ui_hud, "TextBox_Level", string.format("Level : %d", level))
+    cache.ui_hud['HUD_Level_Value'] = level
 end
 
 function DecreaseLevel()
@@ -375,12 +388,24 @@ function IncreaseLevel()
 end
 
 ------------------------------------------------------------------------------
+function SpawnSelectedArmor()
+end
+
+function SpawnSelectedWeapon()
+end
+
+function SpawnSelectedNPC()
+end
+
+function SpawnSelectedObject()
+end
+------------------------------------------------------------------------------
 function PopulateArmorComboBox()
     local ComboBox_Armor = cache.ui_spawn['ComboBox_Armor']
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_armor.txt", "r");
     for line in file:lines() do
-        fkey = ExtractHumanName(line)
+        fkey = ExtractHumanReadableName(line)
         all_armor[fkey] = line
         ComboBox_Armor:AddOption(fkey)
     end
@@ -392,7 +417,7 @@ function PopulateWeaponComboBox()
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_weapons.txt", "r");
     for line in file:lines() do
-        fkey = ExtractHumanName(line)
+        fkey = ExtractHumanReadableName(line)
         all_weapons[fkey] = line
         ComboBox_Weapon:AddOption(fkey)
     end
@@ -404,7 +429,7 @@ function PopulateNPCComboBox()
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_characters.txt", "r");
     for line in file:lines() do
-        fkey = ExtractHumanName(line)
+        fkey = ExtractHumanReadableName(line)
         all_characters[fkey] = line
         ComboBox_NPC:AddOption(fkey)
     end
@@ -416,14 +441,14 @@ function PopulateObjectComboBox()
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_objects.txt", "r");
     for line in file:lines() do
-        fkey = ExtractHumanName(line)
+        fkey = ExtractHumanReadableName(line)
         all_objects[fkey] = line
         ComboBox_Object:AddOption(fkey)
     end
 
 end
 
-function ExtractHumanName(BPFullClassName)
+function ExtractHumanReadableName(BPFullClassName)
     hname = string.match(BPFullClassName, "/([%w_]+)%.[%w_]+$")
     return hname
 end
@@ -480,3 +505,5 @@ RegisterKeyBind(Key.U, function()
         ToggleModUI()
     end)
 end)
+
+-- EOF
