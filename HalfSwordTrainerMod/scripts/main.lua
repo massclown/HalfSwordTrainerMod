@@ -53,6 +53,15 @@ local ModUISpawnVisible = true
 
 local spawnedThings = {}
 
+-- Item/NPC tables for the spawn menus in the UI
+local all_armor = {}
+local all_weapons = {}
+local all_characters = {}
+local all_objects = {}
+
+local custom_loadout = {}
+
+------------------------------------------------------------------------------
 function Log(Message)
     print("[HalfSwordTrainerMod] " .. Message)
 end
@@ -80,7 +89,7 @@ end
 function string:ends_with(ending)
     return ending == "" or self:sub(- #ending) == ending
 end
-
+------------------------------------------------------------------------------
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
 local default_loadout = {
     "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",
@@ -99,12 +108,10 @@ local default_loadout = {
     "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C"
 }
 
-local custom_loadout = {}
-
 -- Read custom loadout from a text file containing class names
 function LoadCustomLoadout()
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\custom_loadout.txt", "r");
-    if file~=nil then
+    if file ~= nil then
         if custom_loadout then custom_loadout = {} end
         Logf("Loading custom loadout...\n")
         for line in file:lines() do
@@ -116,14 +123,7 @@ function LoadCustomLoadout()
     end
 end
 
--- Item/NPC tables for the spawn menus
-local all_armor = {}
-local all_weapons = {}
-local all_characters = {}
-local all_objects = {}
-
-
-
+------------------------------------------------------------------------------
 -- The caching code logic is taken from TheLich at nexusmods (Grounded QoL mod)
 local cache = {}
 cache.objects = {}
@@ -154,8 +154,7 @@ cache.mt.__index = function(obj, key)
     return newObj
 end
 setmetatable(cache, cache.mt)
------------------------------
-
+------------------------------------------------------------------------------
 function ValidateCachedObjects()
     local map = cache.map
     local ui_hud = cache.ui_hud
@@ -175,8 +174,9 @@ function ValidateCachedObjects()
     return true
 end
 
+-- Timestamp of last invocation of InitMyMod()
 local lastInitTimestamp = -1
--- This function gets added to the hook below.
+-- This function gets added to the game restart hook below.
 -- Somehow the hook gets triggered twice, so we try to have a time lock to avoid double-calling the init function,
 -- but we still have to call it once if the user restarts soon, hence the miminum timeout of that 1 second.
 -- So don't restart faster than once every two seconds, or this will break too.
@@ -202,6 +202,8 @@ function InitMyMod()
             spawnedThings = {}
         end
 
+        -- This starts a thread that updates the HUD in background.
+        -- It only exits if we retrn true from the lambda, which we don't
         LoopAsync(250, function()
             if not ValidateCachedObjects() then
                 ErrLog("Objects not found, skipping loop\n")
@@ -220,9 +222,10 @@ end
 -- A very long function taking all the various stats we want from the player object
 -- and writing them into the textblocks of the UI Widget that we use as a mod's HUD
 -- using the bound variables of the mod's HSTM_UI blueprint, because:
--- TextBlock does not seem to have a SetText() method we could use,
--- and for SetText() we also need FText for an argument, the constructor of which is not in the stable UE4SS 2.5.2
--- and not yet merged into the master branch either (https://github.com/UE4SS-RE/RE-UE4SS/pull/301)
+-- * TextBlock does not seem to have a SetText() method we could use,
+-- * and for SetText() we also need FText for an argument, the constructor of which is not in the stable UE4SS 2.5.2
+--   and not yet merged into the master branch either (https://github.com/UE4SS-RE/RE-UE4SS/pull/301)
+-- On the other hand, the stable UE4SS 2.5.2 crashes less with Half Sword, so all this is justified.
 function HUD_UpdatePlayerStats()
     local player                            = cache.map['Player Willie']
     PlayerHealth                            = player['Health']
@@ -287,6 +290,7 @@ function HUD_UpdatePlayerStats()
     HUD_CacheLevel()
 end
 
+------------------------------------------------------------------------------
 function ToggleSuperStrength()
     local player = cache.map['Player Willie']
     SuperStrength = not SuperStrength
@@ -302,7 +306,7 @@ function ToggleSuperStrength()
     Log("SuperStrength = " .. tostring(SuperStrength) .. "\n")
     cache.ui_hud['HUD_SuperStrength_Value'] = SuperStrength
 end
-
+------------------------------------------------------------------------------
 function ToggleInvulnerability()
     local player = cache.map['Player Willie']
     Invulnerable = player['Invulnerable']
@@ -317,7 +321,7 @@ function ToggleInvulnerability()
     Log("Invulnerable = " .. tostring(Invulnerable) .. "\n")
     cache.ui_hud['HUD_Invuln_Value'] = Invulnerable
 end
-
+------------------------------------------------------------------------------
 -- 99 is the z-order set in UI HUD blueprint in UE5 editor
 -- 100 is the z-order set in UI Spawn blueprint in UE5 editor
 -- should be high enough to be on top of everything
@@ -337,7 +341,7 @@ function ToggleModUI()
         ModUISpawnVisible = true
     end
 end
-
+------------------------------------------------------------------------------
 function SpawnActorByClassPath(FullClassPath, SpawnLocation)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
@@ -447,7 +451,7 @@ function SpawnActorInFrontOfPlayer(classpath, offset)
         SpawnActorByClassPath(classpath, SpawnLocation)
     end)
 end
-
+------------------------------------------------------------------------------
 function HUD_SetLevel(Level)
     cache.map['Level'] = Level
     Logf("Set Level = %d\n", Level)
@@ -483,6 +487,7 @@ end
 function FreezeAllNPCs()
     -- TODO
 end
+
 ------------------------------------------------------------------------------
 function SpawnSelectedArmor()
     local Selected_Spawn_Armor = cache.ui_spawn['Selected_Spawn_Armor']:ToString()
@@ -581,6 +586,7 @@ function PopulateObjectComboBox()
     ComboBox_Object:SetSelectedIndex(0)
 end
 
+-- The function takes the final part of the class name, but without the _C
 function ExtractHumanReadableName(BPFullClassName)
     local hname = string.match(BPFullClassName, "/([%w_]+)%.[%w_]+$")
     return hname
@@ -590,14 +596,15 @@ end
 -- We hook the restart event, which somehow fires twice per restart
 -- We take care of that in the InitMyMod() function above
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
+------------------------------------------------------------------------------
 
 -- We hook the creation of Character class objects, those are NPCs usually
 NotifyOnNewObject("/Script/Engine.Character", function(ConstructedObject)
     Logf("Hook Character spawned: %s\n", ConstructedObject:GetFullName())
 end)
-
+------------------------------------------------------------------------------
 -- Damage hooks are commented for now, not sure which is the correct one to intercept and how to interpret the variables
--- Needs a proper investigation
+-- TODO Needs a proper investigation
 -- RegisterHook("/Script/Engine.Actor:ReceiveAnyDamage", function(self, Damage, DamageType, InstigatedBy, DamageCauser)
 --     Logf("Damage %f\n", Damage:get())
 -- end)
@@ -606,16 +613,16 @@ end)
 --     )
 --     Logf("Damage %f %f\n", Raw_Damage:get(), Damage_Out:get())
 -- end)
+------------------------------------------------------------------------------
 
-
--- Try to hook the button click functions of the HSTM_UI blueprint
--- Does not work yet.
--- HSTM_SpawnArmor
--- HSTM_SpawnWeapon
--- HSTM_SpawnNPC
--- HSTM_SpawnObject
--- HSTM_UndoSpawn
--- HSTM_KillAllNPCs
+-- Trying to hook the button click functions of the HSTM_UI blueprint:
+-- * HSTM_SpawnArmor
+-- * HSTM_SpawnWeapon
+-- * HSTM_SpawnNPC
+-- * HSTM_SpawnObject
+-- * HSTM_UndoSpawn
+-- * HSTM_KillAllNPCs
+-- Those are defined as custom functions in the blueprint itself.
 RegisterCustomEvent("HSTM_SpawnArmor", function(ParamContext, ParamMessage)
     SpawnSelectedArmor()
 end)
@@ -639,8 +646,7 @@ end)
 RegisterCustomEvent("HSTM_KillAllNPCs", function(ParamContext, ParamMessage)
     KillAllNPCs()
 end)
-
-
+------------------------------------------------------------------------------
 -- The user-facing key bindings are below.
 RegisterKeyBind(Key.I, function()
     ExecuteInGameThread(function()
@@ -696,6 +702,7 @@ RegisterKeyBind(Key.F5, function()
     UndoLastSpawn()
 end)
 
+-- Does not work yet
 RegisterKeyBind(Key.K, function()
     KillAllNPCs()
 end)

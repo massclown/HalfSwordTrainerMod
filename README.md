@@ -6,13 +6,13 @@ USE AT YOUR OWN RISK.
 Compatibility with newer demo versions not guaranteed, and the older demo from `itch.io` won't work.
 The mod requires [UE4SS](https://github.com/UE4SS-RE/RE-UE4SS) (version 2.5.2 as of now) to work.
 
-The mod is written specifically in Lua, so you can understand and modify its functionality.
+The mod is written in Lua, so you can understand and modify its functionality.
 
 ## License
 Distributed under the MIT License. See `LICENSE` file for more information.
 
 ## Installation
-1) Install [an xInput release of UE4SS 2.5.2 from the official repository](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation according to UE4SS installation instructions 
+1) Install [an xInput release of UE4SS 2.5.2 from the official repository](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
 ([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)).
 
 Most probably you will copy all the files from the UE4SS release into:
@@ -28,7 +28,8 @@ UE4SS.dll
 ...
 ```
 
-2) Download a release or source package of this `HalfSwordTrainerMod`` repo and unpack it somewhere to take a look. In the next steps you will copy files from inside the folder where you unpacked it.
+2) Download a release or source package of this `HalfSwordTrainerMod`` repo and unpack it somewhere to take a look. 
+In the next steps you will copy some folders from inside the folder where you unpacked it into the game folders.
 
 3) Copy the entire `HalfSwordTrainerMod` folder of the release into the `Mods` folder of your UE4SS installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64\Mods`)
@@ -78,7 +79,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `F3`          | Spawn selected **NPC** |
 | `F4`          | Spawn selected **Object** |
 | `F5`          | **Undo** last spawn (can be repeated) |
-| `K`           | **Kill** all NPCs on the map (does not prevent auto-spawning) |
+| `K`           | (does not work) **Kill** all NPCs currently on the map (does not prevent auto-spawning) |
 
 ### Changing difficulty
 
@@ -99,12 +100,12 @@ Use the buttons on screen to spawn items while the game is paused, or use `F1` -
 > The names of objects in the on-screen spawn menu have been shortened for better readability.
 
 #### Loadout configuration
-To modify the pre-configured loadout spawnable with `L` button, edit the `custom_loadout.txt` text file in the `data` subfolder of the mod:
+To modify the pre-configured loadout that is spawnable with `L` button, edit the `custom_loadout.txt` text file in the `data` subfolder of the mod:
 ```
 Mods\HalfSwordTrainerMod\data\custom_loadout.txt
 ```
 It contains the list of Unreal Engine class names that will be loaded. Look around in the files in the `\data\` folder for examples. Note that these are full class names, not the shortened ones on-screen.
-A default loadout is also hardcoded in the mod itself.
+A default loadout is also hardcoded in the mod itself, in case the custom loadout file gets deleted.
 
 ### Despawning things
 
@@ -112,12 +113,18 @@ Use `F5` or the on-screen button to undo the last spawned thing. It can be used 
 
 ### Killing NPCs
 
-Does not work well at the moment and removed from the code.
+Does not work well at the moment and removed from the code. It still has a button in the UI, because editing the UI is a huge pain.
 
 ### Other good things
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 
     * When you know which settings you like, you can save then in the game's `.ini` files in 
 `%LOCALAPPDATA%\HalfSwordUE5\Saved\Config\Windows\Engine.ini` or other config files in that folder (so most probably in `C:\Users\%USERNAME%\AppData\Local\HalfSwordUE5\Saved\Config\Windows\`)
+    * Some examples of the settings you might want to change in those files (or in the console, on the fly) are:
+    ```
+    r.fog=0
+    r.atmosphere=0
+    r.AntiAliasingMethod=1
+    ```
 * UE4SS has a lot of useful functionality for game modders, read [their docs](https://docs.ue4ss.com/) and have fun.
 
 
