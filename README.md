@@ -12,7 +12,7 @@ The mod is written in Lua, so you can understand and modify its functionality.
 Distributed under the MIT License. See `LICENSE` file for more information.
 
 ## Showcase
-[![YouTube video of Half Sword Trainer Mod](https://img.youtube.com/vi/DMWCSHe60dA/hqdefault.jpg)](https://www.youtube.com/embed/DMWCSHe60dA)
+[![YouTube video of Half Sword Trainer Mod](https://img.youtube.com/vi/DMWCSHe60dA/hqdefault.jpg)](https://www.youtube.com/watch?v=DMWCSHe60dA)
 
 ## Installation
 1) Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
