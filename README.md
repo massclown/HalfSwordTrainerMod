@@ -28,7 +28,7 @@ UE4SS.dll
 ...
 ```
 
-2) Download a release or source package of this `HalfSwordTrainerMod`` repo and unpack it somewhere to take a look. 
+2) Download a release or source package of this `HalfSwordTrainerMod` repo and unpack it somewhere to take a look. 
 In the next steps you will copy some folders from inside the folder where you unpacked it into the game folders.
 
 3) Copy the entire `HalfSwordTrainerMod` folder of the release into the `Mods` folder of your UE4SS installation
