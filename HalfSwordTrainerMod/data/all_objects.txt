@@ -7,7 +7,7 @@
 /Game/Assets/Props/Blueprints/BP_Container_Bench_002.BP_Container_Bench_002_C
 /Game/Assets/Props/Blueprints/BP_Container_Chest_001.BP_Container_Chest_001_C
 /Game/Assets/Props/Blueprints/BP_Container_Chest_002.BP_Container_Chest_002_C
-/Game/Assets/Props/Blueprints/BP_Container_Master.BP_Container_Master_C
+[BAD]/Game/Assets/Props/Blueprints/BP_Container_Master.BP_Container_Master_C
 /Game/Assets/Props/Blueprints/BP_Container_Table_001.BP_Container_Table_001_C
 /Game/Assets/Props/Blueprints/BP_Container_Weapon_Rack_001.BP_Container_Weapon_Rack_001_C
 /Game/Assets/Props/Candle/Blueprints/BP_Candle.BP_Candle_C
