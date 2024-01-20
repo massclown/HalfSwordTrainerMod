@@ -11,13 +11,16 @@ The mod is written in Lua, so you can understand and modify its functionality.
 ## License
 Distributed under the MIT License. See `LICENSE` file for more information.
 
+## Showcase
+[![YouTube video of Half Sword Trainer Mod](https://img.youtube.com/vi/DMWCSHe60dA/hqdefault.jpg)](https://www.youtube.com/embed/DMWCSHe60dA)
+
 ## Installation
-1) Install [an xInput release of UE4SS 2.5.2 from the official repository](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
-([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)).
+1) Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
+([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)). Basically you will need to unzip that archive and copy the files into the right place. Read the guides for help.
 
 Most probably you will copy all the files from the UE4SS release into:
 `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64`,
-so the contents of that folder, aside from the actual game files, will now have the following new files and folders:
+so the contents of that folder, aside from the actual game files, will now have the following **new** files and folder sof UE4SS:
 ```
 ...
 \Mods\
@@ -30,6 +33,15 @@ UE4SS.dll
 
 2) Download a release or source package of this `HalfSwordTrainerMod` repo and unpack it somewhere to take a look. 
 In the next steps you will copy some folders from inside the folder where you unpacked it into the game folders.
+
+When you unzip the archive, it is going to look like this:
+```
+\HalfSwordTrainerMod\  --> this needs to be copied into the `Mods` folder of your UE4SS installation
+\images\               
+\LogicMods\            --> this needs to be copied into the `Content\Paks` folder of your Half Sword demo installation
+LICENSE
+README.md
+```
 
 3) Copy the entire `HalfSwordTrainerMod` folder of the release into the `Mods` folder of your UE4SS installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64\Mods`)
