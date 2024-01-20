@@ -1,4 +1,4 @@
-# HalfSwordTrainerMod
+# Half Sword Trainer Mod
 A trainer mod for Half Sword demo v0.3 ([Steam release](https://store.steampowered.com/app/2397300/Half_Sword/)). 
 
 USE AT YOUR OWN RISK.
@@ -66,9 +66,11 @@ The mod adds a few keyboard shortcuts to trigger its functions.
 | F2          | Spawn selected Weapon |
 | F3          | Spawn selected NPC |
 | F4          | Spawn selected Object |
+| F5          | Undo last spawn (can be repeated) |
+| K           | Kill all NPCs on the map (does not prevent auto-spawning) |
 
 ### Spawning things
-You can either spawn a chef's choice loadout around yourself (press `L`), or select what you want in the drop-down menu on the right and spawn each individual item. Use F1-F4 to spawn the selected categories of things if your 
+You can either spawn a chef's choice loadout around yourself (press `L`), or pause the game, select what you want in the drop-down menu on the right, and spawn each individual item. Use `F1` - `F4` to spawn the selected categories of things.
 
 ### Other good things
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. When you know which settings you like, you can save then in the game's `.ini` files in 
@@ -77,8 +79,9 @@ You can either spawn a chef's choice loadout around yourself (press `L`), or sel
 
 
 ## Know issues and TODOs
-* No error handling whatsoever.
-* No ability to freeze NPCs yet (use [UUU5](https://opm.fransbouma.com/uuuv5.htm) if you really need that, but be warned that UUU5 freezes only their bottom half, the NPC will still rotate and swing their weapons at you).
+* No error handling whatsoever. Use at your own risk.
+* Buttons in the spawn menu may not work, use `F1` - `F4` keys instead.
+* No ability to freeze NPCs yet (use [UUU5](https://opm.fransbouma.com/uuuv5.htm) if you really really need that, but be warned that UUU5 freezes only their bottom half, the NPC will still rotate and swing their weapons at you).
 * No ability to modify the damage of your weapon or of NPC weapons yet.
 * No ability to spawn custom modular weapons yet.
 * No ability to un-glitch yourself (weapons stuck in slots, player body joints stuck in unnatural positions, etc.). Invulnerability helps, though.
@@ -113,6 +116,9 @@ Make sure UE4SS loads and observe its logs. It should mention `HalfSwordTrainerM
 If you suspect the fault is in the logic of this mod, you can try to disable or comment out the last suspicious thing that you used before the crash.
 
 ### Mod works, but does not do what I expect?
+File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
+
+### Any other problem with this mod or feature request?
 File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 
 ## Acknowledgements

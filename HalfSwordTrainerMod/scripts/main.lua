@@ -226,13 +226,13 @@ function HUD_UpdatePlayerStats()
     LRH                                     = player['Leg_R Health']
     LLH                                     = player['Leg_L Health']
     --
-    cache.ui_hud['HUD_HH']                  = HH
-    cache.ui_hud['HUD_NH']                  = NH
-    cache.ui_hud['HUD_BH']                  = BH
-    cache.ui_hud['HUD_ARH']                 = ARH
-    cache.ui_hud['HUD_ALH']                 = ALH
-    cache.ui_hud['HUD_LRH']                 = LRH
-    cache.ui_hud['HUD_LLH']                 = LLH
+    cache.ui_hud['HUD_HH']                  = math.floor(HH)
+    cache.ui_hud['HUD_NH']                  = math.floor(NH)
+    cache.ui_hud['HUD_BH']                  = math.floor(BH)
+    cache.ui_hud['HUD_ARH']                 = math.floor(ARH)
+    cache.ui_hud['HUD_ALH']                 = math.floor(ALH)
+    cache.ui_hud['HUD_LRH']                 = math.floor(LRH)
+    cache.ui_hud['HUD_LLH']                 = math.floor(LLH)
     --
     HJH                                     = player['Head Joint Health']
     TJH                                     = player['Torso Joint Health']
@@ -249,20 +249,20 @@ function HUD_UpdatePlayerStats()
     LLJH                                    = player['Leg L Joint Health']
     FLJH                                    = player['Foot L Joint Health']
     --
-    cache.ui_hud['HUD_HJH']                 = HJH
-    cache.ui_hud['HUD_TJH']                 = TJH
-    cache.ui_hud['HUD_HRJH']                = HRJH
-    cache.ui_hud['HUD_ARJH']                = ARJH
-    cache.ui_hud['HUD_SRJH']                = SRJH
-    cache.ui_hud['HUD_HLJH']                = HLJH
-    cache.ui_hud['HUD_ALJH']                = ALJH
-    cache.ui_hud['HUD_SLJH']                = SLJH
-    cache.ui_hud['HUD_TRJH']                = TRJH
-    cache.ui_hud['HUD_LRJH']                = LRJH
-    cache.ui_hud['HUD_FRJH']                = FRJH
-    cache.ui_hud['HUD_TLJH']                = TLJH
-    cache.ui_hud['HUD_LLJH']                = LLJH
-    cache.ui_hud['HUD_FLJH']                = FLJH
+    cache.ui_hud['HUD_HJH']                 = math.floor(HJH)
+    cache.ui_hud['HUD_TJH']                 = math.floor(TJH)
+    cache.ui_hud['HUD_HRJH']                = math.floor(HRJH)
+    cache.ui_hud['HUD_ARJH']                = math.floor(ARJH)
+    cache.ui_hud['HUD_SRJH']                = math.floor(SRJH)
+    cache.ui_hud['HUD_HLJH']                = math.floor(HLJH)
+    cache.ui_hud['HUD_ALJH']                = math.floor(ALJH)
+    cache.ui_hud['HUD_SLJH']                = math.floor(SLJH)
+    cache.ui_hud['HUD_TRJH']                = math.floor(TRJH)
+    cache.ui_hud['HUD_LRJH']                = math.floor(LRJH)
+    cache.ui_hud['HUD_FRJH']                = math.floor(FRJH)
+    cache.ui_hud['HUD_TLJH']                = math.floor(TLJH)
+    cache.ui_hud['HUD_LLJH']                = math.floor(LLJH)
+    cache.ui_hud['HUD_FLJH']                = math.floor(FLJH)
 
     --
     HUD_CacheLevel()
@@ -348,6 +348,9 @@ function UndoLastSpawn()
                 Logf("Despawning actor: %s\n", actorToDespawn:GetFullName())
                 --                actorToDespawn:Destroy()
                 actorToDespawn:K2_DestroyActor()
+                -- let's remove it for now so undo can be repeated.
+                -- K2_DestroyActor() is supposed to clean up things properly
+                table.remove(spawnedThings, #spawnedThings)
             end
         end
     end
@@ -397,7 +400,9 @@ function SpawnLoadoutAroundPlayer()
 end
 
 -- Try to spawn the actor(item) in front of the player
-function SpawnActorInFrontOfPlayer(classpath)
+-- Get player's rotation vector and rotate our offset by its value
+function SpawnActorInFrontOfPlayer(classpath, offset)
+    local defaultOffset = maf.vec3(300.0, 0.0, 0.0)
     local PlayerLocation = GetPlayerLocation()
     local PlayerRotation = GetPlayerViewRotation()
     local rotator = maf.rotation.fromAngleAxis(
@@ -406,7 +411,7 @@ function SpawnActorInFrontOfPlayer(classpath)
         0.0, -- math.rad(PlayerRotation.Roll),
         1.0
     )
-    local DeltaLocation = maf.vec3(300.0, 0.0, 200.0)
+    local DeltaLocation = offset == nil and defaultOffset or maf.vec3(offset.X, offset.Y, offset.Z)
     local rotatedDelta = DeltaLocation
     rotatedDelta:rotate(rotator)
     local SpawnLocation = {
@@ -451,10 +456,13 @@ function KillAllNPCs()
     -- TODO
 end
 
+function FreezeAllNPCs()
+    -- TODO
+end
 ------------------------------------------------------------------------------
 function SpawnSelectedArmor()
     local Selected_Spawn_Armor = cache.ui_spawn['Selected_Spawn_Armor']:ToString()
-    Logf("Spawning armor key [%s]\n", Selected_Spawn_Armor)
+    --Logf("Spawning armor key [%s]\n", Selected_Spawn_Armor)
     --    if not Selected_Spawn_Armor == nil and not Selected_Spawn_Armor == "" then
     local selected_actor = all_armor[Selected_Spawn_Armor]
     Logf("Spawning armor [%s]\n", selected_actor)
@@ -464,7 +472,7 @@ end
 
 function SpawnSelectedWeapon()
     local Selected_Spawn_Weapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
-    Logf("Spawning weapon key [%s]\n", Selected_Spawn_Weapon)
+    --Logf("Spawning weapon key [%s]\n", Selected_Spawn_Weapon)
     --    if not Selected_Spawn_Weapon == nil and not Selected_Spawn_Weapon == "" then
     local selected_actor = all_weapons[Selected_Spawn_Weapon]
     Logf("Spawning weapon [%s]\n", selected_actor)
@@ -474,21 +482,21 @@ end
 
 function SpawnSelectedNPC()
     local Selected_Spawn_NPC = cache.ui_spawn['Selected_Spawn_NPC']:ToString()
-    Logf("Spawning NPC key [%s]\n", Selected_Spawn_NPC)
+    --Logf("Spawning NPC key [%s]\n", Selected_Spawn_NPC)
     --    if not Selected_Spawn_NPC == nil and not Selected_Spawn_NPC == "" then
     local selected_actor = all_characters[Selected_Spawn_NPC]
     Logf("Spawning NPC [%s]\n", selected_actor)
-    SpawnActorInFrontOfPlayer(selected_actor)
+    SpawnActorInFrontOfPlayer(selected_actor, { X = 600.0, Y = 0.0, Z = 50.0 })
     --    end
 end
 
 function SpawnSelectedObject()
     local Selected_Spawn_Object = cache.ui_spawn['Selected_Spawn_Object']:ToString()
-    Logf("Spawning object key [%s]\n", Selected_Spawn_Object)
+    --Logf("Spawning object key [%s]\n", Selected_Spawn_Object)
     --    if not Selected_Spawn_Object == nil and not Selected_Spawn_Object == "" then
     local selected_actor = all_objects[Selected_Spawn_Object]
     Logf("Spawning object [%s]\n", selected_actor)
-    SpawnActorInFrontOfPlayer(selected_actor)
+    SpawnActorInFrontOfPlayer(selected_actor, { X = 300.0, Y = 0.0, Z = -60.0 })
     --    end
 end
 
@@ -567,20 +575,47 @@ end)
 -- Damage hooks are commented for now, not sure which is the correct one to intercept and how to interpret the variables
 -- Needs a proper investigation
 -- RegisterHook("/Script/Engine.Actor:ReceiveAnyDamage", function(self, Damage, DamageType, InstigatedBy, DamageCauser)
---     Log(string.format("Damage %f\n", Damage:get()))
+--     Logf("Damage %f\n", Damage:get())
 -- end)
 -- RegisterHook("/Game/Character/Blueprints/Willie_BP.Willie_BP_C:Get Damage", function(self,
 --         Impulse,Velocity,Location,Normal,bone,Raw_Damage,Cutting_Power,Inside,Damaged_Mesh,Dism_Blunt,Lower_Threshold,Shockwave,Hit_By_Component,Damage_Out
 --     )
---     Log(string.format("Damage %f %f\n", Raw_Damage:get(), Damage_Out:get()))
+--     Logf("Damage %f %f\n", Raw_Damage:get(), Damage_Out:get())
 -- end)
 
 
 -- Try to hook the button click functions of the HSTM_UI blueprint
 -- Does not work yet.
--- RegisterHook("/Game/Mods/HSTM_UI/HSTM_UI_Spawn_Widget.HSTM_UI_Spawn_Widget_C:BndEvt__HSTM_UI_Spawn_Widget_Button_SpawnArmor_K2Node_ComponentBoundEvent_0_OnButtonClickedEvent__DelegateSignature", function(self)
---     Log("BUTTON CLICKED\n")
--- end)
+-- HSTM_SpawnArmor
+-- HSTM_SpawnWeapon
+-- HSTM_SpawnNPC
+-- HSTM_SpawnObject
+-- HSTM_UndoSpawn
+-- HSTM_KillAllNPCs
+RegisterCustomEvent("HSTM_SpawnArmor", function(ParamContext, ParamMessage)
+    SpawnSelectedArmor()
+end)
+
+RegisterCustomEvent("HSTM_SpawnWeapon", function(ParamContext, ParamMessage)
+    SpawnSelectedWeapon()
+end)
+
+RegisterCustomEvent("HSTM_SpawnNPC", function(ParamContext, ParamMessage)
+    SpawnSelectedNPC()
+end)
+
+RegisterCustomEvent("HSTM_SpawnObject", function(ParamContext, ParamMessage)
+    SpawnSelectedObject()
+end)
+
+RegisterCustomEvent("HSTM_UndoSpawn", function(ParamContext, ParamMessage)
+    UndoLastSpawn()
+end)
+
+RegisterCustomEvent("HSTM_KillAllNPCs", function(ParamContext, ParamMessage)
+    KillAllNPCs()
+end)
+
 
 -- The user-facing key bindings are below.
 RegisterKeyBind(Key.I, function()
