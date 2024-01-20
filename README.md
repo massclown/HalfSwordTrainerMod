@@ -77,7 +77,7 @@ The mod adds a spawn menu on top of the game on the right side of the screen wit
 
 The mod also adds a few keyboard shortcuts to trigger its functions.
 
-### Keyboard shorcuts of this mod
+### Keyboard shortcuts of this mod
 | Shortcut    | Description |
 | ----------- | ----------- |
 | `U`           | Show/hide the **UI** (HUD) of the mod |
@@ -190,4 +190,4 @@ File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 * Half Sword developers, https://halfswordgames.com/
 * UE4SS developers, https://github.com/UE4SS-RE/RE-UE4SS
 * Bjorn Swenson, developer of `maf`, https://github.com/bjornbytes/maf which is used for vector rotation here.
-* TheLich from nexusmods for caching code
+* TheLich from NexusMods for caching code
