@@ -82,7 +82,7 @@ function string:ends_with(ending)
 end
 
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
-local loadout = {
+local default_loadout = {
     "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",
     "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Shoes_A.BP_Armor_Shoes_A_C",
     "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Doublet_Arming.BP_Armor_Doublet_Arming_C",
@@ -98,6 +98,23 @@ local loadout = {
     "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",
     "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C"
 }
+
+local custom_loadout = {}
+
+-- Read custom loadout from a text file containing class names
+function LoadCustomLoadout()
+    local file = io.open("Mods\\HalfSwordTrainerMod\\data\\custom_loadout.txt", "r");
+    if file~=nil then
+        if custom_loadout then custom_loadout = {} end
+        Logf("Loading custom loadout...\n")
+        for line in file:lines() do
+            if not line:starts_with('[BAD]') then
+                table.insert(custom_loadout, line)
+            end
+        end
+        Logf("Custom loadout loaded, %d items\n", #custom_loadout)
+    end
+end
 
 -- Item/NPC tables for the spawn menus
 local all_armor = {}
@@ -173,6 +190,8 @@ function InitMyMod()
             ErrLog("Objects not found, exiting\n")
             return
         end
+
+        LoadCustomLoadout()
 
         PopulateArmorComboBox()
         PopulateWeaponComboBox()
@@ -384,6 +403,11 @@ function SpawnLoadoutAroundPlayer()
     local DeltaLocation = maf.vec3(300.0, 0.0, 200.0)
     local rotatedDelta = DeltaLocation
     local rotator = maf.rotation.fromAngleAxis(0.45, 0.0, 0.0, 1.0)
+    local loadout = default_loadout
+    if #custom_loadout > 0 then
+        loadout = custom_loadout
+        Logf("Spawning custom loadout...\n")
+    end
     for index, value in ipairs(loadout) do
         local SpawnLocation = {
             X = PlayerLocation.X + rotatedDelta.x,
