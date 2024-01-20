@@ -69,6 +69,18 @@ function ErrLogf(...)
     print("[HalfSwordTrainerMod] [ERROR] " .. string.format(...))
 end
 
+function string:contains(sub)
+    return self:find(sub, 1, true) ~= nil
+end
+
+function string:starts_with(start)
+    return self:sub(1, #start) == start
+end
+
+function string:ends_with(ending)
+    return ending == "" or self:sub(- #ending) == ending
+end
+
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
 local loadout = {
     "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",
@@ -92,6 +104,8 @@ local all_armor = {}
 local all_weapons = {}
 local all_characters = {}
 local all_objects = {}
+
+
 
 -- The caching code logic is taken from TheLich at nexusmods (Grounded QoL mod)
 local cache = {}
@@ -145,7 +159,10 @@ function ValidateCachedObjects()
 end
 
 local lastInitTimestamp = -1
--- This gets added to the hook later
+-- This function gets added to the hook below.
+-- Somehow the hook gets triggered twice, so we try to have a time lock to avoid double-calling the init function,
+-- but we still have to call it once if the user restarts soon, hence the miminum timeout of that 1 second.
+-- So don't restart faster than once every two seconds, or this will break too.
 function InitMyMod()
     local curInitTimestamp = os.clock()
     local delta = curInitTimestamp - lastInitTimestamp
@@ -161,16 +178,16 @@ function InitMyMod()
         PopulateWeaponComboBox()
         PopulateNPCComboBox()
         PopulateObjectComboBox()
-        
+
         if spawnedThings then
-            spawnedThings = nil
+            spawnedThings = {}
         end
 
         LoopAsync(250, function()
             if not ValidateCachedObjects() then
                 ErrLog("Objects not found, skipping loop\n")
                 return false
-            end    
+            end
             HUD_UpdatePlayerStats()
             return false
         end)
@@ -182,66 +199,70 @@ function InitMyMod()
 end
 
 -- A very long function taking all the various stats we want from the player object
--- and writing them into the textboxes of the UI Widget that we use as a mod's HUD
+-- and writing them into the textblocks of the UI Widget that we use as a mod's HUD
+-- using the bound variables of the mod's HSTM_UI blueprint, because:
+-- TextBlock does not seem to have a SetText() method we could use,
+-- and for SetText() we also need FText for an argument, the constructor of which is not in the stable UE4SS 2.5.2
+-- and not yet merged into the master branch either (https://github.com/UE4SS-RE/RE-UE4SS/pull/301)
 function HUD_UpdatePlayerStats()
-    local player = cache.map['Player Willie']
-    PlayerHealth = player['Health']
-    Invulnerable = player['Invulnerable']
-    cache.ui_hud['HUD_HP_Value'] = PlayerHealth
-    cache.ui_hud['HUD_Invuln_Value'] = Invulnerable
+    local player                            = cache.map['Player Willie']
+    PlayerHealth                            = player['Health']
+    Invulnerable                            = player['Invulnerable']
+    cache.ui_hud['HUD_HP_Value']            = PlayerHealth
+    cache.ui_hud['HUD_Invuln_Value']        = Invulnerable
     cache.ui_hud['HUD_SuperStrength_Value'] = SuperStrength
     --
-    PlayerScore = cache.map['Score']
-    cache.ui_hud['HUD_Score_Value'] = PlayerScore
+    PlayerScore                             = cache.map['Score']
+    cache.ui_hud['HUD_Score_Value']         = PlayerScore
 
-    PlayerConsciousness = player['Consciousness']
-    cache.ui_hud['HUD_Cons_Value'] = PlayerConsciousness
+    PlayerConsciousness                     = player['Consciousness']
+    cache.ui_hud['HUD_Cons_Value']          = PlayerConsciousness
     --
-    HH  = player['Head Health']
-    NH  = player['Neck Health']
-    BH  = player['Body Health']
-    ARH = player['Arm_R Health']
-    ALH = player['Arm_L Health']
-    LRH = player['Leg_R Health']
-    LLH = player['Leg_L Health']
+    HH                                      = player['Head Health']
+    NH                                      = player['Neck Health']
+    BH                                      = player['Body Health']
+    ARH                                     = player['Arm_R Health']
+    ALH                                     = player['Arm_L Health']
+    LRH                                     = player['Leg_R Health']
+    LLH                                     = player['Leg_L Health']
     --
-    cache.ui_hud['HUD_HH'] = HH
-    cache.ui_hud['HUD_NH'] = NH
-    cache.ui_hud['HUD_BH'] = BH
-    cache.ui_hud['HUD_ARH'] = ARH
-    cache.ui_hud['HUD_ALH'] = ALH
-    cache.ui_hud['HUD_LRH'] = LRH
-    cache.ui_hud['HUD_LLH'] = LLH
+    cache.ui_hud['HUD_HH']                  = HH
+    cache.ui_hud['HUD_NH']                  = NH
+    cache.ui_hud['HUD_BH']                  = BH
+    cache.ui_hud['HUD_ARH']                 = ARH
+    cache.ui_hud['HUD_ALH']                 = ALH
+    cache.ui_hud['HUD_LRH']                 = LRH
+    cache.ui_hud['HUD_LLH']                 = LLH
     --
-    HJH  = player['Head Joint Health']
-    TJH  = player['Torso Joint Health']
-    HRJH = player['Hand R Joint Health']
-    ARJH = player['Arm R Joint Health']
-    SRJH = player['Shoulder R Joint Health']
-    HLJH = player['Hand L Joint Health']
-    ALJH = player['Arm L Joint Health']
-    SLJH = player['Shoulder L Joint Health']
-    TRJH = player['Thigh R Joint Health']
-    LRJH = player['Leg R Joint Health']
-    FRJH = player['Foot R Joint Health']
-    TLJH = player['Thigh L Joint Health']
-    LLJH = player['Leg L Joint Health']
-    FLJH = player['Foot L Joint Health']
+    HJH                                     = player['Head Joint Health']
+    TJH                                     = player['Torso Joint Health']
+    HRJH                                    = player['Hand R Joint Health']
+    ARJH                                    = player['Arm R Joint Health']
+    SRJH                                    = player['Shoulder R Joint Health']
+    HLJH                                    = player['Hand L Joint Health']
+    ALJH                                    = player['Arm L Joint Health']
+    SLJH                                    = player['Shoulder L Joint Health']
+    TRJH                                    = player['Thigh R Joint Health']
+    LRJH                                    = player['Leg R Joint Health']
+    FRJH                                    = player['Foot R Joint Health']
+    TLJH                                    = player['Thigh L Joint Health']
+    LLJH                                    = player['Leg L Joint Health']
+    FLJH                                    = player['Foot L Joint Health']
     --
-    cache.ui_hud['HUD_HJH'] = HJH
-    cache.ui_hud['HUD_TJH'] = TJH
-    cache.ui_hud['HUD_HRJH'] = HRJH
-    cache.ui_hud['HUD_ARJH'] = ARJH
-    cache.ui_hud['HUD_SRJH'] = SRJH
-    cache.ui_hud['HUD_HLJH'] = HLJH
-    cache.ui_hud['HUD_ALJH'] = ALJH
-    cache.ui_hud['HUD_SLJH'] = SLJH
-    cache.ui_hud['HUD_TRJH'] = TRJH
-    cache.ui_hud['HUD_LRJH'] = LRJH
-    cache.ui_hud['HUD_FRJH'] = FRJH
-    cache.ui_hud['HUD_TLJH'] = TLJH
-    cache.ui_hud['HUD_LLJH'] = LLJH
-    cache.ui_hud['HUD_FLJH'] = FLJH
+    cache.ui_hud['HUD_HJH']                 = HJH
+    cache.ui_hud['HUD_TJH']                 = TJH
+    cache.ui_hud['HUD_HRJH']                = HRJH
+    cache.ui_hud['HUD_ARJH']                = ARJH
+    cache.ui_hud['HUD_SRJH']                = SRJH
+    cache.ui_hud['HUD_HLJH']                = HLJH
+    cache.ui_hud['HUD_ALJH']                = ALJH
+    cache.ui_hud['HUD_SLJH']                = SLJH
+    cache.ui_hud['HUD_TRJH']                = TRJH
+    cache.ui_hud['HUD_LRJH']                = LRJH
+    cache.ui_hud['HUD_FRJH']                = FRJH
+    cache.ui_hud['HUD_TLJH']                = TLJH
+    cache.ui_hud['HUD_LLJH']                = LLJH
+    cache.ui_hud['HUD_FLJH']                = FLJH
 
     --
     HUD_CacheLevel()
@@ -299,9 +320,8 @@ function ToggleModUI()
 end
 
 function SpawnActorByClassPath(FullClassPath, SpawnLocation)
-    -- TODO Load missing assets
-    -- WARN only spawns loaded assets now!
-    --
+    -- TODO Load missing assets!
+    -- WARN Only spawns loaded assets now!
     local ActorClass = StaticFindObject(FullClassPath)
     if ActorClass == nil or not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
 
@@ -309,25 +329,31 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation)
     if World == nil or not World:IsValid() then error("[ERROR] World is not valid") end
     local Actor = World:SpawnActor(ActorClass, SpawnLocation, {})
     if Actor == nil or not Actor:IsValid() then
-        Log(string.format("[ERROR] Actor for \"%s\" is not valid\n", FullClassPath))
+        Logf("[ERROR] Actor for \"%s\" is not valid\n", FullClassPath)
     else
-        table.insert(spawnedThings, Actor)
-        Log(string.format("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f}\n",
-            Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z))
+        if spawnedThings then
+            table.insert(spawnedThings, Actor)
+        end
+        Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f}\n",
+            Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z)
     end
 end
 
+-- Should also undo all spawned things if called repeatedly
 function UndoLastSpawn()
     if spawnedThings then
         if #spawnedThings > 0 then
             local actorToDespawn = spawnedThings[#spawnedThings]
             if actorToDespawn and actorToDespawn:IsValid() then
-                actorToDespawn:Destroy()
+                Logf("Despawning actor: %s\n", actorToDespawn:GetFullName())
+                --                actorToDespawn:Destroy()
+                actorToDespawn:K2_DestroyActor()
             end
         end
     end
 end
 
+-- The location is retrieved using a less documented approach of K2_GetActorLocation()
 function GetPlayerLocation()
     local FirstPlayerController = UEHelpers:GetPlayerController()
     if not FirstPlayerController then
@@ -338,8 +364,18 @@ function GetPlayerLocation()
     return location
 end
 
+function GetPlayerViewRotation()
+    local FirstPlayerController = UEHelpers:GetPlayerController()
+    if not FirstPlayerController then
+        return { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
+    end
+    local rotation = FirstPlayerController['ControlRotation']
+    return rotation
+end
+
 -- We spawn the loadout in a circle, rotating a displacement vector a bit
--- with every item
+-- with every item, so they all fit nicely
+-- (loadout is 14 items so 0.4 radian is OK for 14*angle < 2*pi radians total)
 function SpawnLoadoutAroundPlayer()
     local PlayerLocation = GetPlayerLocation()
     local DeltaLocation = maf.vec3(300.0, 0.0, 200.0)
@@ -360,9 +396,32 @@ function SpawnLoadoutAroundPlayer()
     end
 end
 
+-- Try to spawn the actor(item) in front of the player
+function SpawnActorInFrontOfPlayer(classpath)
+    local PlayerLocation = GetPlayerLocation()
+    local PlayerRotation = GetPlayerViewRotation()
+    local rotator = maf.rotation.fromAngleAxis(
+        math.rad(PlayerRotation.Yaw),
+        0.0, -- math.rad(PlayerRotation.Pitch),
+        0.0, -- math.rad(PlayerRotation.Roll),
+        1.0
+    )
+    local DeltaLocation = maf.vec3(300.0, 0.0, 200.0)
+    local rotatedDelta = DeltaLocation
+    rotatedDelta:rotate(rotator)
+    local SpawnLocation = {
+        X = PlayerLocation.X + rotatedDelta.x,
+        Y = PlayerLocation.Y + rotatedDelta.y,
+        Z = PlayerLocation.Z + rotatedDelta.z
+    }
+    ExecuteInGameThread(function()
+        SpawnActorByClassPath(classpath, SpawnLocation)
+    end)
+end
+
 function HUD_SetLevel(Level)
     cache.map['Level'] = Level
-    Log(string.format("Set Level = %d\n", Level))
+    Logf("Set Level = %d\n", Level)
     cache.ui_hud['HUD_Level_Value'] = Level
 end
 
@@ -388,28 +447,64 @@ function IncreaseLevel()
 end
 
 ------------------------------------------------------------------------------
+function KillAllNPCs()
+    -- TODO
+end
+
+------------------------------------------------------------------------------
 function SpawnSelectedArmor()
+    local Selected_Spawn_Armor = cache.ui_spawn['Selected_Spawn_Armor']:ToString()
+    Logf("Spawning armor key [%s]\n", Selected_Spawn_Armor)
+    --    if not Selected_Spawn_Armor == nil and not Selected_Spawn_Armor == "" then
+    local selected_actor = all_armor[Selected_Spawn_Armor]
+    Logf("Spawning armor [%s]\n", selected_actor)
+    SpawnActorInFrontOfPlayer(selected_actor)
+    --    end
 end
 
 function SpawnSelectedWeapon()
+    local Selected_Spawn_Weapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
+    Logf("Spawning weapon key [%s]\n", Selected_Spawn_Weapon)
+    --    if not Selected_Spawn_Weapon == nil and not Selected_Spawn_Weapon == "" then
+    local selected_actor = all_weapons[Selected_Spawn_Weapon]
+    Logf("Spawning weapon [%s]\n", selected_actor)
+    SpawnActorInFrontOfPlayer(selected_actor)
+    --    end
 end
 
 function SpawnSelectedNPC()
+    local Selected_Spawn_NPC = cache.ui_spawn['Selected_Spawn_NPC']:ToString()
+    Logf("Spawning NPC key [%s]\n", Selected_Spawn_NPC)
+    --    if not Selected_Spawn_NPC == nil and not Selected_Spawn_NPC == "" then
+    local selected_actor = all_characters[Selected_Spawn_NPC]
+    Logf("Spawning NPC [%s]\n", selected_actor)
+    SpawnActorInFrontOfPlayer(selected_actor)
+    --    end
 end
 
 function SpawnSelectedObject()
+    local Selected_Spawn_Object = cache.ui_spawn['Selected_Spawn_Object']:ToString()
+    Logf("Spawning object key [%s]\n", Selected_Spawn_Object)
+    --    if not Selected_Spawn_Object == nil and not Selected_Spawn_Object == "" then
+    local selected_actor = all_objects[Selected_Spawn_Object]
+    Logf("Spawning object [%s]\n", selected_actor)
+    SpawnActorInFrontOfPlayer(selected_actor)
+    --    end
 end
+
 ------------------------------------------------------------------------------
 function PopulateArmorComboBox()
     local ComboBox_Armor = cache.ui_spawn['ComboBox_Armor']
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_armor.txt", "r");
     for line in file:lines() do
-        fkey = ExtractHumanReadableName(line)
-        all_armor[fkey] = line
-        ComboBox_Armor:AddOption(fkey)
+        if not line:starts_with('[BAD]') then
+            local fkey = ExtractHumanReadableName(line)
+            all_armor[fkey] = line
+            ComboBox_Armor:AddOption(fkey)
+        end
     end
-
+    ComboBox_Armor:SetSelectedIndex(0)
 end
 
 function PopulateWeaponComboBox()
@@ -417,11 +512,13 @@ function PopulateWeaponComboBox()
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_weapons.txt", "r");
     for line in file:lines() do
-        fkey = ExtractHumanReadableName(line)
-        all_weapons[fkey] = line
-        ComboBox_Weapon:AddOption(fkey)
+        if not line:starts_with('[BAD]') then
+            local fkey = ExtractHumanReadableName(line)
+            all_weapons[fkey] = line
+            ComboBox_Weapon:AddOption(fkey)
+        end
     end
-
+    ComboBox_Weapon:SetSelectedIndex(0)
 end
 
 function PopulateNPCComboBox()
@@ -429,11 +526,13 @@ function PopulateNPCComboBox()
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_characters.txt", "r");
     for line in file:lines() do
-        fkey = ExtractHumanReadableName(line)
-        all_characters[fkey] = line
-        ComboBox_NPC:AddOption(fkey)
+        if not line:starts_with('[BAD]') then
+            local fkey = ExtractHumanReadableName(line)
+            all_characters[fkey] = line
+            ComboBox_NPC:AddOption(fkey)
+        end
     end
-
+    ComboBox_NPC:SetSelectedIndex(0)
 end
 
 function PopulateObjectComboBox()
@@ -441,37 +540,49 @@ function PopulateObjectComboBox()
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_objects.txt", "r");
     for line in file:lines() do
-        fkey = ExtractHumanReadableName(line)
-        all_objects[fkey] = line
-        ComboBox_Object:AddOption(fkey)
+        if not line:starts_with('[BAD]') then
+            local fkey = ExtractHumanReadableName(line)
+            all_objects[fkey] = line
+            ComboBox_Object:AddOption(fkey)
+        end
     end
-
+    ComboBox_Object:SetSelectedIndex(0)
 end
 
 function ExtractHumanReadableName(BPFullClassName)
-    hname = string.match(BPFullClassName, "/([%w_]+)%.[%w_]+$")
+    local hname = string.match(BPFullClassName, "/([%w_]+)%.[%w_]+$")
     return hname
 end
+
 ------------------------------------------------------------------------------
 -- We hook the restart event, which somehow fires twice per restart
+-- We take care of that in the InitMyMod() function above
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
 
 -- We hook the creation of Character class objects, those are NPCs usually
 NotifyOnNewObject("/Script/Engine.Character", function(ConstructedObject)
-    Log(string.format("Hook Character spawned: %s\n", ConstructedObject:GetFullName()))
+    Logf("Hook Character spawned: %s\n", ConstructedObject:GetFullName())
 end)
 
--- Damage hooks are commented for now, not sure which is the correct one to intercept
+-- Damage hooks are commented for now, not sure which is the correct one to intercept and how to interpret the variables
+-- Needs a proper investigation
 -- RegisterHook("/Script/Engine.Actor:ReceiveAnyDamage", function(self, Damage, DamageType, InstigatedBy, DamageCauser)
 --     Log(string.format("Damage %f\n", Damage:get()))
 -- end)
-
 -- RegisterHook("/Game/Character/Blueprints/Willie_BP.Willie_BP_C:Get Damage", function(self,
 --         Impulse,Velocity,Location,Normal,bone,Raw_Damage,Cutting_Power,Inside,Damaged_Mesh,Dism_Blunt,Lower_Threshold,Shockwave,Hit_By_Component,Damage_Out
 --     )
 --     Log(string.format("Damage %f %f\n", Raw_Damage:get(), Damage_Out:get()))
 -- end)
 
+
+-- Try to hook the button click functions of the HSTM_UI blueprint
+-- Does not work yet.
+-- RegisterHook("/Game/Mods/HSTM_UI/HSTM_UI_Spawn_Widget.HSTM_UI_Spawn_Widget_C:BndEvt__HSTM_UI_Spawn_Widget_Button_SpawnArmor_K2Node_ComponentBoundEvent_0_OnButtonClickedEvent__DelegateSignature", function(self)
+--     Log("BUTTON CLICKED\n")
+-- end)
+
+-- The user-facing key bindings are below.
 RegisterKeyBind(Key.I, function()
     ExecuteInGameThread(function()
         ToggleInvulnerability()
@@ -504,6 +615,30 @@ RegisterKeyBind(Key.U, function()
     ExecuteInGameThread(function()
         ToggleModUI()
     end)
+end)
+
+RegisterKeyBind(Key.F1, function()
+    SpawnSelectedArmor()
+end)
+
+RegisterKeyBind(Key.F2, function()
+    SpawnSelectedWeapon()
+end)
+
+RegisterKeyBind(Key.F3, function()
+    SpawnSelectedNPC()
+end)
+
+RegisterKeyBind(Key.F4, function()
+    SpawnSelectedObject()
+end)
+
+RegisterKeyBind(Key.F5, function()
+    UndoLastSpawn()
+end)
+
+RegisterKeyBind(Key.K, function()
+    KillAllNPCs()
 end)
 
 -- EOF

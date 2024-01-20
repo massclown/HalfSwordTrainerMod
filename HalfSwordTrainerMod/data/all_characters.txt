@@ -1,4 +1,4 @@
-/Game/Character/Blueprints/AI_BP.AI_BP_C
+[BAD]/Game/Character/Blueprints/AI_BP.AI_BP_C
 /Game/Character/Blueprints/Willie_BP.Willie_BP_C
 /Game/Character/Blueprints/Willie_Torso_BP.Willie_Torso_BP_C
 /Game/Character/Blueprints/Unique/Willie_BP_FalconBoss.Willie_BP_FalconBoss_C

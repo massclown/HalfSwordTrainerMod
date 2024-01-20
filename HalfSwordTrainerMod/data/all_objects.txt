@@ -1,4 +1,4 @@
-/Game/Assets/Props/Lights/Blueprints/BP_CandleLight.BP_CandleLight_C
+[BAD]/Game/Assets/Props/Lights/Blueprints/BP_CandleLight.BP_CandleLight_C
 /Game/Assets/Props/Furniture/Meshes/BM_Prop_Furniture_Small_Bench_001.BM_Prop_Furniture_Small_Bench_001_C
 /Game/Assets/Props/Furniture/Meshes/BP_Prop_Furniture_Small_Table_001.BP_Prop_Furniture_Small_Table_001_C
 /Game/Assets/Props/Barrels/Meshes/BP_Prop_Barrel_004.BP_Prop_Barrel_004_C
