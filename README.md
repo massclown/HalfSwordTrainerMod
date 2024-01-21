@@ -177,6 +177,30 @@ Make sure UE4SS loads and observe its logs. It should mention `HalfSwordTrainerM
 * If it does not, check that you have the mod files in the right places as explained above.
 * If it does, but the mod does not show UI or does not react to the keyboard shortcuts, check the logs for errors related to `HalfSwordTrainerMod`.
 
+### I see the HUD/UI of the mod, but values are zero and buttons/menus don't work
+That means that `BPModLoaderMod` has worked correctly and loaded our Blueprint mod that is the UI of the mod, 
+but the actual Lua mod named `HalfSwordTrainerMod` can't work due to one of the possible reasons: 
+* either it is missing in the `Mods` folder entirely, 
+* or it is not copied in the correct folder structure (say, the Lua files of the mod must be in `Mods\HalfSwordTrainerMod\scripts\`), 
+* or it is not enabled in the `Mods\mods.txt`, 
+* or the mod cannot start due to some error. 
+
+Check which of these things might have happened on your system, and also look inside `UE4SS.log` and see if there are any error lines looking like `[HalfSwordTrainerMod] [ERROR]`.
+
+### I don't see the HUD/UI of the mod, but some hotkeys still work
+That means that the `BPModLoaderMod` did not work and therefore did not load our Blueprint mod that is the UI, 
+while Lua mod named `HalfSwordTrainerMod` succeeded. 
+
+`BPModLoaderMod` probably couldn't work due to one of the possible reasons: 
+* either it is missing in the `Mods` folder entirely, probably with all other folders out of the UE4SS package
+* or it is not enabled in the `Mods\mods.txt`, 
+* or the mod cannot start due to some error. 
+
+Check which of these things might have happened on your system, and also look inside `UE4SS.log` and see if there are any error lines saying something suspicious right after the line:
+```
+[2024-01-21 12:06:20] Starting Lua mod 'BPModLoaderMod'
+```
+
 ### Mod crashes the game?
 If you suspect the fault is in the logic of this mod, you can try to disable or comment out the last suspicious thing that you used before the crash.
 
