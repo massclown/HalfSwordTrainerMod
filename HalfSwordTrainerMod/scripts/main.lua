@@ -51,12 +51,11 @@ local FLJH = 0 -- "Foot L Joint Health"
 local ModUIHUDVisible = true
 local ModUISpawnVisible = true
 
-local spawnedThings = {}
+-- everything that we spawned
+local spawned_things = {}
 
 -- The actors from the hook
 local intercepted_actors = {}
--- The NPC actors that we spawned
-local spawned_actors = {}
 
 -- Item/NPC tables for the spawn menus in the UI
 local all_armor = {}
@@ -208,12 +207,8 @@ function InitMyMod()
             intercepted_actors = {}
         end
 
-        if spawnedThings then
-            spawnedThings = {}
-        end
-
-        if spawned_actors then
-            spawned_actors = {}
+        if spawned_things then
+            spawned_things = {}
         end
 
         -- This starts a thread that updates the HUD in background.
@@ -362,7 +357,7 @@ end
 function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
-    local DefaultRotation = {Pitch = 0.0, Yaw = 0.0, Roll = 0.0}
+    local DefaultRotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
     local CurrentRotation = SpawnRotation == nil and DefaultRotation or SpawnRotation
     local ActorClass = StaticFindObject(FullClassPath)
     if ActorClass == nil or not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
@@ -373,8 +368,10 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
     if Actor == nil or not Actor:IsValid() then
         Logf("[ERROR] Actor for \"%s\" is not valid\n", FullClassPath)
     else
-        if spawnedThings then
-            table.insert(spawnedThings, Actor)
+        if spawned_things then
+            -- We try to guess if this actor was an NPC
+            table.insert(spawned_things,
+                { Object = Actor, IsCharacter = FullClassPath:contains("/Game/Character/Blueprints/") })
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
             Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z,
@@ -384,16 +381,35 @@ end
 
 -- Should also undo all spawned things if called repeatedly
 function UndoLastSpawn()
-    if spawnedThings then
-        if #spawnedThings > 0 then
-            local actorToDespawn = spawnedThings[#spawnedThings]
+    if spawned_things then
+        if #spawned_things > 0 then
+            local actorToDespawnRecord = spawned_things[#spawned_things]
+            local actorToDespawn = actorToDespawnRecord.Object
             if actorToDespawn and actorToDespawn:IsValid() then
                 Logf("Despawning actor: %s\n", actorToDespawn:GetFullName())
                 --                actorToDespawn:Destroy()
                 actorToDespawn:K2_DestroyActor()
                 -- let's remove it for now so undo can be repeated.
                 -- K2_DestroyActor() is supposed to clean up things properly
-                table.remove(spawnedThings, #spawnedThings)
+                table.remove(spawned_things, #spawned_things)
+            end
+        end
+    end
+end
+
+-- We are iterating from the end of the array to make sure Lua does not reindex the array as we are deleting items
+-- We probaly could also just set them to nil but YOLO let's try to actually remove them from the array
+function UndoAllPlayerSpawnedCharacters()
+    if spawned_things then
+        for i = #spawned_things, 1, -1 do
+            local actorToDespawnRecord = spawned_things[i]
+            local actorToDespawn = actorToDespawnRecord.Object
+            if actorToDespawn and actorToDespawn:IsValid() and actorToDespawnRecord.IsCharacter then
+                Logf("Despawning NPC actor: %s\n", actorToDespawn:GetFullName())
+                actorToDespawn:K2_DestroyActor()
+                -- let's remove it for now so undo can be repeated.
+                -- K2_DestroyActor() is supposed to clean up things properly
+                table.remove(spawned_things, i)
             end
         end
     end
@@ -421,17 +437,16 @@ end
 
 -- We spawn the loadout in a circle, rotating a displacement vector a bit
 -- with every item, so they all fit nicely
--- (loadout is 14 items so 0.4 radian is OK for 14*angle < 2*pi radians total)
 function SpawnLoadoutAroundPlayer()
     local PlayerLocation = GetPlayerLocation()
     local DeltaLocation = maf.vec3(300.0, 0.0, 200.0)
     local rotatedDelta = DeltaLocation
-    local rotator = maf.rotation.fromAngleAxis(0.45, 0.0, 0.0, 1.0)
     local loadout = default_loadout
     if #custom_loadout > 0 then
         loadout = custom_loadout
         Logf("Spawning custom loadout...\n")
     end
+    local rotator = maf.rotation.fromAngleAxis(((math.pi * 2) / #loadout), 0.0, 0.0, 1.0)
     for index, value in ipairs(loadout) do
         local SpawnLocation = {
             X = PlayerLocation.X + rotatedDelta.x,
@@ -467,8 +482,8 @@ function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer)
         Y = PlayerLocation.Y + rotatedDelta.y,
         Z = PlayerLocation.Z + rotatedDelta.z
     }
-    local lookingAtPlayerRotation = {Yaw = 180 + PlayerRotation.Yaw, Pitch = 0, Roll = 0}
-    local SpawnRotation = lookingAtPlayer and lookingAtPlayerRotation or {}
+    local lookingAtPlayerRotation = { Yaw = 180.0 + PlayerRotation.Yaw, Pitch = 0.0, Roll = 0.0 }
+    local SpawnRotation = lookingAtPlayer and lookingAtPlayerRotation or { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
     ExecuteInGameThread(function()
         SpawnActorByClassPath(classpath, SpawnLocation, SpawnRotation)
     end)
@@ -503,16 +518,22 @@ function IncreaseLevel()
 end
 
 ------------------------------------------------------------------------------
+-- Killing is actually despawning for now
 function KillAllNPCs()
-    if intercepted_actors then
-        for index, actor in ipairs(intercepted_actors) do
-            -- Very crude hack: ignore the earliest N spawned actors
-            -- up to N == the number of despawned NPC
-            -- We should probably look at map['Enemy Array'] instead?
-            if actor ~= nil and actor:IsValid() and index > cache.map['Enemies Despawned'] then
-                Logf("Destroying actor [%s]\n", actor:GetFullName())
-                actor:K2_DestroyActor()
-            end
+    -- First the ones spawned by player
+    UndoAllPlayerSpawnedCharacters()
+    -- Then the ones spawned by the game
+    if cache.map['Enemy Array'] then
+        local npc = cache.map['Enemy Array']
+        Logf("Enemy Array: %s\n", tostring(npc))
+        Logf("Enemy Array size: %d\n", npc:GetArrayNum())
+        if npc:GetArrayNum() > 0 then
+            npc:ForEach(function(Index, Elem)
+                if npc:IsValid() then
+                    Logf("Destroying NPC [%i]: %s\n", Index - 1, Elem:get():GetFullName())
+                    Elem:get():K2_DestroyActor()
+                end
+            end)
         end
     end
 end
@@ -549,8 +570,6 @@ function SpawnSelectedNPC()
     local selected_actor = all_characters[Selected_Spawn_NPC]
     Logf("Spawning NPC [%s]\n", selected_actor)
     SpawnActorInFrontOfPlayer(selected_actor, { X = 800.0, Y = 0.0, Z = 50.0 }, true)
-    -- The last spawned actor is probably the NPC we just spawned
-    table.insert(spawned_actors, spawnedThings[#spawnedThings])
     --    end
 end
 
