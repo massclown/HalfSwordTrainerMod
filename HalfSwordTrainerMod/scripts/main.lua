@@ -359,23 +359,26 @@ function ToggleModUI()
 end
 
 ------------------------------------------------------------------------------
-function SpawnActorByClassPath(FullClassPath, SpawnLocation)
+function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
+    local DefaultRotation = {}
+    local rotation = SpawnRotation == nil and DefaultRotation or SpawnRotation
     local ActorClass = StaticFindObject(FullClassPath)
     if ActorClass == nil or not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
 
     local World = UEHelpers:GetWorld()
     if World == nil or not World:IsValid() then error("[ERROR] World is not valid") end
-    local Actor = World:SpawnActor(ActorClass, SpawnLocation, {})
+    local Actor = World:SpawnActor(ActorClass, SpawnLocation, rotation)
     if Actor == nil or not Actor:IsValid() then
         Logf("[ERROR] Actor for \"%s\" is not valid\n", FullClassPath)
     else
         if spawnedThings then
             table.insert(spawnedThings, Actor)
         end
-        Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f}\n",
-            Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z)
+        Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
+            Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z,
+            SpawnRotation.Pitch, SpawnRotation.Yaw, SpawnRotation.Roll)
     end
 end
 
@@ -446,7 +449,7 @@ end
 
 -- Try to spawn the actor(item) in front of the player
 -- Get player's rotation vector and rotate our offset by its value
-function SpawnActorInFrontOfPlayer(classpath, offset)
+function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer)
     local defaultOffset = maf.vec3(300.0, 0.0, 0.0)
     local PlayerLocation = GetPlayerLocation()
     local PlayerRotation = GetPlayerViewRotation()
@@ -464,8 +467,10 @@ function SpawnActorInFrontOfPlayer(classpath, offset)
         Y = PlayerLocation.Y + rotatedDelta.y,
         Z = PlayerLocation.Z + rotatedDelta.z
     }
+    local lookingAtPlayerRotation = {Yaw = 180 + PlayerRotation.Yaw, Pitch = 0, Roll = 0}
+    local SpawnRotation = lookingAtPlayer and lookingAtPlayerRotation or {}
     ExecuteInGameThread(function()
-        SpawnActorByClassPath(classpath, SpawnLocation)
+        SpawnActorByClassPath(classpath, SpawnLocation, SpawnRotation)
     end)
 end
 
@@ -543,7 +548,7 @@ function SpawnSelectedNPC()
     --    if not Selected_Spawn_NPC == nil and not Selected_Spawn_NPC == "" then
     local selected_actor = all_characters[Selected_Spawn_NPC]
     Logf("Spawning NPC [%s]\n", selected_actor)
-    SpawnActorInFrontOfPlayer(selected_actor, { X = 800.0, Y = 0.0, Z = 50.0 })
+    SpawnActorInFrontOfPlayer(selected_actor, { X = 800.0, Y = 0.0, Z = 50.0 }, true)
     -- The last spawned actor is probably the NPC we just spawned
     table.insert(spawned_actors, spawnedThings[#spawnedThings])
     --    end
