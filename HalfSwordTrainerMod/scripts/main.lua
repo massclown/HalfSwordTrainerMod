@@ -559,6 +559,16 @@ function SpawnSelectedObject()
     --    end
 end
 
+-- Spawns the boss arena fence around the player's location
+function SpawnBossArena()
+    local PlayerLocation = GetPlayerLocation()
+    local SpawnLocation = PlayerLocation
+    SpawnLocation.Z = 0
+    local FullClassPath = "/Game/Blueprints/Spawner/BossFight_Arena_BP.BossFight_Arena_BP_C"
+    Log("Spawning Boss Arena\n")
+    local arena = SpawnActorByClassPath(FullClassPath, SpawnLocation)
+end
+
 ------------------------------------------------------------------------------
 function PopulateArmorComboBox()
     local ComboBox_Armor = cache.ui_spawn['ComboBox_Armor']
@@ -746,5 +756,8 @@ RegisterKeyBind(Key.Z, function()
     FreezeAllNPCs()
 end)
 
+RegisterKeyBind(Key.B, function()
+    SpawnBossArena()
+end)
 
 -- EOF

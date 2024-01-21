@@ -31,7 +31,10 @@ UE4SS.dll
 ...
 ```
 
-2) Download a release or source package of this `HalfSwordTrainerMod` repo and unpack it somewhere to take a look. 
+2) Download either a release, or a source package of this `HalfSwordTrainerMod` repo and unpack it somewhere to take a look. 
+* If you want a more stable build, take a named version [from the releases](https://github.com/massclown/HalfSwordTrainerMod/releases)
+* If you want a fresh development one, click the green "<>Code" button in the top-right of the page and select "Download ZIP".
+
 In the next steps you will copy some folders from inside the folder where you unpacked it into the game folders.
 
 When you unzip the archive, it is going to look like this:
@@ -91,6 +94,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `F3`          | Spawn selected **NPC** |
 | `F4`          | Spawn selected **Object** |
 | `F5`          | **Undo** last spawn (can be repeated) |
+| `B`           | Spawn the Boss Arena fence around the player's location |
 | `K`           | (does not work) **Kill** all NPCs currently on the map (does not prevent auto-spawning) |
 
 ### Changing difficulty
@@ -108,6 +112,8 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 * or, first, **pause** the game, select what you want in the drop-down menu on the right, and spawn each individual item. 
 
 Use the buttons on screen to spawn items while the game is paused, or use `F1` - `F4` to spawn the selected things in each category (armor, weapons, NPCs, objects) when the game is running.
+
+Player's viewpoint direction is used to place the spawned object in the world. NPCs are placed a bit further than items.
 
 > The names of objects in the on-screen spawn menu have been shortened for better readability.
 
