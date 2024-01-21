@@ -1,6 +1,8 @@
--- Half Sword Trainer Mod v0.4 by massclown
+-- Half Sword Trainer Mod v0.5 by massclown
 -- https://github.com/massclown/HalfSwordTrainerMod
 -- Requirements: UE4SS 2.5.2 (or newer) a Blueprint mod HSTM_UI (see repo)
+
+local mod_version = "0.5"
 
 local maf = require 'maf'
 local UEHelpers = require("UEHelpers")
@@ -21,6 +23,7 @@ local level = 0
 local PlayerScore = 0
 local PlayerHealth = 0
 local PlayerConsciousness = 0
+local PlayerTonus = 0
 
 -- Player body detailed health data
 local HH = 0  -- 'Head Health'
@@ -55,7 +58,7 @@ local ModUISpawnVisible = true
 local spawned_things = {}
 
 -- The actors from the hook
-local intercepted_actors = {}
+--local intercepted_actors = {}
 
 -- Item/NPC tables for the spawn menus in the UI
 local all_armor = {}
@@ -196,6 +199,23 @@ function InitMyMod()
             return
         end
 
+        -- We retrieve the version variable from the Blueprint just to confirm that we are on the same version
+        if cache.ui_hud['UI_Version'] then
+            local hud_ui_version = cache.ui_hud['UI_Version']:ToString()
+            if mod_version ~= hud_ui_version then
+                ErrLogf("HSTM UI version mismatch: mod version [%s], HUD version [%s]\n", mod_version, hud_ui_version)
+                return
+            end
+        end
+
+        if cache.ui_spawn['UI_Version'] then
+            local spawn_ui_version = cache.ui_spawn['UI_Version']:ToString()
+            if mod_version ~= spawn_ui_version then
+                ErrLogf("HSTM UI version mismatch: mod version [%s], HUD version [%s]\n", mod_version, spawn_ui_version)
+                return
+            end
+        end
+
         LoadCustomLoadout()
 
         PopulateArmorComboBox()
@@ -203,9 +223,9 @@ function InitMyMod()
         PopulateNPCComboBox()
         PopulateObjectComboBox()
 
-        if intercepted_actors then
-            intercepted_actors = {}
-        end
+        -- if intercepted_actors then
+        --     intercepted_actors = {}
+        -- end
 
         if spawned_things then
             spawned_things = {}
@@ -228,6 +248,7 @@ function InitMyMod()
     lastInitTimestamp = curInitTimestamp
 end
 
+------------------------------------------------------------------------------
 -- A very long function taking all the various stats we want from the player object
 -- and writing them into the textblocks of the UI Widget that we use as a mod's HUD
 -- using the bound variables of the mod's HSTM_UI blueprint, because:
@@ -248,6 +269,9 @@ function HUD_UpdatePlayerStats()
 
     PlayerConsciousness                     = player['Consciousness']
     cache.ui_hud['HUD_Cons_Value']          = PlayerConsciousness
+
+    PlayerTonus                             = player['All Body Tonus']
+    cache.ui_hud['HUD_Tonus_Value']         = PlayerTonus
     --
     HH                                      = player['Head Health']
     NH                                      = player['Neck Health']
@@ -414,7 +438,7 @@ function UndoAllPlayerSpawnedCharacters()
         end
     end
 end
-
+------------------------------------------------------------------------------
 -- The location is retrieved using a less documented approach of K2_GetActorLocation()
 function GetPlayerLocation()
     local FirstPlayerController = UEHelpers:GetPlayerController()
@@ -434,7 +458,7 @@ function GetPlayerViewRotation()
     local rotation = FirstPlayerController['ControlRotation']
     return rotation
 end
-
+------------------------------------------------------------------------------
 -- We spawn the loadout in a circle, rotating a displacement vector a bit
 -- with every item, so they all fit nicely
 function SpawnLoadoutAroundPlayer()
@@ -525,8 +549,8 @@ function KillAllNPCs()
     -- Then the ones spawned by the game
     if cache.map['Enemy Array'] then
         local npc = cache.map['Enemy Array']
-        Logf("Enemy Array: %s\n", tostring(npc))
-        Logf("Enemy Array size: %d\n", npc:GetArrayNum())
+        -- Logf("Enemy Array: %s\n", tostring(npc))
+        -- Logf("Enemy Array size: %d\n", npc:GetArrayNum())
         if npc:GetArrayNum() > 0 then
             npc:ForEach(function(Index, Elem)
                 if npc:IsValid() then
@@ -663,12 +687,14 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
 ------------------------------------------------------------------------------
 
 -- We hook the creation of Character class objects, those are NPCs usually
-NotifyOnNewObject("/Script/Engine.Character", function(ConstructedObject)
-    if intercepted_actors then
-        table.insert(intercepted_actors, ConstructedObject)
-    end
-    Logf("Hook Character spawned: %s\n", ConstructedObject:GetFullName())
-end)
+-- WARN for some reason, this crashes the game on restart
+-- Maybe it is the Lua GC doing this to a table of actors somehow?
+-- NotifyOnNewObject("/Script/Engine.Character", function(ConstructedObject)
+--     if intercepted_actors then
+--         table.insert(intercepted_actors, ConstructedObject)
+--     end
+--     Logf("Hook Character spawned: %s\n", ConstructedObject:GetFullName())
+-- end)
 ------------------------------------------------------------------------------
 -- Damage hooks are commented for now, not sure which is the correct one to intercept and how to interpret the variables
 -- TODO Needs a proper investigation
@@ -712,6 +738,10 @@ end)
 
 RegisterCustomEvent("HSTM_KillAllNPCs", function(ParamContext, ParamMessage)
     KillAllNPCs()
+end)
+
+RegisterCustomEvent("HSTM_FreezeAllNPCs", function(ParamContext, ParamMessage)
+    FreezeAllNPCs()
 end)
 ------------------------------------------------------------------------------
 -- The user-facing key bindings are below.
@@ -777,11 +807,15 @@ end)
 
 -- Does not work yet
 RegisterKeyBind(Key.Z, function()
-    FreezeAllNPCs()
+    ExecuteInGameThread(function()
+        FreezeAllNPCs()
+    end)
 end)
 
 RegisterKeyBind(Key.B, function()
-    SpawnBossArena()
+    ExecuteInGameThread(function()
+        SpawnBossArena()
+    end)
 end)
 
 -- EOF

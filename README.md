@@ -65,6 +65,20 @@ We need **both** of them to be enabled, as `BPModLoaderMod` will load the user i
 
 6) Enjoy the game and support the developers.
 
+## Updating or installing a new release
+* You can copy files from the new release of the mod on top of the old one. I do my best to not have any files left from an older version create any problems in the new one.
+* If something weird is still happening:
+    * delete the old `HalfSwordTrainerMod` folder in the `Mods` folder of your UE4SS installation
+    (probably in your `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64\Mods`)
+    and then copy the new one from the new release.
+    * delete the old `LogicMods` folder in the `Content\Paks` folder of your Half Sword demo installation
+    (probably in your `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Content\Paks`)
+    and then copy the new one from the new release.
+    * the configuration in `\Mods\mods.txt` does not need to be changed.
+
+## Uninstalling
+Delete the files that you copied as described above, or just reinstall the entire Half Sword game entirely (it will wipe all the folders where the installed mod is located)
+
 ## How does the mod look on screen
 ![Alt text](images/screenshot_hud_v0.4_2K.jpg?raw=true "Screenshot of mod UI v0.4")
 
@@ -94,8 +108,9 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `F3`          | Spawn selected **NPC** |
 | `F4`          | Spawn selected **Object** |
 | `F5`          | **Undo** last spawn (can be repeated) |
-| `B`           | Spawn the Boss Arena fence around the player's location |
-| `K`           | (does not work) **Kill** all NPCs currently on the map (does not prevent auto-spawning) |
+| `B`           | Spawn the **Boss** Arena fence around the player's location (no bosses inside, only the fence) |
+| `K`           | **Kill** all NPCs currently on the map (does not prevent auto-spawning of new ones!) |
+| `Z`           | (does not work yet) **Freeze** or unfreeze all NPCs currently on the map (does not prevent auto-spawning of new ones!) |
 
 ### Changing difficulty
 
@@ -131,7 +146,11 @@ Use `F5` or the on-screen button to undo the last spawned thing. It can be used 
 
 ### Killing NPCs
 
-Does not work well at the moment and removed from the code. It still has a button in the UI, because editing the UI is a huge pain.
+Use `K` or the on-screen button to kill all the NPCs that were spawned by the game or by you. May crash the game sometimes, but should work better now.
+
+### Freezing / unfreezing NPCs
+
+Does not work currently. 
 
 ### Other good things
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 
