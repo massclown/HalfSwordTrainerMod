@@ -53,6 +53,11 @@ local ModUISpawnVisible = true
 
 local spawnedThings = {}
 
+-- The actors from the hook
+local intercepted_actors = {}
+-- The NPC actors that we spawned
+local spawned_actors = {}
+
 -- Item/NPC tables for the spawn menus in the UI
 local all_armor = {}
 local all_weapons = {}
@@ -89,6 +94,7 @@ end
 function string:ends_with(ending)
     return ending == "" or self:sub(- #ending) == ending
 end
+
 ------------------------------------------------------------------------------
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
 local default_loadout = {
@@ -198,8 +204,16 @@ function InitMyMod()
         PopulateNPCComboBox()
         PopulateObjectComboBox()
 
+        if intercepted_actors then
+            intercepted_actors = {}
+        end
+
         if spawnedThings then
             spawnedThings = {}
+        end
+
+        if spawned_actors then
+            spawned_actors = {}
         end
 
         -- This starts a thread that updates the HUD in background.
@@ -306,6 +320,7 @@ function ToggleSuperStrength()
     Log("SuperStrength = " .. tostring(SuperStrength) .. "\n")
     cache.ui_hud['HUD_SuperStrength_Value'] = SuperStrength
 end
+
 ------------------------------------------------------------------------------
 function ToggleInvulnerability()
     local player = cache.map['Player Willie']
@@ -321,6 +336,7 @@ function ToggleInvulnerability()
     Log("Invulnerable = " .. tostring(Invulnerable) .. "\n")
     cache.ui_hud['HUD_Invuln_Value'] = Invulnerable
 end
+
 ------------------------------------------------------------------------------
 -- 99 is the z-order set in UI HUD blueprint in UE5 editor
 -- 100 is the z-order set in UI Spawn blueprint in UE5 editor
@@ -341,6 +357,7 @@ function ToggleModUI()
         ModUISpawnVisible = true
     end
 end
+
 ------------------------------------------------------------------------------
 function SpawnActorByClassPath(FullClassPath, SpawnLocation)
     -- TODO Load missing assets!
@@ -451,6 +468,7 @@ function SpawnActorInFrontOfPlayer(classpath, offset)
         SpawnActorByClassPath(classpath, SpawnLocation)
     end)
 end
+
 ------------------------------------------------------------------------------
 function HUD_SetLevel(Level)
     cache.map['Level'] = Level
@@ -481,7 +499,17 @@ end
 
 ------------------------------------------------------------------------------
 function KillAllNPCs()
-    -- TODO
+    if intercepted_actors then
+        for index, actor in ipairs(intercepted_actors) do
+            -- Very crude hack: ignore the earliest N spawned actors
+            -- up to N == the number of despawned NPC
+            -- We should probably look at map['Enemy Array'] instead?
+            if actor ~= nil and actor:IsValid() and index > cache.map['Enemies Despawned'] then
+                Logf("Destroying actor [%s]\n", actor:GetFullName())
+                actor:K2_DestroyActor()
+            end
+        end
+    end
 end
 
 function FreezeAllNPCs()
@@ -515,7 +543,9 @@ function SpawnSelectedNPC()
     --    if not Selected_Spawn_NPC == nil and not Selected_Spawn_NPC == "" then
     local selected_actor = all_characters[Selected_Spawn_NPC]
     Logf("Spawning NPC [%s]\n", selected_actor)
-    SpawnActorInFrontOfPlayer(selected_actor, { X = 600.0, Y = 0.0, Z = 50.0 })
+    SpawnActorInFrontOfPlayer(selected_actor, { X = 800.0, Y = 0.0, Z = 50.0 })
+    -- The last spawned actor is probably the NPC we just spawned
+    table.insert(spawned_actors, spawnedThings[#spawnedThings])
     --    end
 end
 
@@ -600,6 +630,9 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
 
 -- We hook the creation of Character class objects, those are NPCs usually
 NotifyOnNewObject("/Script/Engine.Character", function(ConstructedObject)
+    if intercepted_actors then
+        table.insert(intercepted_actors, ConstructedObject)
+    end
     Logf("Hook Character spawned: %s\n", ConstructedObject:GetFullName())
 end)
 ------------------------------------------------------------------------------
@@ -702,9 +735,16 @@ RegisterKeyBind(Key.F5, function()
     UndoLastSpawn()
 end)
 
--- Does not work yet
 RegisterKeyBind(Key.K, function()
-    KillAllNPCs()
+    ExecuteInGameThread(function()
+        KillAllNPCs()
+    end)
 end)
+
+-- Does not work yet
+RegisterKeyBind(Key.Z, function()
+    FreezeAllNPCs()
+end)
+
 
 -- EOF
