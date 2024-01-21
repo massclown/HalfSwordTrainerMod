@@ -362,14 +362,14 @@ end
 function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
-    local DefaultRotation = {}
-    local rotation = SpawnRotation == nil and DefaultRotation or SpawnRotation
+    local DefaultRotation = {Pitch = 0.0, Yaw = 0.0, Roll = 0.0}
+    local CurrentRotation = SpawnRotation == nil and DefaultRotation or SpawnRotation
     local ActorClass = StaticFindObject(FullClassPath)
     if ActorClass == nil or not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
 
     local World = UEHelpers:GetWorld()
     if World == nil or not World:IsValid() then error("[ERROR] World is not valid") end
-    local Actor = World:SpawnActor(ActorClass, SpawnLocation, rotation)
+    local Actor = World:SpawnActor(ActorClass, SpawnLocation, CurrentRotation)
     if Actor == nil or not Actor:IsValid() then
         Logf("[ERROR] Actor for \"%s\" is not valid\n", FullClassPath)
     else
@@ -378,7 +378,7 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
             Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z,
-            SpawnRotation.Pitch, SpawnRotation.Yaw, SpawnRotation.Roll)
+            CurrentRotation.Pitch, CurrentRotation.Yaw, CurrentRotation.Roll)
     end
 end
 
