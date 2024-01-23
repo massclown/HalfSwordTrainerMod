@@ -16,7 +16,7 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 ## Installation
 ### Video tutorial: https://www.youtube.com/watch?v=4gSp87ET6x4
-
+### Screenshots with the steps: https://imgur.com/a/3RFOQiS
 ### Detailed steps:
 
 1) Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
@@ -170,7 +170,7 @@ Does not work currently.
 
 
 ## Know issues and TODOs
-* No error handling whatsoever. Use at your own risk.
+* No error handling whatsoever. Use at your own risk. It will crash the game at some point.
 * Auto-spawned NPCs and boss fights will keep spawning. 
 * Buttons in the spawn menu may not work, use `F1` - `F4` keys instead (name of the key is on the buttons).
 * Loadout is spawned in the map, not on the player.
@@ -201,6 +201,14 @@ Make sure you can install UE4SS and make it work (confirm that it operates, chec
 ### UE4SS crashes the game?
 TBD. Try disabling mods one by one, until you find out what triggers the crash.
 
+Also, try setting the following values in `UE4SS-settings.ini`, in the folder where you installed UE4SS:
+
+```
+[EngineVersionOverride]
+MajorVersion = 5
+MinorVersion = 1
+```
+
 ### Mod does not load?
 Make sure UE4SS loads and observe its logs. It should mention `HalfSwordTrainerMod`. 
 * If it does not, check that you have the mod files in the right places as explained above.
@@ -217,12 +225,13 @@ but the actual Lua mod named `HalfSwordTrainerMod` can't work due to one of the 
 Check which of these things might have happened on your system, and also look inside `UE4SS.log` and see if there are any error lines looking like `[HalfSwordTrainerMod] [ERROR]`.
 
 ### I don't see the HUD/UI of the mod, but some hotkeys still work
-That means that the `BPModLoaderMod` did not work and therefore did not load our Blueprint mod that is the UI, 
+That means that the `BPModLoaderMod` did not work or could not find the Blueprint mod, and therefore did not load our Blueprint mod that is the UI, 
 while Lua mod named `HalfSwordTrainerMod` succeeded. 
 
 `BPModLoaderMod` probably couldn't work due to one of the possible reasons: 
 * either it is missing in the `Mods` folder entirely, probably with all other folders out of the UE4SS package
 * or it is not enabled in the `Mods\mods.txt`, 
+* or the `LogicMods` folder is missing from `\Half Sword Demo\HalfSwordUE5\Content\Paks`, or its contents are wrong,
 * or the mod cannot start due to some error. 
 
 Check which of these things might have happened on your system, and also look inside `UE4SS.log` and see if there are any error lines saying something suspicious right after the line:
@@ -244,3 +253,4 @@ File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 * UE4SS developers, https://github.com/UE4SS-RE/RE-UE4SS
 * Bjorn Swenson, developer of `maf`, https://github.com/bjornbytes/maf which is used for vector rotation here.
 * TheLich from NexusMods for caching code
+* @glassoflimesoda from Half Sword Discord for the screenshot install tutorial at https://imgur.com/a/3RFOQiS
