@@ -1,0 +1,2 @@
+# For development setup, mount the Mods\shared folder in the work folder to have Lua IDEs pick up the class definitions there
+shared
