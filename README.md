@@ -114,7 +114,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `F5`          | **Undo** last spawn (can be repeated) |
 | `B`           | Spawn the **Boss** Arena fence around the player's location (no bosses inside, only the fence) |
 | `K`           | **Kill** all NPCs currently on the map (does not prevent auto-spawning of new ones!) |
-| `Z`           | (does not work yet) **Freeze** or unfreeze all NPCs currently on the map (does not prevent auto-spawning of new ones!) |
+| `Z`           | **Freeze** or unfreeze all NPCs currently on the map (does not prevent auto-spawning of new ones or freeze those new ones!) |
 
 ### Changing difficulty
 
@@ -154,7 +154,7 @@ Use `K` or the on-screen button to kill all the NPCs that were spawned by the ga
 
 ### Freezing / unfreezing NPCs
 
-Does not work currently. 
+Use `Z` the on-screen button to freeze/unfreeze all the NPCs that were spawned by the game or by you. Will not prevent new ones from spawning, or affect these new ones (until you try freezing/unfreezing them again).
 
 ### Other good things
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 
@@ -174,8 +174,8 @@ Does not work currently.
 * Auto-spawned NPCs and boss fights will keep spawning. 
 * Buttons in the spawn menu may not work, use `F1` - `F4` keys instead (name of the key is on the buttons).
 * Loadout is spawned in the map, not on the player.
-* No ability to freeze NPCs yet 
-    * (use [UUU5](https://opm.fransbouma.com/uuuv5.htm) if you really really need that, but be warned that UUU5 freezes only their bottom half, the NPCs will still rotate their bodies and swing their weapons at you, making it arguably not easier to fight them).
+* Freezing only freezes the bottom part of the NPCs, they can still use weapons on the player.
+* No ability to remove armor from the player.
 * No ability to modify the damage of your weapon or of NPC weapons yet.
 * No ability to spawn custom modular weapons yet (we spawn a random version).
 * No ability to un-glitch yourself (weapons stuck in slots, player body joints stuck in unnatural positions, etc.). Invulnerability helps, though.

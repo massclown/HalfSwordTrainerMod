@@ -144,7 +144,7 @@ function myGetPlayerController()
         if Controller.Pawn:IsValid() and Controller.Pawn:IsPlayerControlled() then
             PlayerController = Controller
         else
-            print("Not valid or not player controlled\n")
+            Log("Not valid or not player controlled\n")
         end
     end
     if PlayerController and PlayerController:IsValid() then
@@ -188,7 +188,9 @@ setmetatable(cache, cache.mt)
 ------------------------------------------------------------------------------
 function ClearCachedObjects()
     -- TODO
+    cache.objects = {}
 end
+
 ------------------------------------------------------------------------------
 function ValidateCachedObjects()
     local map = cache.map
@@ -211,6 +213,7 @@ end
 
 -- Timestamp of last invocation of InitMyMod()
 local lastInitTimestamp = -1
+local globalRestartCount = 0
 -- This function gets added to the game restart hook below.
 -- Somehow the hook gets triggered twice, so we try to have a time lock to avoid double-calling the init function,
 -- but we still have to call it once if the user restarts soon, hence the miminum timeout of that 1 second.
@@ -219,6 +222,7 @@ function InitMyMod()
     local curInitTimestamp = os.clock()
     local delta = curInitTimestamp - lastInitTimestamp
     if lastInitTimestamp == -1 or (delta > 1) then
+        globalRestartCount = globalRestartCount + 1
         Log("Client Restart hook triggered\n")
 
         ClearCachedObjects()
@@ -264,7 +268,13 @@ function InitMyMod()
 
         -- This starts a thread that updates the HUD in background.
         -- It only exits if we retrn true from the lambda, which we don't
+        local myRestartCounter = globalRestartCount
         LoopAsync(250, function()
+            if myRestartCounter ~= globalRestartCount then
+                -- This is a loop initiated from a past restart hook, exit it
+                Logf("Exiting HUD update loop leftover from restart #%d\n", myRestartCounter)
+                return true
+            end
             if not ValidateCachedObjects() then
                 ErrLog("Objects not found, skipping loop\n")
                 return false
