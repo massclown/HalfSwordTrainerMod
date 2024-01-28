@@ -80,8 +80,12 @@ We need **both** of them to be enabled, as `BPModLoaderMod` will load the user i
     and then copy the new one from the new release.
     * the configuration in `\Mods\mods.txt` does not need to be changed.
 
-## Uninstalling
-Delete the files that you copied as described above, or just reinstall the entire Half Sword game entirely (it will wipe all the folders where the installed mod is located)
+## Uninstalling the mod files
+Delete the files that you copied as described above, or just reinstall the entire Half Sword game entirely (it will wipe all the folders where the installed mod is located). 
+
+## Temporarily disabling the mod
+* You can disable the mods that UE4SS loads, including this mod, in `\Mods\mods.txt`.
+* Alternatively, you can rename `xinput1_3.dll` to something else, say, `xinput1_3.dll.backup` to completely disable UE4SS and all the mods it loads.
 
 ## How does the mod look on screen
 ![Alt text](images/screenshot_hud_v0.4_2K.jpg?raw=true "Screenshot of mod UI v0.4")
@@ -115,6 +119,9 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `B`           | Spawn the **Boss** Arena fence around the player's location (no bosses inside, only the fence) |
 | `K`           | **Kill** all NPCs currently on the map (does not prevent auto-spawning of new ones!) |
 | `Z`           | **Freeze** or unfreeze all NPCs currently on the map (does not prevent auto-spawning of new ones or freeze those new ones!) |
+| `M`           | Toggle Slow Motion mode |
+| `[`           | Decrease game speed for Slow Motion |
+| `]`           | Increase game speed for Slow Motion |
 
 ### Changing difficulty
 
@@ -155,6 +162,11 @@ Use `K` or the on-screen button to kill all the NPCs that were spawned by the ga
 ### Freezing / unfreezing NPCs
 
 Use `Z` the on-screen button to freeze/unfreeze all the NPCs that were spawned by the game or by you. Will not prevent new ones from spawning, or affect these new ones (until you try freezing/unfreezing them again).
+
+### Slow motion
+Use `M` to toggle Slow Motion mode, and `[` and `]` to decrease and increase slow motion speed. 
+* If Slow Motion is on, then the speed change will be applied immediately.
+* Otherwise, selected speed will be applied after Slow Motion is enabled
 
 ### Other good things
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 

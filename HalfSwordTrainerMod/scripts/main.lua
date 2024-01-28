@@ -1,12 +1,12 @@
 -- Half Sword Trainer Mod v0.5 by massclown
 -- https://github.com/massclown/HalfSwordTrainerMod
 -- Requirements: UE4SS 2.5.2 (or newer) a Blueprint mod HSTM_UI (see repo)
-
-local mod_version = "0.5"
-
+------------------------------------------------------------------------------
+local mod_version = "0.6"
+------------------------------------------------------------------------------
 local maf = require 'maf'
 local UEHelpers = require("UEHelpers")
-
+------------------------------------------------------------------------------
 -- Saved copies of player stats before buffs
 local savedRSR = 0
 local savedMP = 0
@@ -15,8 +15,14 @@ local savedRegenRate = 0
 local maxRSR = 1000
 local maxMP = 200
 local maxRegenRate = 10000
-
+------------------------------------------------------------------------------
+local GameSpeedDelta = 0.05
+local DefaultGameSpeed = 1.0
+local DefaultSloMoGameSpeed = 0.5
+local SloMoGameSpeed = DefaultSloMoGameSpeed
 -- Variables tracking things we change or want to observe and display in HUD
+local GameSpeed = 1.0
+local SlowMotionEnabled = false
 local Frozen = false
 local SuperStrength = false
 local Invulnerable = false
@@ -162,6 +168,7 @@ cache.names = {
     --    ["engine"] = { "Engine", false },
     --    ["kismet"] = { "/Script/Engine.Default__KismetSystemLibrary", true },
     ["map"] = { "Abyss_Map_Open_C", false },
+    ["worldsettings"] = { "WorldSettings", false },
     ["ui_hud"] = { "HSTM_UI_HUD_Widget_C", false },
     ["ui_spawn"] = { "HSTM_UI_Spawn_Widget_C", false }
 }
@@ -313,6 +320,11 @@ function HUD_UpdatePlayerStats()
 
     PlayerTonus                             = player['All Body Tonus']
     cache.ui_hud['HUD_Tonus_Value']         = PlayerTonus
+    --
+    GameSpeed                               = cache.worldsettings['TimeDilation']
+    cache.ui_hud['HUD_GameSpeed_Value']     = GameSpeed
+    cache.ui_hud['HUD_NPCsFrozen_Value']    = Frozen
+    cache.ui_hud['HUD_SlowMotion_Value']    = SlowMotionEnabled
     --
     HH                                      = player['Head Health']
     NH                                      = player['Neck Health']
@@ -628,6 +640,7 @@ function FreezeAllNPCs()
             end
         end
     end
+    cache.ui_hud['HUD_NPCsFrozen_Value'] = Frozen
 end
 
 ------------------------------------------------------------------------------
@@ -745,6 +758,46 @@ function ExtractHumanReadableName(BPFullClassName)
 end
 
 ------------------------------------------------------------------------------
+function ToggleSlowMotion()
+    local worldsettings = cache.worldsettings
+    SlowMotionEnabled = not SlowMotionEnabled
+    if SlowMotionEnabled then
+        GameSpeed = SloMoGameSpeed
+    else
+        GameSpeed = DefaultGameSpeed
+    end
+    worldsettings['TimeDilation']        = GameSpeed
+    cache.ui_hud['HUD_GameSpeed_Value']  = GameSpeed
+    cache.ui_hud['HUD_SlowMotion_Value'] = SlowMotionEnabled
+end
+
+-- Game goes faster
+function IncreaseGameSpeed()
+    if SloMoGameSpeed < DefaultGameSpeed * 10 then
+        SloMoGameSpeed = SloMoGameSpeed + GameSpeedDelta
+    end
+    if SlowMotionEnabled then
+        local worldsettings = cache.worldsettings
+        GameSpeed = SloMoGameSpeed
+        worldsettings['TimeDilation'] = GameSpeed
+        cache.ui_hud['HUD_GameSpeed_Value'] = GameSpeed
+    end
+end
+
+-- Game goes slower
+function DecreaseGameSpeed()
+    if SloMoGameSpeed > GameSpeedDelta then
+        SloMoGameSpeed = SloMoGameSpeed - GameSpeedDelta
+    end
+    if SlowMotionEnabled then
+        local worldsettings = cache.worldsettings
+        GameSpeed = SloMoGameSpeed
+        worldsettings['TimeDilation'] = GameSpeed
+        cache.ui_hud['HUD_GameSpeed_Value'] = GameSpeed
+    end
+end
+
+------------------------------------------------------------------------------
 -- We hook the restart event, which somehow fires twice per restart
 -- We take care of that in the InitMyMod() function above
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
@@ -796,8 +849,13 @@ RegisterCustomEvent("HSTM_SpawnObject", function(ParamContext, ParamMessage)
     SpawnSelectedObject()
 end)
 
+-- Buttons below
 RegisterCustomEvent("HSTM_UndoSpawn", function(ParamContext, ParamMessage)
     UndoLastSpawn()
+end)
+
+RegisterCustomEvent("HSTM_ToggleSlowMotion", function(ParamContext, ParamMessage)
+    ToggleSlowMotion()
 end)
 
 RegisterCustomEvent("HSTM_KillAllNPCs", function(ParamContext, ParamMessage)
@@ -807,6 +865,7 @@ end)
 RegisterCustomEvent("HSTM_FreezeAllNPCs", function(ParamContext, ParamMessage)
     FreezeAllNPCs()
 end)
+
 ------------------------------------------------------------------------------
 -- The user-facing key bindings are below.
 RegisterKeyBind(Key.I, function()
@@ -878,6 +937,24 @@ end)
 RegisterKeyBind(Key.B, function()
     ExecuteInGameThread(function()
         SpawnBossArena()
+    end)
+end)
+
+RegisterKeyBind(Key.M, function()
+    ExecuteInGameThread(function()
+        ToggleSlowMotion()
+    end)
+end)
+
+RegisterKeyBind(Key.OEM_FOUR, function()
+    ExecuteInGameThread(function()
+        DecreaseGameSpeed()
+    end)
+end)
+
+RegisterKeyBind(Key.OEM_SIX, function()
+    ExecuteInGameThread(function()
+        IncreaseGameSpeed()
     end)
 end)
 
