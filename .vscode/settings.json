@@ -1,0 +1,5 @@
+{
+    "search.useIgnoreFiles": false,
+    "Lua.workspace.useGitIgnore": false,
+    "cSpell.useGitignore": false
+}

@@ -132,6 +132,28 @@ function LoadCustomLoadout()
 end
 
 ------------------------------------------------------------------------------
+-- This is copied from UEHelpers but filtering better, for PlayerController
+--- Returns the first valid PlayerController that is currently controlled by a player.
+---@return APlayerController
+function myGetPlayerController()
+    local PlayerControllers = FindAllOf("PlayerController")
+    if not PlayerControllers then error("No PlayerController found\n") end
+    local PlayerController = nil
+    for Index, Controller in pairs(PlayerControllers) do
+        if Controller.Pawn:IsValid() and Controller.Pawn:IsPlayerControlled() then
+            PlayerController = Controller
+        else
+            print("Not valid or not player controlled\n")
+        end
+    end
+    if PlayerController and PlayerController:IsValid() then
+        return PlayerController
+    else
+        error("No PlayerController found\n")
+    end
+end
+
+------------------------------------------------------------------------------
 -- The caching code logic is taken from TheLich at nexusmods (Grounded QoL mod)
 local cache = {}
 cache.objects = {}
@@ -438,10 +460,11 @@ function UndoAllPlayerSpawnedCharacters()
         end
     end
 end
+
 ------------------------------------------------------------------------------
 -- The location is retrieved using a less documented approach of K2_GetActorLocation()
 function GetPlayerLocation()
-    local FirstPlayerController = UEHelpers:GetPlayerController()
+    local FirstPlayerController = myGetPlayerController()
     if not FirstPlayerController then
         return { X = 0.0, Y = 0.0, Z = 0.0 }
     end
@@ -451,13 +474,14 @@ function GetPlayerLocation()
 end
 
 function GetPlayerViewRotation()
-    local FirstPlayerController = UEHelpers:GetPlayerController()
+    local FirstPlayerController = myGetPlayerController()
     if not FirstPlayerController then
         return { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
     end
     local rotation = FirstPlayerController['ControlRotation']
     return rotation
 end
+
 ------------------------------------------------------------------------------
 -- We spawn the loadout in a circle, rotating a displacement vector a bit
 -- with every item, so they all fit nicely
@@ -707,7 +731,6 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
 --     Logf("Damage %f %f\n", Raw_Damage:get(), Damage_Out:get())
 -- end)
 ------------------------------------------------------------------------------
-
 -- Trying to hook the button click functions of the HSTM_UI blueprint:
 -- * HSTM_SpawnArmor
 -- * HSTM_SpawnWeapon
