@@ -17,6 +17,7 @@ local maxMP = 200
 local maxRegenRate = 10000
 
 -- Variables tracking things we change or want to observe and display in HUD
+local Frozen = false
 local SuperStrength = false
 local Invulnerable = false
 local level = 0
@@ -185,6 +186,10 @@ cache.mt.__index = function(obj, key)
 end
 setmetatable(cache, cache.mt)
 ------------------------------------------------------------------------------
+function ClearCachedObjects()
+    -- TODO
+end
+------------------------------------------------------------------------------
 function ValidateCachedObjects()
     local map = cache.map
     local ui_hud = cache.ui_hud
@@ -215,6 +220,8 @@ function InitMyMod()
     local delta = curInitTimestamp - lastInitTimestamp
     if lastInitTimestamp == -1 or (delta > 1) then
         Log("Client Restart hook triggered\n")
+
+        ClearCachedObjects()
 
         if not ValidateCachedObjects() then
             ErrLog("Objects not found, exiting\n")
@@ -252,6 +259,8 @@ function InitMyMod()
         if spawned_things then
             spawned_things = {}
         end
+
+        Frozen = false
 
         -- This starts a thread that updates the HUD in background.
         -- It only exits if we retrn true from the lambda, which we don't
@@ -587,7 +596,28 @@ function KillAllNPCs()
 end
 
 function FreezeAllNPCs()
-    -- TODO
+    Frozen = not Frozen
+    if cache.map['Enemy Array'] then
+        local npc = cache.map['Enemy Array']
+        if npc:GetArrayNum() > 0 then
+            npc:ForEach(function(Index, Elem)
+                if npc:IsValid() then
+                    Logf("Freezing/Unfreezing NPC [%i]: %s\n", Index - 1, Elem:get():GetFullName())
+                    Elem:get()['CustomTimeDilation'] = Frozen and 0.0 or 1.0
+                end
+            end)
+        end
+    end
+    if spawned_things then
+        for i = #spawned_things, 1, -1 do
+            local actorToFreezeRecord = spawned_things[i]
+            local actorToFreeze = actorToFreezeRecord.Object
+            if actorToFreeze and actorToFreeze:IsValid() and actorToFreezeRecord.IsCharacter then
+                Logf("Despawning NPC actor: %s\n", actorToFreeze:GetFullName())
+                actorToFreeze['CustomTimeDilation'] = Frozen and 0.0 or 1.0
+            end
+        end
+    end
 end
 
 ------------------------------------------------------------------------------
@@ -712,6 +742,7 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
 
 -- We hook the creation of Character class objects, those are NPCs usually
 -- WARN for some reason, this crashes the game on restart
+-- TODO intercept and set CustomTimeDilation if we want to freeze all NPCs
 -- Maybe it is the Lua GC doing this to a table of actors somehow?
 -- NotifyOnNewObject("/Script/Engine.Character", function(ConstructedObject)
 --     if intercepted_actors then
@@ -828,7 +859,6 @@ RegisterKeyBind(Key.K, function()
     end)
 end)
 
--- Does not work yet
 RegisterKeyBind(Key.Z, function()
     ExecuteInGameThread(function()
         FreezeAllNPCs()
