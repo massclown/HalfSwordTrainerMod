@@ -1,4 +1,5 @@
 # Half Sword Trainer Mod
+
 A trainer mod for Half Sword demo v0.3 ([Steam release](https://store.steampowered.com/app/2397300/Half_Sword/)). 
 
 It gives you Invulnerability, Super Strength, configurable level of enemy NPCs, and the ability to spawn armour, weapons, NPCs and objects (and despawn them if you made a mistake), setting game speed and more. The mod also has a detailed HUD with player stats. 
@@ -11,17 +12,21 @@ The mod requires [UE4SS](https://github.com/UE4SS-RE/RE-UE4SS) (version 2.5.2 as
 The mod is written in Lua, so you can understand and modify its functionality.
 
 ## License
+
 Distributed under the MIT License. See `LICENSE` file for more information.
 
 ## Showcase
+
 [![YouTube video of Half Sword Trainer Mod](https://img.youtube.com/vi/DMWCSHe60dA/hqdefault.jpg)](https://www.youtube.com/watch?v=DMWCSHe60dA)
 
 ## Installation
+
 ### Video tutorial: https://www.youtube.com/watch?v=4gSp87ET6x4
 
 ### Screenshots with the steps: https://imgur.com/a/3RFOQiS
 
 ### 1. Install UE4SS into the game folder
+
 Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
 ([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)). Basically you will need to unzip that archive and copy the files into the right place. Read the guides for help.
 
@@ -39,6 +44,7 @@ UE4SS.dll
 ```
 
 ### 2. Download this mod
+
 Download either a release, or a source package of this `HalfSwordTrainerMod` repo and unpack it somewhere to take a look. 
 * If you want a more stable build, take a named version [from the releases](https://github.com/massclown/HalfSwordTrainerMod/releases)
 * If you want a fresh development one, click the green "<>Code" button in the top-right of the page and select "Download ZIP".
@@ -55,14 +61,17 @@ README.md
 ```
 
 ### 3. Copy the code of this mod
+
 Copy the entire `HalfSwordTrainerMod` folder of the release into the `Mods` folder of your UE4SS installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64\Mods`)
 
 ### 4. Copy the Blueprints of this mod
+
 Copy the entire `LogicMods` folder of the release into the `Content\Paks` folder of your Half Sword demo installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Content\Paks`)
 
 ### 5. Enable the mod
+
 Enable the `HalfSwordTrainerMod` and `BPModLoaderMod` in your UE4SS mod loader configuration (`\Mods\mods.txt`).
 The new lines in the middle of the file should look like this:
 ```
@@ -77,6 +86,7 @@ We need **both** of them to be enabled, as `BPModLoaderMod` will load the user i
 ### 6. Enjoy the game and support the developers.
 
 ## Updating or installing a new release
+
 * You can copy files from the new release of the mod on top of the old one. I do my best to not have any files left from an older version create any problems in the new one.
 * If something weird is still happening:
     * delete the old `HalfSwordTrainerMod` folder in the `Mods` folder of your UE4SS installation
@@ -88,13 +98,16 @@ We need **both** of them to be enabled, as `BPModLoaderMod` will load the user i
     * the configuration in `\Mods\mods.txt` does not need to be changed.
 
 ## Uninstalling the mod files
+
 Delete the files that you copied as described above, or just reinstall the entire Half Sword game entirely (it will wipe all the folders where the installed mod is located). 
 
 ## Temporarily disabling the mod
+
 * You can disable the mods that UE4SS loads, including this mod, in `\Mods\mods.txt`.
 * Alternatively, you can rename `xinput1_3.dll` to something else, say, `xinput1_3.dll.backup` to completely disable UE4SS and all the mods it loads.
 
 ## How does the mod look on screen
+
 ![Alt text](images/screenshot_hud_v0.4_2K.jpg?raw=true "Screenshot of mod UI v0.4")
 
 ## How to use the mod
@@ -102,6 +115,7 @@ Delete the files that you copied as described above, or just reinstall the entir
 The mod has a custom UI that can be hidden when needed.
 
 The mod adds a HUD on top of the game on the left side of the screen to show you various player stats.
+
 * The body figure in the bottom left corner is the health of the body parts.
 
 
@@ -110,6 +124,7 @@ The mod adds a spawn menu on top of the game on the right side of the screen wit
 The mod also adds a few keyboard shortcuts to trigger its functions.
 
 ### Keyboard shortcuts of this mod
+
 | Shortcut    | Description |
 | ----------- | ----------- |
 | `U`           | Show/hide the UI (HUD) of the mod |
@@ -141,7 +156,9 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 > Note that the game itself (not the mod!) makes your player invulnerable for a few seconds during spawn (maybe to avoid dying due to physics of the game?), and then removes invulnerability.
 
 ### Spawning things
+
 * You can either spawn a complete "chef's choice" loadout around yourself (press `L`),
+
 * or, first, **pause** the game, select what you want in the drop-down menu on the right, and spawn each individual item. 
 
 Use the buttons on screen to spawn items while the game is paused, or use `F1` - `F4` to spawn the selected things in each category (armor, weapons, NPCs, objects) when the game is running.
@@ -151,6 +168,7 @@ Player's viewpoint direction is used to place the spawned object in the world. N
 > The names of objects in the on-screen spawn menu have been shortened for better readability.
 
 #### Loadout configuration
+
 To modify the pre-configured loadout that is spawnable with `L` button, edit the `custom_loadout.txt` text file in the `data` subfolder of the mod:
 ```
 Mods\HalfSwordTrainerMod\data\custom_loadout.txt
@@ -162,6 +180,8 @@ A default loadout is also hardcoded in the mod itself, in case the custom loadou
 
 Use `F5` or the on-screen button to undo the last spawned thing. It can be used repeatedly to undo many things.
 
+> If you want to find a particular random variant of some item, select it in the menu, then go unpause the game, and repeatedly press the corresponding `F1` - `F4` button, and if you don't like it, press `F5` to undo.
+
 ### Killing NPCs
 
 Use `K` or the on-screen button to kill all the NPCs that were spawned by the game or by you. May crash the game sometimes, but should work better now.
@@ -171,11 +191,17 @@ Use `K` or the on-screen button to kill all the NPCs that were spawned by the ga
 Use `Z` the on-screen button to freeze/unfreeze all the NPCs that were spawned by the game or by you. Will not prevent new ones from spawning, or affect these new ones (until you try freezing/unfreezing them again).
 
 ### Slow motion
+
 Use `M` to toggle Slow Motion mode, and `[` and `]` to decrease and increase slow motion speed. 
+
 * If Slow Motion is on, then the speed change will be applied immediately.
+
 * Otherwise, selected speed will be applied after Slow Motion is enabled
 
+It may crash the game if you change the game speed too often or in the middle of a fight.
+
 ### Other good things
+
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 
     * When you know which settings you like, you can save then in the game's `.ini` files in 
 `%LOCALAPPDATA%\HalfSwordUE5\Saved\Config\Windows\Engine.ini` or other config files in that folder (so most probably in `C:\Users\%USERNAME%\AppData\Local\HalfSwordUE5\Saved\Config\Windows\`)
@@ -189,18 +215,29 @@ Use `M` to toggle Slow Motion mode, and `[` and `]` to decrease and increase slo
 
 
 ## Know issues and TODOs
-* No error handling whatsoever. Use at your own risk. It will crash the game at some point.
+
+* No error handling whatsoever. Use at your own risk. It will crash the game at some point! Don't spawn too many things, etc.
+
 * Auto-spawned NPCs and boss fights will keep spawning. 
+
 * Loadout is spawned in the map, not on the player.
+
 * Freezing only freezes the bottom part of the NPCs, they can still use weapons on the player.
+
 * No ability to remove armor from the player.
+
 * No ability to modify the damage of your weapon or of NPC weapons yet.
+
 * No ability to spawn custom modular weapons yet (we spawn a random version).
+
 * No ability to un-glitch yourself (weapons stuck in slots, player body joints stuck in unnatural positions, etc.). Invulnerability helps, though.
+
 * No ability to fly.
 
 ## FAQ
+
 ### What to do?
+
 Support the developers of Half Sword (https://halfswordgames.com/). 
 
 They have a Kickstarter campaign, currently at https://www.kickstarter.com/projects/halfsword/half-sword-gauntlet
@@ -234,8 +271,8 @@ Make sure UE4SS loads and observe its logs. It should mention `HalfSwordTrainerM
 * If it does not, check that you have the mod files in the right places as explained above.
 * If it does, but the mod does not show UI or does not react to the keyboard shortcuts, check the logs for errors related to `HalfSwordTrainerMod`.
 
-### I see the HUD/UI of the mod, but values are zero and buttons/menus don't work
-That means that `BPModLoaderMod` has worked correctly and loaded our Blueprint mod that is the UI of the mod, 
+### I see the HUD/UI of the mod, but values are zero, buttons don't work and menus are empty
+That means that `BPModLoaderMod` has worked correctly and loaded our Blueprint mod (that is the UI of the mod), 
 but the actual Lua mod named `HalfSwordTrainerMod` can't work due to one of the possible reasons: 
 * either it is missing in the `Mods` folder entirely, 
 * or it is not copied in the correct folder structure (say, the Lua files of the mod must be in `Mods\HalfSwordTrainerMod\scripts\`), 
@@ -244,7 +281,14 @@ but the actual Lua mod named `HalfSwordTrainerMod` can't work due to one of the 
 
 Check which of these things might have happened on your system, and also look inside `UE4SS.log` and see if there are any error lines looking like `[HalfSwordTrainerMod] [ERROR]`.
 
+If you see:
+```
+HSTM UI version mismatch: mod version 0.x, HUD version 0.y
+```
+then you have copied different parts of the mod from different versions. Re-install the mod from the version you want as described above.
+
 ### I don't see the HUD/UI of the mod, but some hotkeys still work
+
 That means that the `BPModLoaderMod` did not work or could not find the Blueprint mod, and therefore did not load our Blueprint mod that is the UI, 
 while Lua mod named `HalfSwordTrainerMod` succeeded. 
 
@@ -260,15 +304,19 @@ Check which of these things might have happened on your system, and also look in
 ```
 
 ### Mod crashes the game?
+
 If you suspect the fault is in the logic of this mod, you can try to disable or comment out the last suspicious thing that you used before the crash.
 
 ### Mod works, but does not do what I expect?
+
 File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 
 ### Any other problem with this mod, or a feature request?
+
 File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 
 ## Acknowledgements
+
 * Half Sword developers, https://halfswordgames.com/
 * UE4SS developers, https://github.com/UE4SS-RE/RE-UE4SS
 * Bjorn Swenson, developer of `maf`, https://github.com/bjornbytes/maf which is used for vector rotation here.

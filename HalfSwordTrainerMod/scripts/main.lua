@@ -20,11 +20,13 @@ local GameSpeedDelta = 0.1
 local DefaultGameSpeed = 1.0
 local DefaultSloMoGameSpeed = 0.5
 local SloMoGameSpeed = DefaultSloMoGameSpeed
+------------------------------------------------------------------------------
 -- Variables tracking things we change or want to observe and display in HUD
-local GameSpeed = 1.0
 local SlowMotionEnabled = false
 local Frozen = false
 local SuperStrength = false
+-- Those are copies of player's (or level's) object properties
+local GameSpeed = 1.0
 local Invulnerable = false
 local level = 0
 local PlayerScore = 0
@@ -599,6 +601,7 @@ end
 
 ------------------------------------------------------------------------------
 -- Killing is actually despawning for now
+-- That is OK as the weapons get dropped on the ground
 function KillAllNPCs()
     -- First the ones spawned by player
     UndoAllPlayerSpawnedCharacters()
@@ -686,6 +689,7 @@ function SpawnSelectedObject()
 end
 
 -- Spawns the boss arena fence around the player's location
+-- No bosses will spawn, only the fence. Player is the center, rotation is ignored (aligned with X/Y axes)
 function SpawnBossArena()
     local PlayerLocation = GetPlayerLocation()
     local SpawnLocation = PlayerLocation
@@ -696,6 +700,8 @@ function SpawnBossArena()
 end
 
 ------------------------------------------------------------------------------
+-- All the functions that load spawnable items ignore the ones starting with [BAD]
+-- used to mark those that are not useful (not visible, etc.)
 function PopulateArmorComboBox()
     local ComboBox_Armor = cache.ui_spawn['ComboBox_Armor']
 
@@ -833,8 +839,10 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
 -- * HSTM_SpawnNPC
 -- * HSTM_SpawnObject
 -- * HSTM_UndoSpawn
+-- * HSTM_ToggleSlowMotion
 -- * HSTM_KillAllNPCs
--- Those are defined as custom functions in the blueprint itself.
+-- * HSTM_FreezeAllNPCs
+-- Those are defined as custom functions in the spawn widget of the HSTM_UI blueprint itself.
 RegisterCustomEvent("HSTM_SpawnArmor", function(ParamContext, ParamMessage)
     SpawnSelectedArmor()
 end)
@@ -947,13 +955,13 @@ RegisterKeyBind(Key.M, function()
         ToggleSlowMotion()
     end)
 end)
-
+-- OEM_FOUR == [
 RegisterKeyBind(Key.OEM_FOUR, function()
     ExecuteInGameThread(function()
         DecreaseGameSpeed()
     end)
 end)
-
+-- OEM_SIX == ]
 RegisterKeyBind(Key.OEM_SIX, function()
     ExecuteInGameThread(function()
         IncreaseGameSpeed()
