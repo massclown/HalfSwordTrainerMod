@@ -21,9 +21,7 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 ### Screenshots with the steps: https://imgur.com/a/3RFOQiS
 
-### Detailed steps:
-
-#### 1. Install UE4SS into the game folder
+### 1. Install UE4SS into the game folder
 Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
 ([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)). Basically you will need to unzip that archive and copy the files into the right place. Read the guides for help.
 
@@ -40,7 +38,7 @@ UE4SS.dll
 ...
 ```
 
-#### 2. Download this mod
+### 2. Download this mod
 Download either a release, or a source package of this `HalfSwordTrainerMod` repo and unpack it somewhere to take a look. 
 * If you want a more stable build, take a named version [from the releases](https://github.com/massclown/HalfSwordTrainerMod/releases)
 * If you want a fresh development one, click the green "<>Code" button in the top-right of the page and select "Download ZIP".
@@ -56,15 +54,15 @@ LICENSE
 README.md
 ```
 
-#### 3. Copy the code of this mod
+### 3. Copy the code of this mod
 Copy the entire `HalfSwordTrainerMod` folder of the release into the `Mods` folder of your UE4SS installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64\Mods`)
 
-#### 4. Copy the Blueprints of this mod
+### 4. Copy the Blueprints of this mod
 Copy the entire `LogicMods` folder of the release into the `Content\Paks` folder of your Half Sword demo installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Content\Paks`)
 
-#### 5. Enable the mod
+### 5. Enable the mod
 Enable the `HalfSwordTrainerMod` and `BPModLoaderMod` in your UE4SS mod loader configuration (`\Mods\mods.txt`).
 The new lines in the middle of the file should look like this:
 ```
@@ -76,7 +74,7 @@ HalfSwordTrainerMod : 1
 ```
 We need **both** of them to be enabled, as `BPModLoaderMod` will load the user interface, which is an Unreal Engine Blueprint type of mod.
 
-#### 6. Enjoy the game and support the developers.
+### 6. Enjoy the game and support the developers.
 
 ## Updating or installing a new release
 * You can copy files from the new release of the mod on top of the old one. I do my best to not have any files left from an older version create any problems in the new one.
@@ -114,21 +112,21 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 ### Keyboard shortcuts of this mod
 | Shortcut    | Description |
 | ----------- | ----------- |
-| `U`           | Show/hide the **UI** (HUD) of the mod |
-| `I`           | Toggle **Invulnerability** on/off |
-| `T`           | Toggle **Super Strength** on/off |
-| `L`           | Spawn a **loadout** around the player |
-| `+`           | **Increase** the current **level** of enemies |
-| `-`           | **Decrease** the current **level** of enemies |
-| `F1`          | Spawn selected **Armor** |
-| `F2`          | Spawn selected **Weapon** |
-| `F3`          | Spawn selected **NPC** |
-| `F4`          | Spawn selected **Object** |
-| `F5`          | **Undo** last spawn (can be repeated) |
-| `B`           | Spawn the **Boss** Arena fence around the player's location (no bosses inside, only the fence) |
-| `K`           | **Kill** all NPCs currently on the map (does not prevent auto-spawning of new ones!) |
-| `Z`           | **Freeze** or unfreeze all NPCs currently on the map (does not prevent auto-spawning of new ones or freeze those new ones!) |
-| `M`           | Toggle **Slow Motion** mode |
+| `U`           | Show/hide the UI (HUD) of the mod |
+| `I`           | Toggle Invulnerability on/off |
+| `T`           | Toggle Super Strength on/off |
+| `L`           | Spawn a loadout around the player |
+| `+`           | Increase the current level of enemies |
+| `-`           | Decrease the current level of enemies |
+| `F1`          | Spawn selected Armor |
+| `F2`          | Spawn selected Weapon |
+| `F3`          | Spawn selected NPC |
+| `F4`          | Spawn selected Object |
+| `F5`          | Undo last spawn (can be repeated) |
+| `B`           | Spawn the Boss Arena fence around the player's location (only the fence) |
+| `K`           | Kill all NPCs currently on the map |
+| `Z`           | Freeze or unfreeze all NPCs currently on the map |
+| `M`           | Toggle Slow Motion mode |
 | `[`           | Decrease game speed for Slow Motion |
 | `]`           | Increase game speed for Slow Motion |
 
