@@ -5,7 +5,7 @@
 local mod_version = "0.6"
 ------------------------------------------------------------------------------
 local maf = require 'maf'
-local UEHelpers = require("UEHelpers")
+--local UEHelpers = require("UEHelpers")
 ------------------------------------------------------------------------------
 -- Saved copies of player stats before buffs
 local savedRSR = 0
@@ -16,7 +16,7 @@ local maxRSR = 1000
 local maxMP = 200
 local maxRegenRate = 10000
 ------------------------------------------------------------------------------
-local GameSpeedDelta = 0.05
+local GameSpeedDelta = 0.1
 local DefaultGameSpeed = 1.0
 local DefaultSloMoGameSpeed = 0.5
 local SloMoGameSpeed = DefaultSloMoGameSpeed
@@ -272,6 +272,7 @@ function InitMyMod()
         end
 
         Frozen = false
+        SlowMotionEnabled = false
 
         -- This starts a thread that updates the HUD in background.
         -- It only exits if we retrn true from the lambda, which we don't
@@ -439,7 +440,7 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
     local ActorClass = StaticFindObject(FullClassPath)
     if ActorClass == nil or not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
 
-    local World = UEHelpers:GetWorld()
+    local World = myGetPlayerController():GetWorld()
     if World == nil or not World:IsValid() then error("[ERROR] World is not valid") end
     local Actor = World:SpawnActor(ActorClass, SpawnLocation, CurrentRotation)
     if Actor == nil or not Actor:IsValid() then

@@ -1,6 +1,8 @@
 # Half Sword Trainer Mod
 A trainer mod for Half Sword demo v0.3 ([Steam release](https://store.steampowered.com/app/2397300/Half_Sword/)). 
 
+It gives you Invulnerability, Super Strength, configurable level of enemy NPCs, and the ability to spawn armour, weapons, NPCs and objects (and despawn them if you made a mistake), setting game speed and more. The mod also has a detailed HUD with player stats. 
+
 USE AT YOUR OWN RISK.
 
 Compatibility with newer demo versions not guaranteed, and the older demo from `itch.io` won't work.
@@ -95,8 +97,8 @@ Delete the files that you copied as described above, or just reinstall the entir
 The mod has a custom UI that can be hidden when needed.
 
 The mod adds a HUD on top of the game on the left side of the screen to show you various player stats.
-* The body figure in the bottom left corner is the health of body parts.
-* The skeleton figure in the middle is the health of the joints (It may not be used properly by the game itself, but it is displayed anyway).
+* The body figure in the bottom left corner is the health of the body parts.
+
 
 The mod adds a spawn menu on top of the game on the right side of the screen with some drop-down menus and buttons.
 
