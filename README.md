@@ -18,10 +18,13 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 ## Installation
 ### Video tutorial: https://www.youtube.com/watch?v=4gSp87ET6x4
+
 ### Screenshots with the steps: https://imgur.com/a/3RFOQiS
+
 ### Detailed steps:
 
-1) Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
+#### 1. Install UE4SS into the game folder
+Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
 ([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)). Basically you will need to unzip that archive and copy the files into the right place. Read the guides for help.
 
 Most probably you will copy all the files from the UE4SS release into:
@@ -37,7 +40,8 @@ UE4SS.dll
 ...
 ```
 
-2) Download either a release, or a source package of this `HalfSwordTrainerMod` repo and unpack it somewhere to take a look. 
+#### 2. Download this mod
+Download either a release, or a source package of this `HalfSwordTrainerMod` repo and unpack it somewhere to take a look. 
 * If you want a more stable build, take a named version [from the releases](https://github.com/massclown/HalfSwordTrainerMod/releases)
 * If you want a fresh development one, click the green "<>Code" button in the top-right of the page and select "Download ZIP".
 
@@ -52,13 +56,16 @@ LICENSE
 README.md
 ```
 
-3) Copy the entire `HalfSwordTrainerMod` folder of the release into the `Mods` folder of your UE4SS installation
+#### 3. Copy the code of this mod
+Copy the entire `HalfSwordTrainerMod` folder of the release into the `Mods` folder of your UE4SS installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64\Mods`)
 
-4) Copy the entire `LogicMods` folder of the release into the `Content\Paks` folder of your Half Sword demo installation
+#### 4. Copy the Blueprints of this mod
+Copy the entire `LogicMods` folder of the release into the `Content\Paks` folder of your Half Sword demo installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Content\Paks`)
 
-5) Enable the `HalfSwordTrainerMod` and `BPModLoaderMod` in your UE4SS mod loader configuration (`\Mods\mods.txt`).
+#### 5. Enable the mod
+Enable the `HalfSwordTrainerMod` and `BPModLoaderMod` in your UE4SS mod loader configuration (`\Mods\mods.txt`).
 The new lines in the middle of the file should look like this:
 ```
 ...
@@ -69,7 +76,7 @@ HalfSwordTrainerMod : 1
 ```
 We need **both** of them to be enabled, as `BPModLoaderMod` will load the user interface, which is an Unreal Engine Blueprint type of mod.
 
-6) Enjoy the game and support the developers.
+#### 6. Enjoy the game and support the developers.
 
 ## Updating or installing a new release
 * You can copy files from the new release of the mod on top of the old one. I do my best to not have any files left from an older version create any problems in the new one.
@@ -121,7 +128,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `B`           | Spawn the **Boss** Arena fence around the player's location (no bosses inside, only the fence) |
 | `K`           | **Kill** all NPCs currently on the map (does not prevent auto-spawning of new ones!) |
 | `Z`           | **Freeze** or unfreeze all NPCs currently on the map (does not prevent auto-spawning of new ones or freeze those new ones!) |
-| `M`           | Toggle Slow Motion mode |
+| `M`           | Toggle **Slow Motion** mode |
 | `[`           | Decrease game speed for Slow Motion |
 | `]`           | Increase game speed for Slow Motion |
 
@@ -186,7 +193,6 @@ Use `M` to toggle Slow Motion mode, and `[` and `]` to decrease and increase slo
 ## Know issues and TODOs
 * No error handling whatsoever. Use at your own risk. It will crash the game at some point.
 * Auto-spawned NPCs and boss fights will keep spawning. 
-* Buttons in the spawn menu may not work, use `F1` - `F4` keys instead (name of the key is on the buttons).
 * Loadout is spawned in the map, not on the player.
 * Freezing only freezes the bottom part of the NPCs, they can still use weapons on the player.
 * No ability to remove armor from the player.
@@ -222,6 +228,8 @@ Also, try setting the following values in `UE4SS-settings.ini`, in the folder wh
 MajorVersion = 5
 MinorVersion = 1
 ```
+
+If the game is unplayable at all, disable UE4SS or reinstall the game (whatever is faster/easier).
 
 ### Mod does not load?
 Make sure UE4SS loads and observe its logs. It should mention `HalfSwordTrainerMod`. 

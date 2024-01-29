@@ -774,7 +774,8 @@ end
 
 -- Game goes faster
 function IncreaseGameSpeed()
-    if SloMoGameSpeed < DefaultGameSpeed * 10 then
+    -- 5x speed is already too prone to crashes
+    if SloMoGameSpeed < DefaultGameSpeed * 5 then
         SloMoGameSpeed = SloMoGameSpeed + GameSpeedDelta
     end
     if SlowMotionEnabled then
