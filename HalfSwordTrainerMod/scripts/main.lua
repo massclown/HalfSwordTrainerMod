@@ -62,7 +62,7 @@ local FLJH = 0 -- "Foot L Joint Health"
 -- Various UI-related stuff
 local ModUIHUDVisible = true
 local ModUISpawnVisible = true
-
+local CrosshairVisible = true
 -- everything that we spawned
 local spawned_things = {}
 
@@ -172,7 +172,8 @@ cache.names = {
     ["map"] = { "Abyss_Map_Open_C", false },
     ["worldsettings"] = { "WorldSettings", false },
     ["ui_hud"] = { "HSTM_UI_HUD_Widget_C", false },
-    ["ui_spawn"] = { "HSTM_UI_Spawn_Widget_C", false }
+    ["ui_spawn"] = { "HSTM_UI_Spawn_Widget_C", false },
+    ["ui_game_hud"] = {"UI_HUD_C", false}
 }
 
 cache.mt = {}
@@ -275,7 +276,8 @@ function InitMyMod()
 
         Frozen = false
         SlowMotionEnabled = false
-
+        SuperStrength = false
+        
         -- This starts a thread that updates the HUD in background.
         -- It only exits if we retrn true from the lambda, which we don't
         local myRestartCounter = globalRestartCount
@@ -763,7 +765,20 @@ function ExtractHumanReadableName(BPFullClassName)
     local hname = string.match(BPFullClassName, "/([%w_]+)%.[%w_]+$")
     return hname
 end
-
+------------------------------------------------------------------------------
+function ToggleCrosshair()
+    local crosshair = cache.ui_game_hud['Aim']
+    if crosshair and crosshair:IsValid() then
+        CrosshairVisible = crosshair:GetVisibility() == 0 and true or false
+        if CrosshairVisible then
+            crosshair:SetVisibility(2)
+            CrosshairVisible = false
+        else
+            crosshair:SetVisibility(0)
+            CrosshairVisible = true
+        end
+    end
+end
 ------------------------------------------------------------------------------
 function ToggleSlowMotion()
     local worldsettings = cache.worldsettings
@@ -965,6 +980,12 @@ end)
 RegisterKeyBind(Key.OEM_SIX, function()
     ExecuteInGameThread(function()
         IncreaseGameSpeed()
+    end)
+end)
+
+RegisterKeyBind(Key.H, function()
+    ExecuteInGameThread(function()
+        ToggleCrosshair()
     end)
 end)
 

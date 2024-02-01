@@ -128,6 +128,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | Shortcut    | Description |
 | ----------- | ----------- |
 | `U`           | Show/hide the UI (HUD) of the mod |
+| `H`           | Show/hide the crosshair |
 | `I`           | Toggle Invulnerability on/off |
 | `T`           | Toggle Super Strength on/off |
 | `L`           | Spawn a loadout around the player |
@@ -216,7 +217,7 @@ It may crash the game if you change the game speed too often or in the middle of
 
 ## Know issues and TODOs
 
-* No error handling whatsoever. Use at your own risk. It will crash the game at some point! Don't spawn too many things, etc.
+* No error handling whatsoever. Use at your own risk. **It will crash the game at some point!** Don't spawn too many things, etc.
 
 * Auto-spawned NPCs and boss fights will keep spawning. 
 
