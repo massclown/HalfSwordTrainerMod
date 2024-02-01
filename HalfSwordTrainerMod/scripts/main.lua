@@ -63,6 +63,7 @@ local FLJH = 0 -- "Foot L Joint Health"
 local ModUIHUDVisible = true
 local ModUISpawnVisible = true
 local CrosshairVisible = true
+local ModUIHUDUpdateLoopEnabled = true
 -- everything that we spawned
 local spawned_things = {}
 
@@ -173,7 +174,7 @@ cache.names = {
     ["worldsettings"] = { "WorldSettings", false },
     ["ui_hud"] = { "HSTM_UI_HUD_Widget_C", false },
     ["ui_spawn"] = { "HSTM_UI_Spawn_Widget_C", false },
-    ["ui_game_hud"] = {"UI_HUD_C", false}
+    ["ui_game_hud"] = { "UI_HUD_C", false }
 }
 
 cache.mt = {}
@@ -277,24 +278,28 @@ function InitMyMod()
         Frozen = false
         SlowMotionEnabled = false
         SuperStrength = false
-        
+
         -- This starts a thread that updates the HUD in background.
         -- It only exits if we retrn true from the lambda, which we don't
         local myRestartCounter = globalRestartCount
-        LoopAsync(250, function()
-            if myRestartCounter ~= globalRestartCount then
-                -- This is a loop initiated from a past restart hook, exit it
-                Logf("Exiting HUD update loop leftover from restart #%d\n", myRestartCounter)
-                return true
-            end
-            if not ValidateCachedObjects() then
-                ErrLog("Objects not found, skipping loop\n")
+        if ModUIHUDUpdateLoopEnabled then
+            LoopAsync(250, function()
+                if myRestartCounter ~= globalRestartCount then
+                    -- This is a loop initiated from a past restart hook, exit it
+                    Logf("Exiting HUD update loop leftover from restart #%d\n", myRestartCounter)
+                    return true
+                end
+                if not ValidateCachedObjects() then
+                    ErrLog("Objects not found, skipping loop\n")
+                    return false
+                end
+                HUD_UpdatePlayerStats()
                 return false
-            end
-            HUD_UpdatePlayerStats()
-            return false
-        end)
-        Log("HUD update loop started\n")
+            end)
+            Log("HUD update loop started\n")
+        else
+            Log("HUD update loop disabled\n")
+        end
     else
         Logf("Client Restart hook skipped, too early %.3f seconds passed\n", delta)
     end
@@ -765,6 +770,7 @@ function ExtractHumanReadableName(BPFullClassName)
     local hname = string.match(BPFullClassName, "/([%w_]+)%.[%w_]+$")
     return hname
 end
+
 ------------------------------------------------------------------------------
 function ToggleCrosshair()
     local crosshair = cache.ui_game_hud['Aim']
@@ -779,6 +785,7 @@ function ToggleCrosshair()
         end
     end
 end
+
 ------------------------------------------------------------------------------
 function ToggleSlowMotion()
     local worldsettings = cache.worldsettings
