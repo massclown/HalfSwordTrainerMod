@@ -210,6 +210,9 @@ function ValidateCachedObjects()
     local map = cache.map
     local ui_hud = cache.ui_hud
     local ui_spawn = cache.ui_spawn
+    local ui_game_hud = cache.ui_game_hud
+    local worldsettings = cache.worldsettings
+
     if not map or not map:IsValid() then
         ErrLogf("Map not found! (%s)\n", not map and "nil" or "invalid")
         return false
@@ -222,9 +225,19 @@ function ValidateCachedObjects()
         ErrLogf("UI Spawn Widget not found! (%s)\n", not map and "nil" or "invalid")
         return false
     end
+    -- The HUD is not loaded at the time of first check, so skipping
+    -- if not ui_game_hud or not ui_game_hud:IsValid() then
+    --     ErrLogf("Game UI Widget not found! (%s)\n", not map and "nil" or "invalid")
+    --     return false
+    -- end
+    if not worldsettings or not worldsettings:IsValid() then
+        ErrLogf("UE WorldSettings not found! (%s)\n", not map and "nil" or "invalid")
+        return false
+    end
     return true
 end
 
+------------------------------------------------------------------------------
 -- Timestamp of last invocation of InitMyMod()
 local lastInitTimestamp = -1
 local globalRestartCount = 0
@@ -355,35 +368,37 @@ function HUD_UpdatePlayerStats()
     cache.ui_hud['HUD_LRH']                 = math.floor(LRH)
     cache.ui_hud['HUD_LLH']                 = math.floor(LLH)
     --
-    HJH                                     = player['Head Joint Health']
-    TJH                                     = player['Torso Joint Health']
-    HRJH                                    = player['Hand R Joint Health']
-    ARJH                                    = player['Arm R Joint Health']
-    SRJH                                    = player['Shoulder R Joint Health']
-    HLJH                                    = player['Hand L Joint Health']
-    ALJH                                    = player['Arm L Joint Health']
-    SLJH                                    = player['Shoulder L Joint Health']
-    TRJH                                    = player['Thigh R Joint Health']
-    LRJH                                    = player['Leg R Joint Health']
-    FRJH                                    = player['Foot R Joint Health']
-    TLJH                                    = player['Thigh L Joint Health']
-    LLJH                                    = player['Leg L Joint Health']
-    FLJH                                    = player['Foot L Joint Health']
+    -- Joint health logic is commented for now, as the Joint health HUD is disabled since mod v0.6
     --
-    cache.ui_hud['HUD_HJH']                 = math.floor(HJH)
-    cache.ui_hud['HUD_TJH']                 = math.floor(TJH)
-    cache.ui_hud['HUD_HRJH']                = math.floor(HRJH)
-    cache.ui_hud['HUD_ARJH']                = math.floor(ARJH)
-    cache.ui_hud['HUD_SRJH']                = math.floor(SRJH)
-    cache.ui_hud['HUD_HLJH']                = math.floor(HLJH)
-    cache.ui_hud['HUD_ALJH']                = math.floor(ALJH)
-    cache.ui_hud['HUD_SLJH']                = math.floor(SLJH)
-    cache.ui_hud['HUD_TRJH']                = math.floor(TRJH)
-    cache.ui_hud['HUD_LRJH']                = math.floor(LRJH)
-    cache.ui_hud['HUD_FRJH']                = math.floor(FRJH)
-    cache.ui_hud['HUD_TLJH']                = math.floor(TLJH)
-    cache.ui_hud['HUD_LLJH']                = math.floor(LLJH)
-    cache.ui_hud['HUD_FLJH']                = math.floor(FLJH)
+    -- HJH                                     = player['Head Joint Health']
+    -- TJH                                     = player['Torso Joint Health']
+    -- HRJH                                    = player['Hand R Joint Health']
+    -- ARJH                                    = player['Arm R Joint Health']
+    -- SRJH                                    = player['Shoulder R Joint Health']
+    -- HLJH                                    = player['Hand L Joint Health']
+    -- ALJH                                    = player['Arm L Joint Health']
+    -- SLJH                                    = player['Shoulder L Joint Health']
+    -- TRJH                                    = player['Thigh R Joint Health']
+    -- LRJH                                    = player['Leg R Joint Health']
+    -- FRJH                                    = player['Foot R Joint Health']
+    -- TLJH                                    = player['Thigh L Joint Health']
+    -- LLJH                                    = player['Leg L Joint Health']
+    -- FLJH                                    = player['Foot L Joint Health']
+    -- --
+    -- cache.ui_hud['HUD_HJH']                 = math.floor(HJH)
+    -- cache.ui_hud['HUD_TJH']                 = math.floor(TJH)
+    -- cache.ui_hud['HUD_HRJH']                = math.floor(HRJH)
+    -- cache.ui_hud['HUD_ARJH']                = math.floor(ARJH)
+    -- cache.ui_hud['HUD_SRJH']                = math.floor(SRJH)
+    -- cache.ui_hud['HUD_HLJH']                = math.floor(HLJH)
+    -- cache.ui_hud['HUD_ALJH']                = math.floor(ALJH)
+    -- cache.ui_hud['HUD_SLJH']                = math.floor(SLJH)
+    -- cache.ui_hud['HUD_TRJH']                = math.floor(TRJH)
+    -- cache.ui_hud['HUD_LRJH']                = math.floor(LRJH)
+    -- cache.ui_hud['HUD_FRJH']                = math.floor(FRJH)
+    -- cache.ui_hud['HUD_TLJH']                = math.floor(TLJH)
+    -- cache.ui_hud['HUD_LLJH']                = math.floor(LLJH)
+    -- cache.ui_hud['HUD_FLJH']                = math.floor(FLJH)
 
     --
     HUD_CacheLevel()
@@ -407,6 +422,8 @@ function ToggleSuperStrength()
 end
 
 ------------------------------------------------------------------------------
+-- We also increase regeneration rate together with invulnerability
+-- to prevent the player from dying from past wounds
 function ToggleInvulnerability()
     local player = cache.map['Player Willie']
     Invulnerable = player['Invulnerable']
