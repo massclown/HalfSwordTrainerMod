@@ -2,7 +2,7 @@
 -- https://github.com/massclown/HalfSwordTrainerMod
 -- Requirements: UE4SS 2.5.2 (or newer) a Blueprint mod HSTM_UI (see repo)
 ------------------------------------------------------------------------------
-local mod_version = "0.6"
+local mod_version = "0.7"
 ------------------------------------------------------------------------------
 local maf = require 'maf'
 --local UEHelpers = require("UEHelpers")
@@ -22,6 +22,9 @@ local DefaultSloMoGameSpeed = 0.5
 local SloMoGameSpeed = DefaultSloMoGameSpeed
 ------------------------------------------------------------------------------
 -- Variables tracking things we change or want to observe and display in HUD
+local AutoSpawnEnabled = true -- this is the default, UI is 'HSTM_Flag_AutospawnNPCs'
+local SpawnFrozenNPCs = false -- we can change it, UI flag is 'HSTM_Flag_SpawnFrozenNPCs'
+
 local SlowMotionEnabled = false
 local Frozen = false
 local SuperStrength = false
@@ -448,7 +451,7 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
     local CurrentRotation = SpawnRotation == nil and DefaultRotation or SpawnRotation
     local ActorClass = StaticFindObject(FullClassPath)
     if ActorClass == nil or not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
-
+    local isNPC = FullClassPath:contains("/Game/Character/Blueprints/")
     local World = myGetPlayerController():GetWorld()
     if World == nil or not World:IsValid() then error("[ERROR] World is not valid") end
     local Actor = World:SpawnActor(ActorClass, SpawnLocation, CurrentRotation)
@@ -458,7 +461,13 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
         if spawned_things then
             -- We try to guess if this actor was an NPC
             table.insert(spawned_things,
-                { Object = Actor, IsCharacter = FullClassPath:contains("/Game/Character/Blueprints/") })
+                { Object = Actor, IsCharacter = isNPC })
+        end
+        if isNPC then
+            -- Try to freeze the NPC if we have spawn frozen flag set
+            if SpawnFrozenNPCs then
+                Actor['CustomTimeDilation'] = 0.0
+            end
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
             Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z,
@@ -676,6 +685,8 @@ function SpawnSelectedWeapon()
 end
 
 function SpawnSelectedNPC()
+    -- Update the flag from the Spawn HUD
+    SpawnFrozenNPCs = cache.ui_spawn['HSTM_Flag_SpawnFrozenNPCs']
     local Selected_Spawn_NPC = cache.ui_spawn['Selected_Spawn_NPC']:ToString()
     --Logf("Spawning NPC key [%s]\n", Selected_Spawn_NPC)
     --    if not Selected_Spawn_NPC == nil and not Selected_Spawn_NPC == "" then
