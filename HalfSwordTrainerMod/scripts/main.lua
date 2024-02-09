@@ -80,7 +80,6 @@ local all_characters = {}
 local all_objects = {}
 
 local custom_loadout = {}
-
 ------------------------------------------------------------------------------
 function Log(Message)
     print("[HalfSwordTrainerMod] " .. Message)
@@ -464,6 +463,10 @@ end
 function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
+    if FullClassPath == nil or FullClassPath == "" then
+        ErrLogf("Invalid ClassPath [%s] for actor, cannot spawn!\n", tostring(FullClassPath))
+        return
+    end
     local DefaultRotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
     local CurrentRotation = SpawnRotation == nil and DefaultRotation or SpawnRotation
     local ActorClass = StaticFindObject(FullClassPath)
@@ -854,34 +857,47 @@ function DecreaseGameSpeed()
         cache.ui_hud['HUD_GameSpeed_Value'] = GameSpeed
     end
 end
-
 ------------------------------------------------------------------------------
--- We hook the restart event, which somehow fires twice per restart
--- We take care of that in the InitMyMod() function above
-RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
+function AllHooks()
+    CriticalHooks()
+    AllCustomEventHooks()
+    AllKeybindHooks()
+end
 ------------------------------------------------------------------------------
-
--- We hook the creation of Character class objects, those are NPCs usually
--- WARN for some reason, this crashes the game on restart
--- TODO intercept and set CustomTimeDilation if we want to freeze all NPCs
--- Maybe it is the Lua GC doing this to a table of actors somehow?
--- NotifyOnNewObject("/Script/Engine.Character", function(ConstructedObject)
---     if intercepted_actors then
---         table.insert(intercepted_actors, ConstructedObject)
---     end
---     Logf("Hook Character spawned: %s\n", ConstructedObject:GetFullName())
--- end)
+function CriticalHooks()
+    ------------------------------------------------------------------------------
+    -- We hook the restart event, which somehow fires twice per restart
+    -- We take care of that in the InitMyMod() function above
+    RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
+--    RegisterLoadMapPostHook(function(Engine, World)
+--        InitMyMod()
+--    end)
+end
 ------------------------------------------------------------------------------
--- Damage hooks are commented for now, not sure which is the correct one to intercept and how to interpret the variables
--- TODO Needs a proper investigation
--- RegisterHook("/Script/Engine.Actor:ReceiveAnyDamage", function(self, Damage, DamageType, InstigatedBy, DamageCauser)
---     Logf("Damage %f\n", Damage:get())
--- end)
--- RegisterHook("/Game/Character/Blueprints/Willie_BP.Willie_BP_C:Get Damage", function(self,
---         Impulse,Velocity,Location,Normal,bone,Raw_Damage,Cutting_Power,Inside,Damaged_Mesh,Dism_Blunt,Lower_Threshold,Shockwave,Hit_By_Component,Damage_Out
---     )
---     Logf("Damage %f %f\n", Raw_Damage:get(), Damage_Out:get())
--- end)
+function DangerousHooks()
+    ------------------------------------------------------------------------------
+    -- We hook the creation of Character class objects, those are NPCs usually
+    -- WARN for some reason, this crashes the game on restart
+    -- TODO intercept and set CustomTimeDilation if we want to freeze all NPCs
+    -- Maybe it is the Lua GC doing this to a table of actors somehow?
+    -- NotifyOnNewObject("/Script/Engine.Character", function(ConstructedObject)
+    --     if intercepted_actors then
+    --         table.insert(intercepted_actors, ConstructedObject)
+    --     end
+    --     Logf("Hook Character spawned: %s\n", ConstructedObject:GetFullName())
+    -- end)
+    ------------------------------------------------------------------------------
+    -- Damage hooks are commented for now, not sure which is the correct one to intercept and how to interpret the variables
+    -- TODO Needs a proper investigation
+    -- RegisterHook("/Script/Engine.Actor:ReceiveAnyDamage", function(self, Damage, DamageType, InstigatedBy, DamageCauser)
+    --     Logf("Damage %f\n", Damage:get())
+    -- end)
+    -- RegisterHook("/Game/Character/Blueprints/Willie_BP.Willie_BP_C:Get Damage", function(self,
+    --         Impulse,Velocity,Location,Normal,bone,Raw_Damage,Cutting_Power,Inside,Damaged_Mesh,Dism_Blunt,Lower_Threshold,Shockwave,Hit_By_Component,Damage_Out
+    --     )
+    --     Logf("Damage %f %f\n", Raw_Damage:get(), Damage_Out:get())
+    -- end)
+end
 ------------------------------------------------------------------------------
 -- Trying to hook the button click functions of the HSTM_UI blueprint:
 -- * HSTM_SpawnArmor
@@ -893,135 +909,163 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
 -- * HSTM_KillAllNPCs
 -- * HSTM_FreezeAllNPCs
 -- Those are defined as custom functions in the spawn widget of the HSTM_UI blueprint itself.
-RegisterCustomEvent("HSTM_SpawnArmor", function(ParamContext, ParamMessage)
-    SpawnSelectedArmor()
-end)
-
-RegisterCustomEvent("HSTM_SpawnWeapon", function(ParamContext, ParamMessage)
-    SpawnSelectedWeapon()
-end)
-
-RegisterCustomEvent("HSTM_SpawnNPC", function(ParamContext, ParamMessage)
-    SpawnSelectedNPC()
-end)
-
-RegisterCustomEvent("HSTM_SpawnObject", function(ParamContext, ParamMessage)
-    SpawnSelectedObject()
-end)
-
--- Buttons below
-RegisterCustomEvent("HSTM_UndoSpawn", function(ParamContext, ParamMessage)
-    UndoLastSpawn()
-end)
-
-RegisterCustomEvent("HSTM_ToggleSlowMotion", function(ParamContext, ParamMessage)
-    ToggleSlowMotion()
-end)
-
-RegisterCustomEvent("HSTM_KillAllNPCs", function(ParamContext, ParamMessage)
-    KillAllNPCs()
-end)
-
-RegisterCustomEvent("HSTM_FreezeAllNPCs", function(ParamContext, ParamMessage)
-    FreezeAllNPCs()
-end)
-
-------------------------------------------------------------------------------
--- The user-facing key bindings are below.
-RegisterKeyBind(Key.I, function()
-    ExecuteInGameThread(function()
-        ToggleInvulnerability()
+function AllCustomEventHooks()
+    RegisterCustomEvent("HSTM_SpawnArmor", function(ParamContext, ParamMessage)
+        SpawnSelectedArmor()
     end)
-end)
 
-RegisterKeyBind(Key.T, function()
-    ExecuteInGameThread(function()
-        ToggleSuperStrength()
+    RegisterCustomEvent("HSTM_SpawnWeapon", function(ParamContext, ParamMessage)
+        SpawnSelectedWeapon()
     end)
-end)
 
-RegisterKeyBind(Key.L, function()
-    SpawnLoadoutAroundPlayer()
-end)
-
-RegisterKeyBind(Key.OEM_MINUS, function()
-    ExecuteInGameThread(function()
-        DecreaseLevel()
+    RegisterCustomEvent("HSTM_SpawnNPC", function(ParamContext, ParamMessage)
+        SpawnSelectedNPC()
     end)
-end)
 
-RegisterKeyBind(Key.OEM_PLUS, function()
-    ExecuteInGameThread(function()
-        IncreaseLevel()
+    RegisterCustomEvent("HSTM_SpawnObject", function(ParamContext, ParamMessage)
+        SpawnSelectedObject()
     end)
-end)
 
-RegisterKeyBind(Key.U, function()
-    ExecuteInGameThread(function()
-        ToggleModUI()
+    -- Buttons below
+    RegisterCustomEvent("HSTM_UndoSpawn", function(ParamContext, ParamMessage)
+        UndoLastSpawn()
     end)
-end)
 
-RegisterKeyBind(Key.F1, function()
-    SpawnSelectedArmor()
-end)
-
-RegisterKeyBind(Key.F2, function()
-    SpawnSelectedWeapon()
-end)
-
-RegisterKeyBind(Key.F3, function()
-    SpawnSelectedNPC()
-end)
-
-RegisterKeyBind(Key.F4, function()
-    SpawnSelectedObject()
-end)
-
-RegisterKeyBind(Key.F5, function()
-    UndoLastSpawn()
-end)
-
-RegisterKeyBind(Key.K, function()
-    ExecuteInGameThread(function()
-        KillAllNPCs()
-    end)
-end)
-
-RegisterKeyBind(Key.Z, function()
-    ExecuteInGameThread(function()
-        FreezeAllNPCs()
-    end)
-end)
-
-RegisterKeyBind(Key.B, function()
-    ExecuteInGameThread(function()
-        SpawnBossArena()
-    end)
-end)
-
-RegisterKeyBind(Key.M, function()
-    ExecuteInGameThread(function()
+    RegisterCustomEvent("HSTM_ToggleSlowMotion", function(ParamContext, ParamMessage)
         ToggleSlowMotion()
     end)
-end)
--- OEM_FOUR == [
-RegisterKeyBind(Key.OEM_FOUR, function()
-    ExecuteInGameThread(function()
-        DecreaseGameSpeed()
-    end)
-end)
--- OEM_SIX == ]
-RegisterKeyBind(Key.OEM_SIX, function()
-    ExecuteInGameThread(function()
-        IncreaseGameSpeed()
-    end)
-end)
 
-RegisterKeyBind(Key.H, function()
-    ExecuteInGameThread(function()
-        ToggleCrosshair()
+    RegisterCustomEvent("HSTM_KillAllNPCs", function(ParamContext, ParamMessage)
+        KillAllNPCs()
     end)
-end)
 
+    RegisterCustomEvent("HSTM_FreezeAllNPCs", function(ParamContext, ParamMessage)
+        FreezeAllNPCs()
+    end)
+end
+------------------------------------------------------------------------------
+-- The user-facing key bindings are below.
+function AllKeybindHooks()
+    RegisterKeyBind(Key.I, function()
+        ExecuteInGameThread(function()
+            ToggleInvulnerability()
+        end)
+    end)
+
+    RegisterKeyBind(Key.T, function()
+        ExecuteInGameThread(function()
+            ToggleSuperStrength()
+        end)
+    end)
+
+    RegisterKeyBind(Key.L, function()
+        SpawnLoadoutAroundPlayer()
+    end)
+
+    RegisterKeyBind(Key.OEM_MINUS, function()
+        ExecuteInGameThread(function()
+            DecreaseLevel()
+        end)
+    end)
+
+    RegisterKeyBind(Key.OEM_PLUS, function()
+        ExecuteInGameThread(function()
+            IncreaseLevel()
+        end)
+    end)
+
+    RegisterKeyBind(Key.U, function()
+        ExecuteInGameThread(function()
+            ToggleModUI()
+        end)
+    end)
+
+    RegisterKeyBind(Key.F1, function()
+        SpawnSelectedArmor()
+    end)
+
+    RegisterKeyBind(Key.F2, function()
+        SpawnSelectedWeapon()
+    end)
+
+    RegisterKeyBind(Key.F3, function()
+        SpawnSelectedNPC()
+    end)
+
+    RegisterKeyBind(Key.F4, function()
+        SpawnSelectedObject()
+    end)
+
+    RegisterKeyBind(Key.F5, function()
+        UndoLastSpawn()
+    end)
+
+    RegisterKeyBind(Key.K, function()
+        ExecuteInGameThread(function()
+            KillAllNPCs()
+        end)
+    end)
+
+    RegisterKeyBind(Key.Z, function()
+        ExecuteInGameThread(function()
+            FreezeAllNPCs()
+        end)
+    end)
+
+    RegisterKeyBind(Key.B, function()
+        ExecuteInGameThread(function()
+            SpawnBossArena()
+        end)
+    end)
+
+    RegisterKeyBind(Key.M, function()
+        ExecuteInGameThread(function()
+            ToggleSlowMotion()
+        end)
+    end)
+    -- OEM_FOUR == [
+    RegisterKeyBind(Key.OEM_FOUR, function()
+        ExecuteInGameThread(function()
+            DecreaseGameSpeed()
+        end)
+    end)
+    -- OEM_SIX == ]
+    RegisterKeyBind(Key.OEM_SIX, function()
+        ExecuteInGameThread(function()
+            IncreaseGameSpeed()
+        end)
+    end)
+
+    RegisterKeyBind(Key.H, function()
+        ExecuteInGameThread(function()
+            ToggleCrosshair()
+        end)
+    end)
+end
+------------------------------------------------------------------------------
+function SanityCheckAndInit()
+    local UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix = UE4SS.GetVersion()
+    local UE4SS_Version_String = string.format("{%d}.{%d}.{%d}", UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix)
+
+    if UE4SS_Major == 2 and UE4SS_Minor == 5 and UE4SS_Hotfix == 2 then
+        AllHooks()
+    elseif UE4SS_Major == 3 and UE4SS_Minor == 0 and UE4SS_Hotfix == 0 then
+        -- We are on UE4SS 3.0.0
+        -- TODO special handling of 
+        AllHooks()
+    else
+        -- Unsupported UE4SS version
+        error("Unsupported UE4SS version: " .. UE4SS_Version_String)
+    end
+
+    -- Half Sword steam demo is on UE 5.1 currently.
+    -- If UE4SS didn't detect the correct UE version, we bail out.
+    assert(UnrealVersion.IsEqual(5, 1))
+
+    Logf("Sanity check passed!\n")
+end
+
+------------------------------------------------------------------------------
+SanityCheckAndInit()
+------------------------------------------------------------------------------
 -- EOF
