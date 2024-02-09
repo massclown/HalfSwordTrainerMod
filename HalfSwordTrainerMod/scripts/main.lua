@@ -498,7 +498,11 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
             end
         else
             -- We don't really care if this is a weapon, but we try anyway
-            Actor:SetActorScale3D({X = WeaponSize, Y = WeaponSize, Z = WeaponSize})
+            -- Some actors already have non-default scale, so we don't override that
+            -- Yes, it is not a good idea to compare floats like this, but we do 0.1 increments so this is fine (c)
+            if WeaponSize ~= 1.0 then
+                Actor:SetActorScale3D({X = WeaponSize, Y = WeaponSize, Z = WeaponSize})
+            end
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
             Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z,
