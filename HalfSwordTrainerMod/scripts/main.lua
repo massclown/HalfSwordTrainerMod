@@ -36,6 +36,8 @@ local PlayerScore = 0
 local PlayerHealth = 0
 local PlayerConsciousness = 0
 local PlayerTonus = 0
+-- Cached from the spawn UI (HSTM_Slider_WeaponSize)
+local WeaponSize = 1.0
 
 -- Player body detailed health data
 local HH = 0  -- 'Head Health'
@@ -308,7 +310,9 @@ function InitMyMod()
                     ErrLog("Objects not found, skipping loop\n")
                     return false
                 end
-                HUD_UpdatePlayerStats()
+                if ModUIHUDVisible then
+                    HUD_UpdatePlayerStats()
+                end
                 return false
             end)
             Log("HUD update loop started\n")
@@ -417,7 +421,9 @@ function ToggleSuperStrength()
         player['Muscle Power'] = savedMP
     end
     Log("SuperStrength = " .. tostring(SuperStrength) .. "\n")
-    cache.ui_hud['HUD_SuperStrength_Value'] = SuperStrength
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_SuperStrength_Value'] = SuperStrength
+    end
 end
 
 ------------------------------------------------------------------------------
@@ -435,7 +441,9 @@ function ToggleInvulnerability()
     end
     player['Invulnerable'] = Invulnerable
     Log("Invulnerable = " .. tostring(Invulnerable) .. "\n")
-    cache.ui_hud['HUD_Invuln_Value'] = Invulnerable
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_Invuln_Value'] = Invulnerable
+    end
 end
 
 ------------------------------------------------------------------------------
@@ -488,6 +496,9 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
             if SpawnFrozenNPCs then
                 Actor['CustomTimeDilation'] = 0.0
             end
+        else
+            -- We don't really care if this is a weapon, but we try anyway
+            Actor:SetActorScale3D({X = WeaponSize, Y = WeaponSize, Z = WeaponSize})
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
             Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z,
@@ -611,12 +622,16 @@ end
 function HUD_SetLevel(Level)
     cache.map['Level'] = Level
     Logf("Set Level = %d\n", Level)
-    cache.ui_hud['HUD_Level_Value'] = Level
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_Level_Value'] = Level
+    end
 end
 
 function HUD_CacheLevel()
     level = cache.map['Level']
-    cache.ui_hud['HUD_Level_Value'] = level
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_Level_Value'] = level
+    end
 end
 
 function DecreaseLevel()
@@ -680,7 +695,9 @@ function FreezeAllNPCs()
             end
         end
     end
-    cache.ui_hud['HUD_NPCsFrozen_Value'] = Frozen
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_NPCsFrozen_Value'] = Frozen
+    end
 end
 
 ------------------------------------------------------------------------------
@@ -696,6 +713,7 @@ end
 
 function SpawnSelectedWeapon()
     local Selected_Spawn_Weapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
+    WeaponSize = cache.ui_spawn['HSTM_Slider_WeaponSize']
     --Logf("Spawning weapon key [%s]\n", Selected_Spawn_Weapon)
     --    if not Selected_Spawn_Weapon == nil and not Selected_Spawn_Weapon == "" then
     local selected_actor = all_weapons[Selected_Spawn_Weapon]
@@ -827,8 +845,10 @@ function ToggleSlowMotion()
         GameSpeed = DefaultGameSpeed
     end
     worldsettings['TimeDilation']        = GameSpeed
-    cache.ui_hud['HUD_GameSpeed_Value']  = GameSpeed
-    cache.ui_hud['HUD_SlowMotion_Value'] = SlowMotionEnabled
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_GameSpeed_Value']  = GameSpeed
+        cache.ui_hud['HUD_SlowMotion_Value'] = SlowMotionEnabled
+    end
 end
 
 -- Game goes faster
@@ -841,7 +861,9 @@ function IncreaseGameSpeed()
         local worldsettings = cache.worldsettings
         GameSpeed = SloMoGameSpeed
         worldsettings['TimeDilation'] = GameSpeed
-        cache.ui_hud['HUD_GameSpeed_Value'] = GameSpeed
+        if ModUIHUDVisible then
+            cache.ui_hud['HUD_GameSpeed_Value'] = GameSpeed
+        end
     end
 end
 
@@ -854,7 +876,9 @@ function DecreaseGameSpeed()
         local worldsettings = cache.worldsettings
         GameSpeed = SloMoGameSpeed
         worldsettings['TimeDilation'] = GameSpeed
-        cache.ui_hud['HUD_GameSpeed_Value'] = GameSpeed
+        if ModUIHUDVisible then
+            cache.ui_hud['HUD_GameSpeed_Value'] = GameSpeed
+        end
     end
 end
 ------------------------------------------------------------------------------
