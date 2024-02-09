@@ -38,6 +38,7 @@ local PlayerConsciousness = 0
 local PlayerTonus = 0
 -- Cached from the spawn UI (HSTM_Slider_WeaponSize)
 local WeaponSize = 1.0
+local WeaponScaleXYZ = true
 
 -- Player body detailed health data
 local HH = 0  -- 'Head Health'
@@ -501,7 +502,11 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
             -- Some actors already have non-default scale, so we don't override that
             -- Yes, it is not a good idea to compare floats like this, but we do 0.1 increments so this is fine (c)
             if WeaponSize ~= 1.0 then
-                Actor:SetActorScale3D({X = WeaponSize, Y = WeaponSize, Z = WeaponSize})
+                if WeaponScaleXYZ then
+                    Actor:SetActorScale3D({ X = WeaponSize, Y = WeaponSize, Z = WeaponSize })
+                else
+                    Actor:SetActorScale3D({ X = 1.0, Y = 1.0, Z = WeaponSize })
+                end
             end
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
@@ -718,6 +723,7 @@ end
 function SpawnSelectedWeapon()
     local Selected_Spawn_Weapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
     WeaponSize = cache.ui_spawn['HSTM_Slider_WeaponSize']
+    WeaponScaleXYZ = cache.ui_spawn['HSTM_Flag_ScaleXYZ']
     --Logf("Spawning weapon key [%s]\n", Selected_Spawn_Weapon)
     --    if not Selected_Spawn_Weapon == nil and not Selected_Spawn_Weapon == "" then
     local selected_actor = all_weapons[Selected_Spawn_Weapon]
@@ -848,7 +854,7 @@ function ToggleSlowMotion()
     else
         GameSpeed = DefaultGameSpeed
     end
-    worldsettings['TimeDilation']        = GameSpeed
+    worldsettings['TimeDilation'] = GameSpeed
     if ModUIHUDVisible then
         cache.ui_hud['HUD_GameSpeed_Value']  = GameSpeed
         cache.ui_hud['HUD_SlowMotion_Value'] = SlowMotionEnabled
@@ -885,22 +891,25 @@ function DecreaseGameSpeed()
         end
     end
 end
+
 ------------------------------------------------------------------------------
 function AllHooks()
     CriticalHooks()
     AllCustomEventHooks()
     AllKeybindHooks()
 end
+
 ------------------------------------------------------------------------------
 function CriticalHooks()
     ------------------------------------------------------------------------------
     -- We hook the restart event, which somehow fires twice per restart
     -- We take care of that in the InitMyMod() function above
     RegisterHook("/Script/Engine.PlayerController:ClientRestart", InitMyMod)
---    RegisterLoadMapPostHook(function(Engine, World)
---        InitMyMod()
---    end)
+    --    RegisterLoadMapPostHook(function(Engine, World)
+    --        InitMyMod()
+    --    end)
 end
+
 ------------------------------------------------------------------------------
 function DangerousHooks()
     ------------------------------------------------------------------------------
@@ -926,6 +935,7 @@ function DangerousHooks()
     --     Logf("Damage %f %f\n", Raw_Damage:get(), Damage_Out:get())
     -- end)
 end
+
 ------------------------------------------------------------------------------
 -- Trying to hook the button click functions of the HSTM_UI blueprint:
 -- * HSTM_SpawnArmor
@@ -971,6 +981,7 @@ function AllCustomEventHooks()
         FreezeAllNPCs()
     end)
 end
+
 ------------------------------------------------------------------------------
 -- The user-facing key bindings are below.
 function AllKeybindHooks()
@@ -1070,6 +1081,7 @@ function AllKeybindHooks()
         end)
     end)
 end
+
 ------------------------------------------------------------------------------
 function SanityCheckAndInit()
     local UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix = UE4SS.GetVersion()
@@ -1079,7 +1091,7 @@ function SanityCheckAndInit()
         AllHooks()
     elseif UE4SS_Major == 3 and UE4SS_Minor == 0 and UE4SS_Hotfix == 0 then
         -- We are on UE4SS 3.0.0
-        -- TODO special handling of 
+        -- TODO special handling of
         AllHooks()
     else
         -- Unsupported UE4SS version
