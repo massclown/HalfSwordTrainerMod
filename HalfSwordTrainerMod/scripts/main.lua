@@ -38,7 +38,9 @@ local PlayerConsciousness = 0
 local PlayerTonus = 0
 -- Cached from the spawn UI (HSTM_Slider_WeaponSize)
 local WeaponSize = 1.0
-local WeaponScaleXYZ = true
+local WeaponScaleX = true
+local WeaponScaleY = true
+local WeaponScaleZ = true
 
 -- Player body detailed health data
 local HH = 0  -- 'Head Health'
@@ -502,11 +504,12 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
             -- Some actors already have non-default scale, so we don't override that
             -- Yes, it is not a good idea to compare floats like this, but we do 0.1 increments so this is fine (c)
             if WeaponSize ~= 1.0 then
-                if WeaponScaleXYZ then
-                    Actor:SetActorScale3D({ X = WeaponSize, Y = WeaponSize, Z = WeaponSize })
-                else
-                    Actor:SetActorScale3D({ X = 1.0, Y = 1.0, Z = WeaponSize })
-                end
+                local scale = {
+                    X = WeaponScaleX and WeaponSize or 1.0,
+                    Y = WeaponScaleY and WeaponSize or 1.0,
+                    Z = WeaponScaleZ and WeaponSize or 1.0
+                }
+                Actor:SetActorScale3D(scale)
             end
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
@@ -723,7 +726,9 @@ end
 function SpawnSelectedWeapon()
     local Selected_Spawn_Weapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
     WeaponSize = cache.ui_spawn['HSTM_Slider_WeaponSize']
-    WeaponScaleXYZ = cache.ui_spawn['HSTM_Flag_ScaleXYZ']
+    WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
+    WeaponScaleY = cache.ui_spawn['HSTM_Flag_ScaleY']
+    WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
     --Logf("Spawning weapon key [%s]\n", Selected_Spawn_Weapon)
     --    if not Selected_Spawn_Weapon == nil and not Selected_Spawn_Weapon == "" then
     local selected_actor = all_weapons[Selected_Spawn_Weapon]
@@ -908,6 +913,7 @@ function CriticalHooks()
     --    RegisterLoadMapPostHook(function(Engine, World)
     --        InitMyMod()
     --    end)
+    Log("Critical hooks registered\n")
 end
 
 ------------------------------------------------------------------------------
@@ -980,6 +986,8 @@ function AllCustomEventHooks()
     RegisterCustomEvent("HSTM_FreezeAllNPCs", function(ParamContext, ParamMessage)
         FreezeAllNPCs()
     end)
+
+    Log("Custom events registered\n")
 end
 
 ------------------------------------------------------------------------------
@@ -1080,6 +1088,8 @@ function AllKeybindHooks()
             ToggleCrosshair()
         end)
     end)
+
+    Log("Keybinds registered\n")
 end
 
 ------------------------------------------------------------------------------
