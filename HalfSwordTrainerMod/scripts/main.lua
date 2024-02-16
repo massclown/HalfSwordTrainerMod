@@ -1,6 +1,6 @@
--- Half Sword Trainer Mod v0.5 by massclown
+-- Half Sword Trainer Mod v0.7 by massclown
 -- https://github.com/massclown/HalfSwordTrainerMod
--- Requirements: UE4SS 2.5.2 (or newer) a Blueprint mod HSTM_UI (see repo)
+-- Requirements: UE4SS 2.5.2 (or newer) and a Blueprint mod HSTM_UI (see repo)
 ------------------------------------------------------------------------------
 local mod_version = "0.7"
 ------------------------------------------------------------------------------
