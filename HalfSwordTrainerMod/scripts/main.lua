@@ -1097,7 +1097,7 @@ function SanityCheckAndInit()
     local UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix = UE4SS.GetVersion()
     local UE4SS_Version_String = string.format("{%d}.{%d}.{%d}", UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix)
 
-    if UE4SS_Major == 2 and UE4SS_Minor == 5 and UE4SS_Hotfix == 2 then
+    if UE4SS_Major == 2 and UE4SS_Minor == 5 and (UE4SS_Hotfix == 2 or UE4SS_Hotfix == 1) then
         AllHooks()
     elseif UE4SS_Major == 3 and UE4SS_Minor == 0 and UE4SS_Hotfix == 0 then
         -- We are on UE4SS 3.0.0
