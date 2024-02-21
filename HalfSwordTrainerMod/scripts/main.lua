@@ -1095,13 +1095,27 @@ end
 ------------------------------------------------------------------------------
 function SanityCheckAndInit()
     local UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix = UE4SS.GetVersion()
-    local UE4SS_Version_String = string.format("{%d}.{%d}.{%d}", UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix)
+    local UE4SS_Version_String = string.format("%d.%d.%d", UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix)
 
     if UE4SS_Major == 2 and UE4SS_Minor == 5 and (UE4SS_Hotfix == 2 or UE4SS_Hotfix == 1) then
         AllHooks()
-    elseif UE4SS_Major == 3 and UE4SS_Minor == 0 and UE4SS_Hotfix == 0 then
-        -- We are on UE4SS 3.0.0
-        -- TODO special handling of
+    elseif UE4SS_Major == 3 then -- and UE4SS_Minor == 0 and UE4SS_Hotfix == 0 then
+        -- We are on UE4SS 3.x.x
+        -- TODO special handling of BPModLoaderMod
+        -- Currently the best course of action is to copy BPModLoaderMod from UE4SS 2.5.2
+        -- We will check if the BPModLoaderMod is our patched one or not
+        local bpml_file_path = "Mods\\BPModLoaderMod\\Scripts\\main.lua"
+        local bpml_file = io.open(bpml_file_path, "r")
+        if bpml_file then
+            local file_size = bpml_file:seek("end")
+--            Logf("BMPL size: %d\n", file_size)
+            -- Yes, this is horrible
+            if file_size ~= 7819 then
+                error("You are using UE4SS 3.x.x, please copy Mods\\BPModLoaderMod\\Scripts\\main.lua from UE4SS 2.5.2!")
+            end
+        else
+            error("BPModLoaderMod not found!")
+        end
         AllHooks()
     else
         -- Unsupported UE4SS version
