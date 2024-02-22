@@ -47,7 +47,7 @@ UE4SS-settings.ini
 
 ### 1b. (only if using UE4SS 3.x.x) Install UE4SS 3.x.x into the game folder 
 
-Install [an release of UE4SS 3.x.x from the official repository (UE4SS_v3.x.x.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
+Install [a release of UE4SS 3.x.x from the official repository (UE4SS_v3.x.x.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
 ([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)). Basically you will need to unzip that archive and copy the files into the right place. Read the guides for help.
 
 Most probably you will copy all the files from the UE4SS 3.x.x release into:
@@ -83,7 +83,7 @@ LICENSE
 README.md
 ```
 
-> **WARNING!** To use this mod with UE4SS 3.x.x, you need to patch one standard mod inside UE4SS, `BPModLoaderMod`.
+> **WARNING!** To use this mod with UE4SS 3.x.x, you need to patch one standard mod inside the installed UE4SS `Mods` folder, namely, `BPModLoaderMod`.
 > 
 > It is included in the release of this mod, it is the `BPModLoaderMod` folder.
 > As stated above, copy its `BPModLoaderMod` over the **installed** UE4SS 3.x.x `Mods\BPModLoaderMod`. 
@@ -135,7 +135,8 @@ Delete the files that you copied as described above, or just reinstall the entir
 ## Temporarily disabling the mod
 
 * You can disable the mods that UE4SS loads, including this mod, in `\Mods\mods.txt`.
-* Alternatively, you can rename `xinput1_3.dll` (or `UE4SS.dll` if you are on 3.x.x) to something else, say, `xinput1_3.dll.backup` to completely disable UE4SS and all the mods it loads.
+    * Disable or enable **both** `HalfSwordTrainerMod` and `BPModLoaderMod` in `\Mods\mods.txt`, otherwise you will still see the broken UI of the mod.
+* Alternatively, you can rename `xinput1_3.dll` (or `UE4SS.dll` if you are on UE4SS 3.x.x) to something else, say, `xinput1_3.dll.backup` to completely disable UE4SS and all the mods it loads.
 
 ## How does the mod look on screen
 
@@ -143,7 +144,7 @@ Delete the files that you copied as described above, or just reinstall the entir
 
 ## How to use the mod
 
-The mod has a custom UI that can be hidden when needed.
+The mod has a custom UI that can be hidden when needed, and can also hide the crosshair (cursor).
 
 The mod adds a HUD on top of the game on the left side of the screen to show you various player stats.
 
@@ -306,6 +307,9 @@ Make sure UE4SS loads and observe its logs. It should mention `HalfSwordTrainerM
 * If it does, but the mod does not show UI or does not react to the keyboard shortcuts, check the logs for errors related to `HalfSwordTrainerMod`.
 
 ### I see the HUD/UI of the mod, but values are zero, buttons don't work and menus are empty
+
+> If you are on UE4SS 3.x.x, check that you have patched `BPModLoaderMod` as described in the installation instructions above.
+
 That means that `BPModLoaderMod` has worked correctly and loaded our Blueprint mod (that is the UI of the mod), 
 but the actual Lua mod named `HalfSwordTrainerMod` can't work due to one of the possible reasons: 
 * either it is missing in the `Mods` folder entirely, 
