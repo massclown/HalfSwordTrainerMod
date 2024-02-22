@@ -25,23 +25,45 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 ### Screenshots with the steps: https://imgur.com/a/3RFOQiS
 
-### 1. Install UE4SS into the game folder
+You need to choose which UE4SS version you want. For some people, UE4SS 2.5.2 is more stable, for some, UE4SS 3.x.x is more stable.
+For me, UE4SS 3.x.x is currently more stable.
 
-Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
+### 1a. (only if using UE4SS 2.5.2) Install UE4SS 2.5.2 into the game folder 
+
+Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/v2.5.2) into the Half Sword demo installation folders according to the UE4SS installation instructions 
 ([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)). Basically you will need to unzip that archive and copy the files into the right place. Read the guides for help.
 
 Most probably you will copy all the files from the UE4SS release into:
 `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64`,
-so the contents of that folder, aside from the actual game files, will now have the following **new** files and folder sof UE4SS:
+so the contents of that folder, aside from the actual game files, will now have the following **new** files and folders of UE4SS:
 ```
 ...
 \Mods\
 ...
 xinput1_3.dll
 UE4SS-settings.ini
+...
+```
+
+### 1b. (only if using UE4SS 3.x.x) Install UE4SS 3.x.x into the game folder 
+
+Install [an release of UE4SS 3.x.x from the official repository (UE4SS_v3.x.x.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
+([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)). Basically you will need to unzip that archive and copy the files into the right place. Read the guides for help.
+
+Most probably you will copy all the files from the UE4SS 3.x.x release into:
+`C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64`,
+so the contents of that folder, aside from the actual game files, will now have the following **new** files and folders of UE4SS:
+```
+...
+\Mods\
+...
+dwmapi.dll
+UE4SS-settings.ini
 UE4SS.dll
 ...
 ```
+
+> WARNING! If upgrading from UE4SS 2.5.2 to UE4SS 3.x.x, first delete the old "xinput1_3.dll".
 
 ### 2. Download this mod
 
@@ -53,12 +75,21 @@ In the next steps you will copy some folders from inside the folder where you un
 
 When you unzip the archive, it is going to look like this:
 ```
+\BPModLoaderMod\       --> (!only for UE4SS 3.x.x!) this needs to be copied into the `Mods` folder of your UE4SS installation
 \HalfSwordTrainerMod\  --> this needs to be copied into the `Mods` folder of your UE4SS installation
 \images\               
 \LogicMods\            --> this needs to be copied into the `Content\Paks` folder of your Half Sword demo installation
 LICENSE
 README.md
 ```
+
+> **WARNING!** To use this mod with UE4SS 3.x.x, you need to patch one standard mod inside UE4SS, `BPModLoaderMod`.
+> 
+> It is included in the release of this mod, it is the `BPModLoaderMod` folder.
+> As stated above, copy its `BPModLoaderMod` over the **installed** UE4SS 3.x.x `Mods\BPModLoaderMod`. 
+> 
+> If you are on UE4SS 2.5.2, you don't need to copy `BPModLoaderMod`
+
 
 ### 3. Copy the code of this mod
 
@@ -104,11 +135,11 @@ Delete the files that you copied as described above, or just reinstall the entir
 ## Temporarily disabling the mod
 
 * You can disable the mods that UE4SS loads, including this mod, in `\Mods\mods.txt`.
-* Alternatively, you can rename `xinput1_3.dll` to something else, say, `xinput1_3.dll.backup` to completely disable UE4SS and all the mods it loads.
+* Alternatively, you can rename `xinput1_3.dll` (or `UE4SS.dll` if you are on 3.x.x) to something else, say, `xinput1_3.dll.backup` to completely disable UE4SS and all the mods it loads.
 
 ## How does the mod look on screen
 
-![Alt text](images/screenshot_hud_v0.4_2K.jpg?raw=true "Screenshot of mod UI v0.4")
+![Alt text](images/hud_v0.7_2K.jpg?raw=true "Screenshot of mod UI v0.7")
 
 ## How to use the mod
 
@@ -152,7 +183,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 
 * "SuperStrength" makes your attacks with any weapon a bit better.
 
-* Invulnerability does not need much explanation.
+* Invulnerability does not need much explanation. Regeneration is also applied when Invulnerable.
 
 > Note that the game itself (not the mod!) makes your player invulnerable for a few seconds during spawn (maybe to avoid dying due to physics of the game?), and then removes invulnerability.
 
@@ -165,6 +196,8 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 Use the buttons on screen to spawn items while the game is paused, or use `F1` - `F4` to spawn the selected things in each category (armor, weapons, NPCs, objects) when the game is running.
 
 Player's viewpoint direction is used to place the spawned object in the world. NPCs are placed a bit further than items.
+
+The on-screen spawn menu also has a custom weapon size slider. With the checkboxes X/Y/Z, select which coordinate axes you want to apply the scale to. Z is the top-bottom axis, X is the left-right and Y is the front-back. Scaling proportionately gives best results for comedic effect, but sometimes weapons become too thick to grab for the player.
 
 > The names of objects in the on-screen spawn menu have been shortened for better readability.
 
@@ -233,7 +266,7 @@ It may crash the game if you change the game speed too often or in the middle of
 
 * No ability to un-glitch yourself (weapons stuck in slots, player body joints stuck in unnatural positions, etc.). Invulnerability helps, though.
 
-* No ability to fly.
+* No ability to fly or jump.
 
 ## FAQ
 
