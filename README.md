@@ -253,6 +253,8 @@ It may crash the game if you change the game speed too often or in the middle of
 
 * No error handling whatsoever. Use at your own risk. **It will crash the game at some point!** Don't spawn too many things, etc.
 
+* The mod's keybinds don't work if you keep holding down the game standard keybinds (like when running with A/W/S/D).
+
 * Auto-spawned NPCs and boss fights will keep spawning. 
 
 * Loadout is spawned in the map, not on the player.
@@ -306,7 +308,7 @@ Make sure UE4SS loads and observe its logs. It should mention `HalfSwordTrainerM
 * If it does not, check that you have the mod files in the right places as explained above.
 * If it does, but the mod does not show UI or does not react to the keyboard shortcuts, check the logs for errors related to `HalfSwordTrainerMod`.
 
-### I see the HUD/UI of the mod, but values are zero, buttons don't work and menus are empty
+### I see the HUD/UI of the mod, but values are zero, UI buttons don't work and menus are empty
 
 > If you are on UE4SS 3.x.x, check that you have patched `BPModLoaderMod` as described in the installation instructions above.
 
@@ -324,6 +326,10 @@ If you see:
 HSTM UI version mismatch: mod version 0.x, HUD version 0.y
 ```
 then you have copied different parts of the mod from different versions. Re-install the mod from the version you want as described above.
+
+### I see the HUD/UI of the mod and the UI buttons work, but the hotkeys don't work
+
+Unfortunately, this happens sometimes, usually a reboot helps.
 
 ### I don't see the HUD/UI of the mod, but some hotkeys still work
 
