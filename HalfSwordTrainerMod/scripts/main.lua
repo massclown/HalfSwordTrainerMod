@@ -682,6 +682,17 @@ function KillAllNPCs()
             end)
         end
     end
+    -- Then the boss if we are in a boss arena and the boss is alive
+    -- The killing of the boss will not count as a player kill, though
+    if cache.map['Current Boss Arena'] then
+        if cache.map['Boss Alive'] then
+            local boss = cache.map['Current Boss Arena']['Boss']
+            if boss:IsValid() then
+                Logf("Destroying Boss: %s\n", boss:GetFullName())
+                boss:K2_DestroyActor()
+            end
+        end
+    end
 end
 
 function FreezeAllNPCs()
@@ -695,6 +706,16 @@ function FreezeAllNPCs()
                     Elem:get()['CustomTimeDilation'] = Frozen and 0.0 or 1.0
                 end
             end)
+        end
+    end
+    -- Then freeze the boss if we are in a boss arena and the boss is alive
+    if cache.map['Current Boss Arena'] then
+        if cache.map['Boss Alive'] then
+            local boss = cache.map['Current Boss Arena']['Boss']
+            if boss:IsValid() then
+                Logf("Freezing Boss: %s\n", boss:GetFullName())
+                boss['CustomTimeDilation'] = Frozen and 0.0 or 1.0
+            end
         end
     end
     if spawned_things then
@@ -1108,7 +1129,7 @@ function SanityCheckAndInit()
         local bpml_file = io.open(bpml_file_path, "r")
         if bpml_file then
             local file_size = bpml_file:seek("end")
---            Logf("BMPL size: %d\n", file_size)
+            --            Logf("BMPL size: %d\n", file_size)
             -- Yes, this is horrible
             if file_size ~= 7819 then
                 error("You are using UE4SS 3.x.x, please copy Mods\\BPModLoaderMod\\Scripts\\main.lua from UE4SS 2.5.2!")
