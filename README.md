@@ -177,6 +177,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `M`           | Toggle Slow Motion mode |
 | `[`           | Decrease game speed for Slow Motion |
 | `]`           | Increase game speed for Slow Motion |
+| `Space`       | Jump (at your own risk) |
 
 ### Changing difficulty
 
@@ -234,6 +235,12 @@ Use `M` to toggle Slow Motion mode, and `[` and `]` to decrease and increase slo
 * Otherwise, selected speed will be applied after Slow Motion is enabled
 
 It may crash the game if you change the game speed too often or in the middle of a fight.
+
+### Jumping
+
+Use `Space` to jump. There is a cooldown of 1 second to prevent flying into the sky and crashing down. Sometimes you may be able to jump higher, use at your own risk.
+
+Jump does not work when the player is down on the ground.
 
 ### Other good things
 

@@ -921,6 +921,7 @@ end
 ------------------------------------------------------------------------------
 -- Try to have a cooldown between jumps
 local lastJumpTimestamp = -1
+-- The jump cooldown/recharge delay has been selected to avoid flying into the sky
 local deltaJumpCooldown = 1.0
 -- The standard UE Jump() method does nothing in Half Sword due to customizations
 -- player:Jump()
@@ -931,7 +932,7 @@ function PlayerJump()
     Logf("TS = %f, LJTS = %f, delta = %f\n", curJumpTimestamp, lastJumpTimestamp, delta)
     local player = cache.map['Player Willie']
     if player['Fallen'] then
-        -- TODO what if the player is laying down?
+        -- TODO what if the player is laying down? Currently we do nothing
     else
         -- Only jump if the last jump happened long enough ago
         if delta >= deltaJumpCooldown then
