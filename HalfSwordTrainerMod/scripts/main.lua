@@ -115,6 +115,34 @@ function string:ends_with(ending)
 end
 
 ------------------------------------------------------------------------------
+-- Conversion between UE4SS representation of UE structures and maf
+------------------------------------------------------------------------------
+function vec2maf(vector)
+    return maf.vec3(vector.X, vector.Y, vector.Z)
+end
+
+function maf2vec(vector)
+    return { X = vector.x, Y = vector.y, Z = vector.z }
+end
+
+function maf2rot(vector)
+    return { Pitch = vector.x, Yaw = vector.y, Roll = vector.z }
+end
+
+function mafrotator2rot(vector)
+    return { Pitch = vector.y, Yaw = vector.x, Roll = vector.z }
+end
+
+function rot2mafrotator(vector)
+    return maf.rotation.fromAngleAxis(
+        math.rad(vector.Yaw),
+        math.rad(vector.Pitch),
+        math.rad(vector.Roll),
+        1.0
+    )
+end
+
+------------------------------------------------------------------------------
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
 local default_loadout = {
     "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",
@@ -471,13 +499,15 @@ function ToggleModUI()
 end
 
 ------------------------------------------------------------------------------
-function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
+function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, SpawnScale)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
     if FullClassPath == nil or FullClassPath == "" then
         ErrLogf("Invalid ClassPath [%s] for actor, cannot spawn!\n", tostring(FullClassPath))
         return
     end
+    local DefaultScaleMultiplier = { X = 1.0, Y = 1.0, Z = 1.0 }
+    local SpawnScaleMultiplier = SpawnScale == nil and DefaultScaleMultiplier or SpawnScale
     local DefaultRotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
     local CurrentRotation = SpawnRotation == nil and DefaultRotation or SpawnRotation
     local ActorClass = StaticFindObject(FullClassPath)
@@ -488,6 +518,7 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
     local Actor = World:SpawnActor(ActorClass, SpawnLocation, CurrentRotation)
     if Actor == nil or not Actor:IsValid() then
         Logf("[ERROR] Actor for \"%s\" is not valid\n", FullClassPath)
+        return nil
     else
         if spawned_things then
             -- We try to guess if this actor was an NPC
@@ -503,18 +534,14 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
             -- We don't really care if this is a weapon, but we try anyway
             -- Some actors already have non-default scale, so we don't override that
             -- Yes, it is not a good idea to compare floats like this, but we do 0.1 increments so this is fine (c)
-            if WeaponScaleMultiplier ~= 1.0 then
-                local scale = {
-                    X = WeaponScaleX and WeaponScaleMultiplier or 1.0,
-                    Y = WeaponScaleY and WeaponScaleMultiplier or 1.0,
-                    Z = WeaponScaleZ and WeaponScaleMultiplier or 1.0
-                }
-                Actor:SetActorScale3D(scale)
+            if SpawnScale ~= nil then
+                Actor:SetActorScale3D(SpawnScale)
             end
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
             Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z,
             CurrentRotation.Pitch, CurrentRotation.Yaw, CurrentRotation.Roll)
+        return Actor
     end
 end
 
@@ -596,7 +623,7 @@ function SpawnLoadoutAroundPlayer()
         }
         ExecuteWithDelay((index - 1) * 300, function()
             ExecuteInGameThread(function()
-                SpawnActorByClassPath(value, SpawnLocation)
+                _ = SpawnActorByClassPath(value, SpawnLocation)
             end)
         end)
         rotatedDelta:rotate(rotator)
@@ -605,7 +632,7 @@ end
 
 -- Try to spawn the actor(item) in front of the player
 -- Get player's rotation vector and rotate our offset by its value
-function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer)
+function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer, scale)
     local defaultOffset = maf.vec3(300.0, 0.0, 0.0)
     local PlayerLocation = GetPlayerLocation()
     local PlayerRotation = GetPlayerViewRotation()
@@ -625,8 +652,9 @@ function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer)
     }
     local lookingAtPlayerRotation = { Yaw = 180.0 + PlayerRotation.Yaw, Pitch = 0.0, Roll = 0.0 }
     local SpawnRotation = lookingAtPlayer and lookingAtPlayerRotation or { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
+    local SpawnScale = scale == nil and { X = 1.0, Y = 1.0, Z = 1.0 } or scale
     ExecuteInGameThread(function()
-        SpawnActorByClassPath(classpath, SpawnLocation, SpawnRotation)
+        _ = SpawnActorByClassPath(classpath, SpawnLocation, SpawnRotation, SpawnScale)
     end)
 end
 
@@ -754,7 +782,17 @@ function SpawnSelectedWeapon()
     --    if not Selected_Spawn_Weapon == nil and not Selected_Spawn_Weapon == "" then
     local selected_actor = all_weapons[Selected_Spawn_Weapon]
     Logf("Spawning weapon [%s]\n", selected_actor)
-    SpawnActorInFrontOfPlayer(selected_actor)
+
+    if WeaponScaleMultiplier ~= 1.0 then
+        local scale = {
+            X = WeaponScaleX and WeaponScaleMultiplier or 1.0,
+            Y = WeaponScaleY and WeaponScaleMultiplier or 1.0,
+            Z = WeaponScaleZ and WeaponScaleMultiplier or 1.0
+        }
+        SpawnActorInFrontOfPlayer(selected_actor, nil, nil, scale)
+    else
+        SpawnActorInFrontOfPlayer(selected_actor)
+    end
     --    end
 end
 
@@ -929,7 +967,7 @@ local deltaJumpCooldown = 1.0
 function PlayerJump()
     local curJumpTimestamp = os.clock()
     local delta = curJumpTimestamp - lastJumpTimestamp
-    Logf("TS = %f, LJTS = %f, delta = %f\n", curJumpTimestamp, lastJumpTimestamp, delta)
+    -- Logf("TS = %f, LJTS = %f, delta = %f\n", curJumpTimestamp, lastJumpTimestamp, delta)
     local player = cache.map['Player Willie']
     if player['Fallen'] then
         -- TODO what if the player is laying down? Currently we do nothing
@@ -945,6 +983,109 @@ function PlayerJump()
             mesh:AddImpulse({ X = 0.0, Y = 0.0, Z = jumpImpulse }, FName("None"), true)
         end
     end
+end
+
+------------------------------------------------------------------------------
+local selectedProjectile = 1
+local projectiles = {
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_Spear.ModularWeaponBP_Spear_C",                 { X = 0.5, Y = 0.5, Z = 0.5 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tools/BP_Weapon_Tool_Pitchfork_A.BP_Weapon_Tool_Pitchfork_A_C", { X = 0.5, Y = 0.5, Z = 0.5 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_Dagger.ModularWeaponBP_Dagger_C",               { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 50 },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tools/BP_Weapon_Tool_Axe_C.BP_Weapon_Tool_Axe_C_C",             { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 180.0, Roll = 0.0 }, 50 },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tools/BP_Weapon_Tool_Mallet_B.BP_Weapon_Tool_Mallet_B_C",       { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Improvized/BP_Weapon_Improv_Stool.BP_Weapon_Improv_Stool_C",    { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Buckler4.Buckler4_C",                                           { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
+    { "CURRENTLY_SELECTED",                                                                                          { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
+}
+
+function ShootProjectile()
+    local offset = { X = 40.0, Y = 0.0, Z = 0.0 }
+    local baseImpulseVector = { X = 50.0, Y = 0.0, Z = 0.0 }
+    local PlayerViewRotation = GetPlayerViewRotation()
+    local PlayerLocation = GetPlayerLocation()
+
+    local class, scale, baseRotation, forceMultiplier = table.unpack(projectiles[selectedProjectile])
+
+    -- Allow to shoot a weapon from spawn menu, taking into account the scale
+    if class == "CURRENTLY_SELECTED" then
+        offset.X = offset.X + 10
+        local Selected_Spawn_Weapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
+        WeaponScaleMultiplier = cache.ui_spawn['HSTM_Slider_WeaponSize']
+        WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
+        WeaponScaleY = cache.ui_spawn['HSTM_Flag_ScaleY']
+        WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
+        local selected_actor = all_weapons[Selected_Spawn_Weapon]
+        Logf("Shooting custom weapon [%s]\n", selected_actor)
+
+        if WeaponScaleMultiplier ~= 1.0 then
+            scale = {
+                X = WeaponScaleX and WeaponScaleMultiplier or 1.0,
+                Y = WeaponScaleY and WeaponScaleMultiplier or 1.0,
+                Z = WeaponScaleZ and WeaponScaleMultiplier or 1.0
+            }
+            offset.X = offset.X * WeaponScaleMultiplier
+            if WeaponScaleMultiplier > 1.0 then
+                forceMultiplier = forceMultiplier * WeaponScaleMultiplier
+            end
+        end
+        class = selected_actor
+    end
+
+    -- First locate the spawn point by rotating the offset by player camera yaw (around Z axis in UE), horizontal camera position
+    local rotator = maf.rotation.fromAngleAxis(
+        math.rad(PlayerViewRotation.Yaw),
+        0.0, -- X
+        0.0, -- Y
+        1.0  -- Z
+    )
+    local DeltaLocation = vec2maf(offset)
+    local rotatedDelta = DeltaLocation
+    rotatedDelta:rotate(rotator)
+
+    -- Add the displacement vector to player location with some Z-height adjustments
+    local SpawnLocation = {
+        X = PlayerLocation.X + rotatedDelta.x,
+        Y = PlayerLocation.Y + rotatedDelta.y,
+        Z = PlayerLocation.Z + 70 + rotatedDelta.z
+    }
+
+    -- Rotate the projectile along its yaw and pitch to address horizontal and vertical camera movement
+
+    local SpawnRotation = {
+        Pitch = baseRotation.Pitch + PlayerViewRotation.Pitch,
+        Yaw = baseRotation.Yaw + PlayerViewRotation.Yaw,
+        Roll = baseRotation.Roll,
+    }
+
+    local ImpulseRotation = vec2maf(baseImpulseVector)
+
+    -- Prepare the projectile impulse vector: rotate it according to vertical camera movement
+    local TargetRotator = maf.rotation.fromAngleAxis(
+        -math.rad(PlayerViewRotation.Pitch),
+        0.0, -- X
+        1.0, -- Y
+        0.0  -- Z
+    )
+
+    ImpulseRotation:rotate(TargetRotator)
+    -- Then address horizonal camera movement as above for spawn location, same for impulse
+    ImpulseRotation:rotate(rotator)
+
+    local projectile = SpawnActorByClassPath(class, SpawnLocation, baseRotation, scale)
+    -- Correct the spawned projectile rotation by the camera-specific angles
+    projectile:K2_SetActorRotation(SpawnRotation, true)
+
+    local impulseMaf = ImpulseRotation
+    local impulse = impulseMaf * forceMultiplier
+    local impulseUE = maf2vec(impulse)
+    -- Don't apply impulse immediately, give the player a chance to see the projectile
+    ExecuteWithDelay(200, function()
+        projectile['BaseMesh']:AddImpulse(impulseUE, FName("None"), false)
+    end)
+end
+
+function ChangeProjectile()
+    selectedProjectile = math.fmod(selectedProjectile, #projectiles) + 1
 end
 
 ------------------------------------------------------------------------------
@@ -1145,11 +1286,33 @@ function AllKeybindHooks()
         end)
     end)
     -- Also make sure we can still jump while sprinting with Shift held down
-    RegisterKeyBind(Key.SPACE, {ModifierKey.SHIFT}, function()
+    RegisterKeyBind(Key.SPACE, { ModifierKey.SHIFT }, function()
         ExecuteInGameThread(function()
             PlayerJump()
         end)
     end)
+
+    RegisterKeyBind(Key.MIDDLE_MOUSE_BUTTON, function()
+        ExecuteInGameThread(function()
+            ShootProjectile()
+        end)
+    end)
+
+    RegisterKeyBind(Key.TAB, function()
+        ChangeProjectile()
+    end)
+
+    -- Also make sure we can still shoot while sprinting with Shift held down
+    RegisterKeyBind(Key.MIDDLE_MOUSE_BUTTON, { ModifierKey.SHIFT }, function()
+        ExecuteInGameThread(function()
+            ShootProjectile()
+        end)
+    end)
+
+    RegisterKeyBind(Key.TAB, { ModifierKey.SHIFT }, function()
+        ChangeProjectile()
+    end)
+
 
     Log("Keybinds registered\n")
 end

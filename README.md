@@ -178,6 +178,8 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `[`           | Decrease game speed for Slow Motion |
 | `]`           | Increase game speed for Slow Motion |
 | `Space`       | Jump (at your own risk) |
+| Mouse Wheel   | Shoot projectile |
+| `Tab`         | Change projectile to next one |
 
 ### Changing difficulty
 
@@ -243,6 +245,20 @@ Use `Space` to jump. There is a cooldown of 1 second to prevent flying into the 
 Jump does not work when the player is down on the ground.
 
 Jump does not work well when changing the game speed.
+
+### Shooting projectiles
+
+Use mouse wheel (click) to shoot a projectile, and `Tab` to change to next projectile type.
+
+The projectiles are currently hardcoded in the mod to account for scaling and speed adjustments:
+
+* small spear
+* small pitchfork
+* dagger
+* small axe
+* mallet
+* stool
+* buckler
 
 ### Other good things
 
