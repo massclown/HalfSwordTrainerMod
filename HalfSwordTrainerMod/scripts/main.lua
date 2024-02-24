@@ -939,8 +939,9 @@ function PlayerJump()
             -- Update last successful jump timestamp
             lastJumpTimestamp = curJumpTimestamp
             local mesh = player['Mesh']
-            -- The value has been selected to jump high enough for a table or boss fence
-            local jumpImpulse = 25000.0
+            -- The jump impulse value has been selected to jump high enough for a table or boss fence
+            -- We also compensate for the current game speed linearly, by decreasing the impulse (otherwise slomo means jump into space)
+            local jumpImpulse = 25000.0 * GameSpeed
             mesh:AddImpulse({ X = 0.0, Y = 0.0, Z = jumpImpulse }, FName("None"), true)
         end
     end

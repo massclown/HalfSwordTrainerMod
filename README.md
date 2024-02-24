@@ -242,6 +242,8 @@ Use `Space` to jump. There is a cooldown of 1 second to prevent flying into the 
 
 Jump does not work when the player is down on the ground.
 
+Jump does not work well when changing the game speed.
+
 ### Other good things
 
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 
