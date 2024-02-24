@@ -1077,6 +1077,7 @@ function ShootProjectile()
     -- Correct the spawned projectile rotation by the camera-specific angles
     projectile:K2_SetActorRotation(SpawnRotation, true)
 
+    -- We don't compensate for game speed to make projectiles a bit stronger in slow-mo
     local impulseMaf = ImpulseRotation
     local impulse = impulseMaf * forceMultiplier
     local impulseUE = maf2vec(impulse)

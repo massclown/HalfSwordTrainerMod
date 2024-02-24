@@ -2,7 +2,7 @@
 
 A trainer mod for Half Sword demo v0.3 ([Steam release](https://store.steampowered.com/app/2397300/Half_Sword/)). 
 
-It gives you Invulnerability, Super Strength, configurable level of enemy NPCs, and the ability to spawn armour, weapons, NPCs and objects (and despawn them if you made a mistake), setting game speed and more. The mod also has a detailed HUD with player stats. 
+It gives you Invulnerability, Super Strength, configurable level of enemy NPCs, jumping, shooting, and the ability to spawn armour, weapons, NPCs and objects (and despawn them if you made a mistake), setting game speed and more. The mod also has a detailed HUD with player stats. 
 
 USE AT YOUR OWN RISK.
 
@@ -150,7 +150,6 @@ The mod adds a HUD on top of the game on the left side of the screen to show you
 
 * The body figure in the bottom left corner is the health of the body parts.
 
-
 The mod adds a spawn menu on top of the game on the right side of the screen with some drop-down menus and buttons.
 
 The mod also adds a few keyboard shortcuts to trigger its functions.
@@ -178,7 +177,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `[`           | Decrease game speed for Slow Motion |
 | `]`           | Increase game speed for Slow Motion |
 | `Space`       | Jump (at your own risk) |
-| Mouse Wheel   | Shoot projectile |
+| Mouse Wheel Click   | Shoot projectile |
 | `Tab`         | Change projectile to next one |
 
 ### Changing difficulty
@@ -248,11 +247,15 @@ Jump does not work well when changing the game speed.
 
 ### Shooting projectiles
 
-Use mouse wheel (click) to shoot a projectile, and `Tab` to change to next projectile type.
+This is not a true throwing of objects, but more like shooting them for maximum damage.
+
+Use mouse wheel (click) to shoot a projectile, and `Tab` to change to next projectile type. 
+
+Shooting is more accurate in first person view.
 
 The projectiles are currently hardcoded in the mod to account for scaling and speed adjustments:
 
-* Your currently selected weapon from the Spawn menu
+* Your currently selected weapon from the Spawn menu (including current scale!)
 * small spear
 * small pitchfork
 * dagger
