@@ -37,7 +37,7 @@ local PlayerHealth = 0
 local PlayerConsciousness = 0
 local PlayerTonus = 0
 -- Cached from the spawn UI (HSTM_Slider_WeaponSize)
-local WeaponSize = 1.0
+local WeaponScaleMultiplier = 1.0
 local WeaponScaleX = true
 local WeaponScaleY = true
 local WeaponScaleZ = true
@@ -503,11 +503,11 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation)
             -- We don't really care if this is a weapon, but we try anyway
             -- Some actors already have non-default scale, so we don't override that
             -- Yes, it is not a good idea to compare floats like this, but we do 0.1 increments so this is fine (c)
-            if WeaponSize ~= 1.0 then
+            if WeaponScaleMultiplier ~= 1.0 then
                 local scale = {
-                    X = WeaponScaleX and WeaponSize or 1.0,
-                    Y = WeaponScaleY and WeaponSize or 1.0,
-                    Z = WeaponScaleZ and WeaponSize or 1.0
+                    X = WeaponScaleX and WeaponScaleMultiplier or 1.0,
+                    Y = WeaponScaleY and WeaponScaleMultiplier or 1.0,
+                    Z = WeaponScaleZ and WeaponScaleMultiplier or 1.0
                 }
                 Actor:SetActorScale3D(scale)
             end
@@ -746,7 +746,7 @@ end
 
 function SpawnSelectedWeapon()
     local Selected_Spawn_Weapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
-    WeaponSize = cache.ui_spawn['HSTM_Slider_WeaponSize']
+    WeaponScaleMultiplier = cache.ui_spawn['HSTM_Slider_WeaponSize']
     WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
     WeaponScaleY = cache.ui_spawn['HSTM_Flag_ScaleY']
     WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
@@ -914,6 +914,33 @@ function DecreaseGameSpeed()
         worldsettings['TimeDilation'] = GameSpeed
         if ModUIHUDVisible then
             cache.ui_hud['HUD_GameSpeed_Value'] = GameSpeed
+        end
+    end
+end
+
+------------------------------------------------------------------------------
+-- Try to have a cooldown between jumps
+local lastJumpTimestamp = -1
+local deltaJumpCooldown = 1.0
+-- The standard UE Jump() method does nothing in Half Sword due to customizations
+-- player:Jump()
+-- so we have to add impulse ourselves
+function PlayerJump()
+    local curJumpTimestamp = os.clock()
+    local delta = curJumpTimestamp - lastJumpTimestamp
+    Logf("TS = %f, LJTS = %f, delta = %f\n", curJumpTimestamp, lastJumpTimestamp, delta)
+    local player = cache.map['Player Willie']
+    if player['Fallen'] then
+        -- TODO what if the player is laying down?
+    else
+        -- Only jump if the last jump happened long enough ago
+        if delta >= deltaJumpCooldown then
+            -- Update last successful jump timestamp
+            lastJumpTimestamp = curJumpTimestamp
+            local mesh = player['Mesh']
+            -- The value has been selected to jump high enough for a table or boss fence
+            local jumpImpulse = 25000.0
+            mesh:AddImpulse({ X = 0.0, Y = 0.0, Z = jumpImpulse }, FName("None"), true)
         end
     end
 end
@@ -1107,6 +1134,18 @@ function AllKeybindHooks()
     RegisterKeyBind(Key.H, function()
         ExecuteInGameThread(function()
             ToggleCrosshair()
+        end)
+    end)
+
+    RegisterKeyBind(Key.SPACE, function()
+        ExecuteInGameThread(function()
+            PlayerJump()
+        end)
+    end)
+    -- Also make sure we can still jump while sprinting with Shift held down
+    RegisterKeyBind(Key.SPACE, {ModifierKey.SHIFT}, function()
+        ExecuteInGameThread(function()
+            PlayerJump()
         end)
     end)
 
