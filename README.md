@@ -252,6 +252,7 @@ Use mouse wheel (click) to shoot a projectile, and `Tab` to change to next proje
 
 The projectiles are currently hardcoded in the mod to account for scaling and speed adjustments:
 
+* Your currently selected weapon from the Spawn menu
 * small spear
 * small pitchfork
 * dagger
