@@ -1008,7 +1008,6 @@ function ShootProjectile()
 
     -- Allow to shoot a weapon from spawn menu, taking into account the scale
     if class == "CURRENTLY_SELECTED" then
-        offset.X = offset.X + 10
         local Selected_Spawn_Weapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
         WeaponScaleMultiplier = cache.ui_spawn['HSTM_Slider_WeaponSize']
         WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
@@ -1027,6 +1026,9 @@ function ShootProjectile()
             if WeaponScaleMultiplier > 1.0 then
                 forceMultiplier = forceMultiplier * WeaponScaleMultiplier
             end
+        else
+            -- Just to be safer against longer weapons
+            offset.X = offset.X + 10
         end
         class = selected_actor
     end
