@@ -7,28 +7,29 @@ It gives you Invulnerability, Super Strength, configurable level of enemy NPCs, 
 USE AT YOUR OWN RISK.
 
 Compatibility with newer demo versions not guaranteed, and the older demo from `itch.io` won't work.
-The mod requires [UE4SS](https://github.com/UE4SS-RE/RE-UE4SS) (version 2.5.2 as of now) to work.
+The mod requires [UE4SS](https://github.com/UE4SS-RE/RE-UE4SS) (version 2.5.2 or 3.x.x as of now) to work.
 
 The mod is written in Lua, so you can understand and modify its functionality.
 
-## License
+# License
 
 Distributed under the MIT License. See `LICENSE` file for more information.
 
-## Showcase
+# Showcase
 
 [![YouTube video of Half Sword Trainer Mod](https://img.youtube.com/vi/DMWCSHe60dA/hqdefault.jpg)](https://www.youtube.com/watch?v=DMWCSHe60dA)
 
-## Installation
+# Installation
 
-### Video tutorial: https://www.youtube.com/watch?v=4gSp87ET6x4
+## Video tutorial: https://www.youtube.com/watch?v=4gSp87ET6x4
 
-### Screenshots with the steps: https://imgur.com/a/3RFOQiS
+## Screenshots with the steps: https://imgur.com/a/3RFOQiS
 
 You need to choose which UE4SS version you want. For some people, UE4SS 2.5.2 is more stable, for some, UE4SS 3.x.x is more stable.
+
 For me, UE4SS 3.x.x is currently more stable.
 
-### 1a. (only if using UE4SS 2.5.2) Install UE4SS 2.5.2 into the game folder 
+## 1a. (only if using UE4SS 2.5.2) Install UE4SS 2.5.2 into the game folder 
 
 Install [an xInput release of UE4SS 2.5.2 from the official repository (UE4SS_Xinput_v2.5.2.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/v2.5.2) into the Half Sword demo installation folders according to the UE4SS installation instructions 
 ([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)). Basically you will need to unzip that archive and copy the files into the right place. Read the guides for help.
@@ -45,7 +46,7 @@ UE4SS-settings.ini
 ...
 ```
 
-### 1b. (only if using UE4SS 3.x.x) Install UE4SS 3.x.x into the game folder 
+## 1b. (only if using UE4SS 3.x.x) Install UE4SS 3.x.x into the game folder 
 
 Install [a release of UE4SS 3.x.x from the official repository (UE4SS_v3.x.x.zip)](https://github.com/UE4SS-RE/RE-UE4SS/releases/) into the Half Sword demo installation folders according to the UE4SS installation instructions 
 ([short guide](https://github.com/UE4SS-RE/RE-UE4SS?tab=readme-ov-file#basic-installation) / [full guide](https://docs.ue4ss.com/dev/installation-guide.html)). Basically you will need to unzip that archive and copy the files into the right place. Read the guides for help.
@@ -63,9 +64,9 @@ UE4SS.dll
 ...
 ```
 
-> WARNING! If upgrading from UE4SS 2.5.2 to UE4SS 3.x.x, first delete the old "xinput1_3.dll".
+> **WARNING!** If upgrading from UE4SS 2.5.2 to UE4SS 3.x.x, first delete the old `xinput1_3.dll`.
 
-### 2. Download this mod
+## 2. Download this mod
 
 Download either a release, or a source package of this `HalfSwordTrainerMod` repo and unpack it somewhere to take a look. 
 * If you want a more stable build, take a named version [from the releases](https://github.com/massclown/HalfSwordTrainerMod/releases)
@@ -91,17 +92,17 @@ README.md
 > If you are on UE4SS 2.5.2, you don't need to copy `BPModLoaderMod`
 
 
-### 3. Copy the code of this mod
+## 3. Copy the code of this mod
 
 Copy the entire `HalfSwordTrainerMod` folder of the release into the `Mods` folder of your UE4SS installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64\Mods`)
 
-### 4. Copy the Blueprints of this mod
+## 4. Copy the Blueprints of this mod
 
 Copy the entire `LogicMods` folder of the release into the `Content\Paks` folder of your Half Sword demo installation
 (probably into `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Content\Paks`)
 
-### 5. Enable the mod
+## 5. Enable the mod
 
 Enable the `HalfSwordTrainerMod` and `BPModLoaderMod` in your UE4SS mod loader configuration (`\Mods\mods.txt`).
 The new lines in the middle of the file should look like this:
@@ -114,9 +115,9 @@ HalfSwordTrainerMod : 1
 ```
 We need **both** of them to be enabled, as `BPModLoaderMod` will load the user interface, which is an Unreal Engine Blueprint type of mod.
 
-### 6. Enjoy the game and support the developers.
+## 6. Enjoy the game and support the developers.
 
-## Updating or installing a new release
+# Updating or installing a new release
 
 * You can copy files from the new release of the mod on top of the old one. I do my best to not have any files left from an older version create any problems in the new one.
 * If something weird is still happening:
@@ -128,21 +129,21 @@ We need **both** of them to be enabled, as `BPModLoaderMod` will load the user i
     and then copy the new one from the new release.
     * the configuration in `\Mods\mods.txt` does not need to be changed.
 
-## Uninstalling the mod files
+# Uninstalling the mod files
 
 Delete the files that you copied as described above, or just reinstall the entire Half Sword game entirely (it will wipe all the folders where the installed mod is located). 
 
-## Temporarily disabling the mod
+# Temporarily disabling the mod
 
 * You can disable the mods that UE4SS loads, including this mod, in `\Mods\mods.txt`.
     * Disable or enable **both** `HalfSwordTrainerMod` and `BPModLoaderMod` in `\Mods\mods.txt`, otherwise you will still see the broken UI of the mod.
 * Alternatively, you can rename `xinput1_3.dll` (or `UE4SS.dll` if you are on UE4SS 3.x.x) to something else, say, `xinput1_3.dll.backup` to completely disable UE4SS and all the mods it loads.
 
-## How does the mod look on screen
+# How does the mod look on screen
 
 ![Alt text](images/hud_v0.7_2K.jpg?raw=true "Screenshot of mod UI v0.7")
 
-## How to use the mod
+# How to use the mod
 
 The mod has a custom UI that can be hidden when needed, and can also hide the crosshair (cursor).
 
@@ -154,7 +155,7 @@ The mod adds a spawn menu on top of the game on the right side of the screen wit
 
 The mod also adds a few keyboard shortcuts to trigger its functions.
 
-### Keyboard shortcuts of this mod
+## Keyboard shortcuts of this mod
 
 | Shortcut    | Description |
 | ----------- | ----------- |
@@ -180,7 +181,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | Mouse Wheel Click   | Shoot projectile |
 | `Tab`         | Change projectile to next one |
 
-### Changing difficulty
+## Changing difficulty
 
 * Increasing and decreasing the level with `+` and `-` will affect the level of the auto-spawned NPCs.
 
@@ -190,7 +191,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 
 > Note that the game itself (not the mod!) makes your player invulnerable for a few seconds during spawn (maybe to avoid dying due to physics of the game?), and then removes invulnerability.
 
-### Spawning things
+## Spawning things
 
 * You can either spawn a complete "chef's choice" loadout around yourself (press `L`),
 
@@ -204,7 +205,7 @@ The on-screen spawn menu also has a custom weapon size slider. With the checkbox
 
 > The names of objects in the on-screen spawn menu have been shortened for better readability.
 
-#### Loadout configuration
+### Loadout configuration
 
 To modify the pre-configured loadout that is spawnable with `L` button, edit the `custom_loadout.txt` text file in the `data` subfolder of the mod:
 ```
@@ -213,21 +214,21 @@ Mods\HalfSwordTrainerMod\data\custom_loadout.txt
 It contains the list of Unreal Engine class names that will be loaded. Look around in the files in the `\data\` folder for examples. Note that these are full class names, not the shortened ones on-screen.
 A default loadout is also hardcoded in the mod itself, in case the custom loadout file gets deleted.
 
-### Despawning things
+## Despawning things
 
 Use `F5` or the on-screen button to undo the last spawned thing. It can be used repeatedly to undo many things.
 
 > If you want to find a particular random variant of some item, select it in the menu, then go unpause the game, and repeatedly press the corresponding `F1` - `F4` button, and if you don't like it, press `F5` to undo.
 
-### Killing NPCs
+## Killing NPCs
 
 Use `K` or the on-screen button to kill all the NPCs that were spawned by the game or by you. May crash the game sometimes, but should work better now.
 
-### Freezing / unfreezing NPCs
+## Freezing / unfreezing NPCs
 
 Use `Z` the on-screen button to freeze/unfreeze all the NPCs that were spawned by the game or by you. Will not prevent new ones from spawning, or affect these new ones (until you try freezing/unfreezing them again).
 
-### Slow motion
+## Slow motion
 
 Use `M` to toggle Slow Motion mode, and `[` and `]` to decrease and increase slow motion speed. 
 
@@ -237,7 +238,7 @@ Use `M` to toggle Slow Motion mode, and `[` and `]` to decrease and increase slo
 
 It may crash the game if you change the game speed too often or in the middle of a fight.
 
-### Jumping
+## Jumping
 
 Use `Space` to jump. There is a cooldown of 1 second to prevent flying into the sky and crashing down. Sometimes you may be able to jump higher, use at your own risk.
 
@@ -245,7 +246,7 @@ Jump does not work when the player is down on the ground.
 
 Jump does not work well when changing the game speed.
 
-### Shooting projectiles
+## Shooting projectiles
 
 This is not a true throwing of objects, but more like shooting them for maximum damage.
 
@@ -253,18 +254,18 @@ Use mouse wheel (click) to shoot a projectile, and `Tab` to change to next proje
 
 Shooting is more accurate in first person view.
 
-The projectiles are currently hardcoded in the mod to account for scaling and speed adjustments:
+The projectiles are currently hardcoded in the mod to account for scaling, launch position and speed adjustments:
 
 * Your currently selected weapon from the Spawn menu (including current scale!)
-* small spear
-* small pitchfork
+* 0.5x scaled spear 
+* 0.5x scaled pitchfork
 * dagger
 * small axe
 * mallet
 * stool
 * buckler
 
-### Other good things
+## Other good things
 
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 
     * When you know which settings you like, you can save then in the game's `.ini` files in 
@@ -278,7 +279,7 @@ The projectiles are currently hardcoded in the mod to account for scaling and sp
 * UE4SS has a lot of useful functionality for game modders, read [their docs](https://docs.ue4ss.com/) and have fun.
 
 
-## Know issues and TODOs
+# Know issues and TODOs
 
 * No error handling whatsoever. Use at your own risk. **It will crash the game at some point!** Don't spawn too many things, etc.
 
@@ -300,26 +301,26 @@ The projectiles are currently hardcoded in the mod to account for scaling and sp
 
 * No ability to fly or jump.
 
-## FAQ
+# FAQ
 
-### What to do?
+## What to do?
 
 Support the developers of Half Sword (https://halfswordgames.com/). 
 
 They have a Kickstarter campaign, currently at https://www.kickstarter.com/projects/halfsword/half-sword-gauntlet
 
-### Game hangs up or freezes or does not respond?
+## Game hangs up or freezes or does not respond?
 Press `Win + R` and execute the following command line:
 ```
 taskkill /f /im HalfSwordUE5-Win64-Shipping.exe
 ```
 This will kill the game, even if you cannot close it otherwise. In the worst case, reboot.
 
-### UE4SS does not load?
+## UE4SS does not load?
 Make sure you can install UE4SS and make it work (confirm that it operates, check its logs, open its GUI console).
 * If UE4SS does not work, this mod cannot run at all. It absolutely needs a correct UE4SS installation before you install this mod.
 
-### UE4SS crashes the game?
+## UE4SS crashes the game?
 TBD. Try disabling mods one by one, until you find out what triggers the crash.
 
 Also, try setting the following values in `UE4SS-settings.ini`, in the folder where you installed UE4SS:
@@ -332,12 +333,12 @@ MinorVersion = 1
 
 If the game is unplayable at all, disable UE4SS or reinstall the game (whatever is faster/easier).
 
-### Mod does not load?
+## Mod does not load?
 Make sure UE4SS loads and observe its logs. It should mention `HalfSwordTrainerMod`. 
 * If it does not, check that you have the mod files in the right places as explained above.
 * If it does, but the mod does not show UI or does not react to the keyboard shortcuts, check the logs for errors related to `HalfSwordTrainerMod`.
 
-### I see the HUD/UI of the mod, but values are zero, UI buttons don't work and menus are empty
+## I see the HUD/UI of the mod, but values are zero, UI buttons don't work and menus are empty
 
 > If you are on UE4SS 3.x.x, check that you have patched `BPModLoaderMod` as described in the installation instructions above.
 
@@ -356,11 +357,11 @@ HSTM UI version mismatch: mod version 0.x, HUD version 0.y
 ```
 then you have copied different parts of the mod from different versions. Re-install the mod from the version you want as described above.
 
-### I see the HUD/UI of the mod and the UI buttons work, but the hotkeys don't work
+## I see the HUD/UI of the mod and the UI buttons work, but the hotkeys don't work
 
 Unfortunately, this happens sometimes, usually a reboot helps.
 
-### I don't see the HUD/UI of the mod, but some hotkeys still work
+## I don't see the HUD/UI of the mod, but some hotkeys still work
 
 That means that the `BPModLoaderMod` did not work or could not find the Blueprint mod, and therefore did not load our Blueprint mod that is the UI, 
 while Lua mod named `HalfSwordTrainerMod` succeeded. 
@@ -376,19 +377,19 @@ Check which of these things might have happened on your system, and also look in
 [2024-01-21 12:06:20] Starting Lua mod 'BPModLoaderMod'
 ```
 
-### Mod crashes the game?
+## Mod crashes the game?
 
 If you suspect the fault is in the logic of this mod, you can try to disable or comment out the last suspicious thing that you used before the crash.
 
-### Mod works, but does not do what I expect?
+## Mod works, but does not do what I expect?
 
 File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 
-### Any other problem with this mod, or a feature request?
+## Any other problem with this mod, or a feature request?
 
 File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 
-## Acknowledgements
+# Acknowledgements
 
 * Half Sword developers, https://halfswordgames.com/
 * UE4SS developers, https://github.com/UE4SS-RE/RE-UE4SS
