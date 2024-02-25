@@ -1014,7 +1014,7 @@ function ShootProjectile()
         WeaponScaleY = cache.ui_spawn['HSTM_Flag_ScaleY']
         WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
         local selected_actor = all_weapons[Selected_Spawn_Weapon]
-        Logf("Shooting custom weapon [%s]\n", selected_actor)
+        --Logf("Shooting custom weapon [%s]\n", selected_actor)
 
         if WeaponScaleMultiplier ~= 1.0 then
             scale = {
@@ -1022,8 +1022,12 @@ function ShootProjectile()
                 Y = WeaponScaleY and WeaponScaleMultiplier or 1.0,
                 Z = WeaponScaleZ and WeaponScaleMultiplier or 1.0
             }
-            offset.X = offset.X * WeaponScaleMultiplier
             if WeaponScaleMultiplier > 1.0 then
+                -- When a long weapon spawns, it is the Z axis that is the longest
+                -- Try to move the projectile away from the player to prevent sudden death
+                if WeaponScaleZ then
+                    offset.X = offset.X * WeaponScaleMultiplier
+                end
                 forceMultiplier = forceMultiplier * WeaponScaleMultiplier
             end
         else
