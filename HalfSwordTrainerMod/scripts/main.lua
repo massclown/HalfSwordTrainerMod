@@ -129,17 +129,49 @@ function maf2rot(vector)
     return { Pitch = vector.x, Yaw = vector.y, Roll = vector.z }
 end
 
-function mafrotator2rot(vector)
-    return { Pitch = vector.y, Yaw = vector.x, Roll = vector.z }
+-- quaternion to pitch+yaw+roll (yaw-pitch-roll order, ZYX, yaw inverted)
+function mafrotator2rot(quat)
+    local x, y, z, w = quat:unpack()
+    local threshold = 0.499999
+    local test = x * z - w * y
+    local yaw, pitch, roll
+
+    yaw = math.deg(math.atan(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z)))
+
+    if math.abs(test) > threshold then
+        local sign = test > 0 and 1 or -1
+        pitch = sign * 90.0
+        roll = sign * yaw - math.deg(2.0 * math.atan(x, w))
+        return { Pitch = pitch, Yaw = yaw, Roll = roll }
+    else
+        pitch = math.asin(2.0 * (test))
+        roll = math.atan(-2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y))
+        return { Pitch = math.deg(pitch), Yaw = yaw, Roll = math.deg(roll) }
+    end
 end
 
+-- UE pitch+yaw+roll to quaternion (yaw-pitch-roll order, ZYX, yaw inverted)
 function rot2mafrotator(vector)
-    return maf.rotation.fromAngleAxis(
-        math.rad(vector.Yaw),
-        math.rad(vector.Pitch),
-        math.rad(vector.Roll),
-        1.0
-    )
+    local p = math.rad(vector.Pitch)
+    local y = math.rad(vector.Yaw)
+    local r = math.rad(vector.Roll)
+
+    local SP, SY, SR;
+    local CP, CY, CR;
+
+    SP = math.sin(p / 2)
+    SY = math.sin(y / 2)
+    SR = math.sin(r / 2)
+
+    CP = math.cos(p / 2)
+    CY = math.cos(y / 2)
+    CR = math.cos(r / 2)
+
+    local X = CR * SP * SY - SR * CP * CY
+    local Y = -CR * SP * CY - SR * CP * SY
+    local Z = CR * CP * SY - SR * SP * CY
+    local W = CR * CP * CY + SR * SP * SY
+    return maf.quat(X, Y, Z, W)
 end
 
 ------------------------------------------------------------------------------
@@ -992,7 +1024,7 @@ local projectiles = {
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_Spear.ModularWeaponBP_Spear_C",                 { X = 0.5, Y = 0.5, Z = 0.5 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tools/BP_Weapon_Tool_Pitchfork_A.BP_Weapon_Tool_Pitchfork_A_C", { X = 0.5, Y = 0.5, Z = 0.5 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_Dagger.ModularWeaponBP_Dagger_C",               { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 50 },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tools/BP_Weapon_Tool_Axe_C.BP_Weapon_Tool_Axe_C_C",             { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 180.0, Roll = 0.0 }, 50 },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tools/BP_Weapon_Tool_Axe_D.BP_Weapon_Tool_Axe_D_C",             { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 180.0, Roll = 0.0 }, 50 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tools/BP_Weapon_Tool_Mallet_B.BP_Weapon_Tool_Mallet_B_C",       { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Improvized/BP_Weapon_Improv_Stool.BP_Weapon_Improv_Stool_C",    { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Buckler4.Buckler4_C",                                           { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
@@ -1015,6 +1047,23 @@ function ShootProjectile()
         WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
         local selected_actor = all_weapons[Selected_Spawn_Weapon]
         --Logf("Shooting custom weapon [%s]\n", selected_actor)
+
+        -- Try to guess the correct rotation for various weapons
+        if selected_actor:contains("Axe") then
+            baseRotation = { Pitch = 0.0, Yaw = 180.0, Roll = 0.0 }
+        elseif selected_actor:contains("Scythe") then
+            baseRotation = { Pitch = 90.0, Yaw = 0.0, Roll = 0.0 }
+            offset.X = offset.X + 120
+        elseif selected_actor:contains("Sickle") then
+            baseRotation = { Pitch = 0.0, Yaw = 180.0, Roll = 0.0 }
+        elseif selected_actor:contains("Pavise") then
+            offset.X = offset.X + 30
+            baseRotation = { Pitch = 0.0, Yaw = 90.0, Roll = 90.0 }
+        elseif selected_actor:contains("CandleStick") then
+            -- Currently bugged
+            offset.X = offset.X + 100
+            baseRotation = { Pitch = 90.0, Yaw = 0.0, Roll = 0.0 }
+        end
 
         if WeaponScaleMultiplier ~= 1.0 then
             scale = {
@@ -1074,7 +1123,7 @@ function ShootProjectile()
     )
 
     ImpulseRotation:rotate(TargetRotator)
-    -- Then address horizonal camera movement as above for spawn location, same for impulse
+    -- Then address the horizonal (Yaw) camera movement around Z-axis as done above for spawn location, same for impulse
     ImpulseRotation:rotate(rotator)
 
     local projectile = SpawnActorByClassPath(class, SpawnLocation, baseRotation, scale)
