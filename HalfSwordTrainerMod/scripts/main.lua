@@ -538,6 +538,8 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
         ErrLogf("Invalid ClassPath [%s] for actor, cannot spawn!\n", tostring(FullClassPath))
         return
     end
+    local DefaultLocation = { X = 100.0, Y = 100.0, Z = 100.0 }
+    local CurrentLocation = SpawnLocation == nil and DefaultLocation or SpawnLocation
     local DefaultScaleMultiplier = { X = 1.0, Y = 1.0, Z = 1.0 }
     local SpawnScaleMultiplier = SpawnScale == nil and DefaultScaleMultiplier or SpawnScale
     local DefaultRotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
@@ -547,7 +549,7 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
     local isNPC = FullClassPath:contains("/Game/Character/Blueprints/")
     local World = myGetPlayerController():GetWorld()
     if World == nil or not World:IsValid() then error("[ERROR] World is not valid") end
-    local Actor = World:SpawnActor(ActorClass, SpawnLocation, CurrentRotation)
+    local Actor = World:SpawnActor(ActorClass, CurrentLocation, CurrentRotation)
     if Actor == nil or not Actor:IsValid() then
         Logf("[ERROR] Actor for \"%s\" is not valid\n", FullClassPath)
         return nil
@@ -571,7 +573,7 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
             end
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
-            Actor:GetFullName(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z,
+            Actor:GetFullName(), CurrentLocation.X, CurrentLocation.Y, CurrentLocation.Z,
             CurrentRotation.Pitch, CurrentRotation.Yaw, CurrentRotation.Roll)
         return Actor
     end
@@ -1369,7 +1371,7 @@ function AllKeybindHooks()
         ChangeProjectile()
     end)
 
-
+    
     Log("Keybinds registered\n")
 end
 
