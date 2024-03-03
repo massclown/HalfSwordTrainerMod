@@ -1030,6 +1030,10 @@ local projectiles = {
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tools/BP_Weapon_Tool_Mallet_B.BP_Weapon_Tool_Mallet_B_C",       { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Improvized/BP_Weapon_Improv_Stool.BP_Weapon_Improv_Stool_C",    { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Buckler4.Buckler4_C",                                           { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
+    { "/Game/Assets/Destructible/Dest_Barrel_1_BP.Dest_Barrel_1_BP_C",                                               { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 },
+    { "/Game/Assets/Props/Furniture/Meshes/BM_Prop_Furniture_Small_Bench_001.BM_Prop_Furniture_Small_Bench_001_C",   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 },
+    { "/Game/Assets/Props/Furniture/Meshes/BP_Prop_Furniture_Small_Table_001.BP_Prop_Furniture_Small_Table_001_C",   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 }
+    --    ,{ "/Game/Assets/Props/Barrels/Meshes/BP_Prop_Barrel_002.BP_Prop_Barrel_002_C",                                   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 }
 }
 
 function ShootProjectile()
@@ -1088,6 +1092,15 @@ function ShootProjectile()
         class = selected_actor
     end
 
+    -- General corrections
+    if class:contains("Barrel") then
+        offset.X = offset.X + 50
+    elseif class:contains("BM_Prop_Furniture_Small_Bench_001") then
+        offset.X = offset.X + 50
+    elseif class:contains("BP_Prop_Furniture_Small_Table_001") then
+        offset.X = offset.X + 150
+    end
+
     -- First locate the spawn point by rotating the offset by player camera yaw (around Z axis in UE), horizontal camera position
     local rotator = maf.rotation.fromAngleAxis(
         math.rad(PlayerViewRotation.Yaw),
@@ -1138,7 +1151,18 @@ function ShootProjectile()
     local impulseUE = maf2vec(impulse)
     -- Don't apply impulse immediately, give the player a chance to see the projectile
     ExecuteWithDelay(200, function()
-        projectile['BaseMesh']:AddImpulse(impulseUE, FName("None"), false)
+        -- More dumb fixes to apply impulse to different components. 
+        -- We should probably be trying to find a StaticMesh inside instead of this.
+        -- Ignoring mass is set to True for non-standard projectiles.
+        if class:contains("_Prop_Furniture") then
+            projectile['SM_Prop']:AddImpulse(impulseUE, FName("None"), true)
+        elseif class:contains("Dest_Barrel") then
+            projectile['RootComponent']:AddImpulse(impulseUE, FName("None"), true)
+        elseif class:contains("BP_Prop_Barrel") then
+            projectile['SM_Barrel']:AddImpulse(impulseUE, FName("None"), true)
+        else
+            projectile['BaseMesh']:AddImpulse(impulseUE, FName("None"), false)
+        end
     end)
 end
 
@@ -1371,7 +1395,6 @@ function AllKeybindHooks()
         ChangeProjectile()
     end)
 
-    
     Log("Keybinds registered\n")
 end
 
