@@ -1131,6 +1131,7 @@ function ShootProjectile()
         offset.X = offset.X + 150
     elseif class:contains("Willie") then
         offset.X = offset.X + 60
+        offset.Z = -60
     end
 
     -- First locate the spawn point by rotating the offset by player camera yaw (around Z axis in UE), horizontal camera position
