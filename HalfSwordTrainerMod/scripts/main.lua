@@ -2,7 +2,7 @@
 -- https://github.com/massclown/HalfSwordTrainerMod
 -- Requirements: UE4SS 2.5.2 (or newer) and a Blueprint mod HSTM_UI (see repo)
 ------------------------------------------------------------------------------
-local mod_version = "0.7"
+local mod_version = "0.8"
 ------------------------------------------------------------------------------
 local maf = require 'maf'
 --local UEHelpers = require("UEHelpers")
@@ -467,7 +467,9 @@ function HUD_UpdatePlayerStats()
     -- cache.ui_hud['HUD_FLJH']                = math.floor(FLJH)
 
     --
+
     HUD_CacheLevel()
+    HUD_CacheProjectile()
 end
 
 ------------------------------------------------------------------------------
@@ -872,7 +874,7 @@ function PopulateArmorComboBox()
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_armor.txt", "r");
     for line in file:lines() do
         if not line:starts_with('[BAD]') then
-            local fkey = ExtractHumanReadableName(line)
+            local fkey = ExtractHumanReadableNameShorter(line)
             all_armor[fkey] = line
             ComboBox_Armor:AddOption(fkey)
         end
@@ -886,7 +888,7 @@ function PopulateWeaponComboBox()
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_weapons.txt", "r");
     for line in file:lines() do
         if not line:starts_with('[BAD]') then
-            local fkey = ExtractHumanReadableName(line)
+            local fkey = ExtractHumanReadableNameShorter(line)
             all_weapons[fkey] = line
             ComboBox_Weapon:AddOption(fkey)
         end
@@ -900,7 +902,7 @@ function PopulateNPCComboBox()
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_characters.txt", "r");
     for line in file:lines() do
         if not line:starts_with('[BAD]') then
-            local fkey = ExtractHumanReadableName(line)
+            local fkey = ExtractHumanReadableNameShorter(line)
             all_characters[fkey] = line
             ComboBox_NPC:AddOption(fkey)
         end
@@ -914,7 +916,7 @@ function PopulateObjectComboBox()
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_objects.txt", "r");
     for line in file:lines() do
         if not line:starts_with('[BAD]') then
-            local fkey = ExtractHumanReadableName(line)
+            local fkey = ExtractHumanReadableNameShorter(line)
             all_objects[fkey] = line
             ComboBox_Object:AddOption(fkey)
         end
@@ -925,6 +927,31 @@ end
 -- The function takes the final part of the class name, but without the _C
 function ExtractHumanReadableName(BPFullClassName)
     local hname = string.match(BPFullClassName, "/([%w_]+)%.[%w_]+$")
+    return hname
+end
+
+-- This attempts to clean up the item name even further by removing common prefixes
+function ExtractHumanReadableNameShorter(BPFullClassName)
+    local hname = ExtractHumanReadableName(BPFullClassName)
+    -- this is a stupid replacement, the order matters as one filter may contain the other
+    local filters = {
+        "BP_Weapon_Improv_",
+        "BP_Weapon_Tool_",
+        "ModularWeaponBP_",
+        "BP_Armor_",
+        "BP_Container_",
+        "BM_Prop_Furniture_",
+        "BP_Prop_Furniture_",
+        "BP_Prop_",
+    }
+
+    for _, filter in ipairs(filters) do
+        i, j = string.find(hname, filter)
+        if i ~= nil then
+            hname = string.sub(hname, j + 1)
+        end
+    end
+
     return hname
 end
 
@@ -1021,8 +1048,9 @@ end
 
 ------------------------------------------------------------------------------
 local selectedProjectile = 1
+local DEFAULT_PROJECTILE = "/CURRENTLY_SELECTED.CURRENTLY_SELECTED_DEFAULT"
 local projectiles = {
-    { "CURRENTLY_SELECTED",                                                                                          { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
+    { DEFAULT_PROJECTILE,                                                                                            { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_Spear.ModularWeaponBP_Spear_C",                 { X = 0.5, Y = 0.5, Z = 0.5 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tools/BP_Weapon_Tool_Pitchfork_A.BP_Weapon_Tool_Pitchfork_A_C", { X = 0.5, Y = 0.5, Z = 0.5 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_Dagger.ModularWeaponBP_Dagger_C",               { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 50 },
@@ -1032,7 +1060,9 @@ local projectiles = {
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Buckler4.Buckler4_C",                                           { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 150 },
     { "/Game/Assets/Destructible/Dest_Barrel_1_BP.Dest_Barrel_1_BP_C",                                               { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 },
     { "/Game/Assets/Props/Furniture/Meshes/BM_Prop_Furniture_Small_Bench_001.BM_Prop_Furniture_Small_Bench_001_C",   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 },
-    { "/Game/Assets/Props/Furniture/Meshes/BP_Prop_Furniture_Small_Table_001.BP_Prop_Furniture_Small_Table_001_C",   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 }
+    { "/Game/Assets/Props/Furniture/Meshes/BP_Prop_Furniture_Small_Table_001.BP_Prop_Furniture_Small_Table_001_C",   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 },
+    { "/Game/Character/Blueprints/Willie_BP.Willie_BP_C",                                                            { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   500 },
+    { "/Game/Character/Blueprints/Willie_Torso_BP.Willie_Torso_BP_C",                                                { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   500 },
     --    ,{ "/Game/Assets/Props/Barrels/Meshes/BP_Prop_Barrel_002.BP_Prop_Barrel_002_C",                                   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 }
 }
 
@@ -1045,7 +1075,7 @@ function ShootProjectile()
     local class, scale, baseRotation, forceMultiplier = table.unpack(projectiles[selectedProjectile])
 
     -- Allow to shoot a weapon from spawn menu, taking into account the scale
-    if class == "CURRENTLY_SELECTED" then
+    if class == DEFAULT_PROJECTILE then
         local Selected_Spawn_Weapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
         WeaponScaleMultiplier = cache.ui_spawn['HSTM_Slider_WeaponSize']
         WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
@@ -1099,6 +1129,8 @@ function ShootProjectile()
         offset.X = offset.X + 50
     elseif class:contains("BP_Prop_Furniture_Small_Table_001") then
         offset.X = offset.X + 150
+    elseif class:contains("Willie") then
+        offset.X = offset.X + 60
     end
 
     -- First locate the spawn point by rotating the offset by player camera yaw (around Z axis in UE), horizontal camera position
@@ -1151,7 +1183,7 @@ function ShootProjectile()
     local impulseUE = maf2vec(impulse)
     -- Don't apply impulse immediately, give the player a chance to see the projectile
     ExecuteWithDelay(200, function()
-        -- More dumb fixes to apply impulse to different components. 
+        -- More dumb fixes to apply impulse to different components.
         -- We should probably be trying to find a StaticMesh inside instead of this.
         -- Ignoring mass is set to True for non-standard projectiles.
         if class:contains("_Prop_Furniture") then
@@ -1160,6 +1192,8 @@ function ShootProjectile()
             projectile['RootComponent']:AddImpulse(impulseUE, FName("None"), true)
         elseif class:contains("BP_Prop_Barrel") then
             projectile['SM_Barrel']:AddImpulse(impulseUE, FName("None"), true)
+        elseif class:contains("Willie") then
+            projectile['Mesh']:AddImpulse(impulseUE, FName("None"), true)
         else
             projectile['BaseMesh']:AddImpulse(impulseUE, FName("None"), false)
         end
@@ -1168,6 +1202,23 @@ end
 
 function ChangeProjectile()
     selectedProjectile = math.fmod(selectedProjectile, #projectiles) + 1
+    HUD_CacheProjectile()
+end
+
+function HUD_CacheProjectile()
+    local class, _, _, _ = table.unpack(projectiles[selectedProjectile])
+    local classname = class
+    if class == DEFAULT_PROJECTILE then
+        selectedWeapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
+        classname = all_weapons[selectedWeapon]
+    end
+    local projectileShortName = ExtractHumanReadableNameShorter(classname)
+    if class == DEFAULT_PROJECTILE then
+        projectileShortName = projectileShortName .. " (menu)"
+    end
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_Projectile_Value'] = projectileShortName
+    end
 end
 
 ------------------------------------------------------------------------------
