@@ -160,6 +160,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | Shortcut    | Description |
 | ----------- | ----------- |
 | `U`           | Show/hide the UI (HUD) of the mod |
+| `Ctrl + U`    | Skip the death screen (only when dead) |
 | `H`           | Show/hide the crosshair |
 | `I`           | Toggle Invulnerability on/off |
 | `T`           | Toggle Super Strength on/off |
@@ -264,6 +265,10 @@ The projectiles are currently hardcoded in the mod to account for scaling, launc
 * mallet
 * stool
 * buckler
+
+## Skip the death screen
+
+Press `Ctrl + U` to skip the death screen and unpause the game. You can still control the camera and enjoy the views, and apply the mod functions to the NPCs if needed.
 
 ## Other good things
 

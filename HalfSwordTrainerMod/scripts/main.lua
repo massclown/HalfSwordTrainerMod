@@ -5,7 +5,9 @@
 local mod_version = "0.8"
 ------------------------------------------------------------------------------
 local maf = require 'maf'
---local UEHelpers = require("UEHelpers")
+local UEHelpers = require("UEHelpers")
+local GetGameplayStatics = UEHelpers.GetGameplayStatics
+local GetWorldContextObject = UEHelpers.GetWorldContextObject
 ------------------------------------------------------------------------------
 -- Saved copies of player stats before buffs
 local savedRSR = 0
@@ -1223,6 +1225,26 @@ function HUD_CacheProjectile()
 end
 
 ------------------------------------------------------------------------------
+-- This has to be called when the DED screen is triggered, not before
+function RemovePlayerOneDeathScreen()
+    -- We don't use the caching of those objects just in case
+    local HUD = FindFirstOf("UI_HUD_C")
+    if HUD and HUD:IsValid() then
+        HUD:RemoveFromViewport()
+        Logf("Removing HUD\n")
+    end    
+    local DED = FindFirstOf("UI_DED_C")
+    if DED and DED:IsValid() then
+        DED:RemoveFromViewport()
+        Logf("Removing Death screen\n")
+        if GetGameplayStatics():IsGamePaused(GetWorldContextObject()) then
+            GetGameplayStatics():SetGamePaused(GetWorldContextObject(), false)
+            Logf("Unpausing game after death screen\n")
+        end
+    end
+end
+
+------------------------------------------------------------------------------
 function AllHooks()
     CriticalHooks()
     AllCustomEventHooks()
@@ -1445,6 +1467,10 @@ function AllKeybindHooks()
 
     RegisterKeyBind(Key.TAB, { ModifierKey.SHIFT }, function()
         ChangeProjectile()
+    end)
+
+    RegisterKeyBind(Key.U, { ModifierKey.CONTROL }, function()
+        RemovePlayerOneDeathScreen()
     end)
 
     Log("Keybinds registered\n")
