@@ -1501,6 +1501,13 @@ function AllKeybindHooks()
             ToggleSlowMotion()
         end)
     end)
+
+    RegisterKeyBind(Key.M, { ModifierKey.SHIFT }, function()
+        ExecuteInGameThread(function()
+            ToggleSlowMotion()
+        end)
+    end)
+
     -- OEM_FOUR == [
     RegisterKeyBind(Key.OEM_FOUR, function()
         ExecuteInGameThread(function()
@@ -1509,6 +1516,19 @@ function AllKeybindHooks()
     end)
     -- OEM_SIX == ]
     RegisterKeyBind(Key.OEM_SIX, function()
+        ExecuteInGameThread(function()
+            IncreaseGameSpeed()
+        end)
+    end)
+
+    -- OEM_FOUR == [
+    RegisterKeyBind(Key.OEM_FOUR, { ModifierKey.SHIFT }, function()
+        ExecuteInGameThread(function()
+            DecreaseGameSpeed()
+        end)
+    end)
+    -- OEM_SIX == ]
+    RegisterKeyBind(Key.OEM_SIX, { ModifierKey.SHIFT }, function()
         ExecuteInGameThread(function()
             IncreaseGameSpeed()
         end)
