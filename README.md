@@ -161,6 +161,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | ----------- | ----------- |
 | `U`           | Show/hide the UI (HUD) of the mod |
 | `Ctrl + U`    | Skip the death screen (only when dead) |
+| `Ctrl + J`    | Try to resurrect the player (only when dead) |
 | `H`           | Show/hide the crosshair |
 | `I`           | Toggle Invulnerability on/off |
 | `T`           | Toggle Super Strength on/off |
@@ -172,6 +173,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `F3`          | Spawn selected NPC |
 | `F4`          | Spawn selected Object |
 | `F5`          | Undo last spawn (can be repeated) |
+| `F6`          | Despawn all NPCs |
 | `B`           | Spawn the Boss Arena fence around the player's location (only the fence) |
 | `K`           | Kill all NPCs currently on the map |
 | `Z`           | Freeze or unfreeze all NPCs currently on the map |

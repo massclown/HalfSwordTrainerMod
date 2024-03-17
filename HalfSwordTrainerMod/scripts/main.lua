@@ -80,6 +80,12 @@ local spawned_things = {}
 -- The actors from the hook
 --local intercepted_actors = {}
 
+-- Last selected items for spawning when UI is hidden
+local LastSelectedSpawnArmor = nil
+local LastSelectedSpawnWeapon = nil
+local LastSelectedSpawnNPC = nil
+local LastSelectedSpawnItem = nil
+
 -- Item/NPC tables for the spawn menus in the UI
 local all_armor = {}
 local all_weapons = {}
@@ -503,6 +509,11 @@ function ToggleInvulnerability()
     if Invulnerable then
         savedRegenRate = player['Regen Rate']
         player['Regen Rate'] = maxRegenRate
+        -- Attempt to undo some of the damage done before to the player and the body model
+        -- Doesn't seem work.
+        player['Reset Sustained Damage']()
+        player['Reset Blood Bleed']()
+        player['Reset Dismemberment']()
     else
         player['Regen Rate'] = savedRegenRate
     end
@@ -514,22 +525,25 @@ function ToggleInvulnerability()
 end
 
 ------------------------------------------------------------------------------
+local Visibility_HIDDEN = 2
+local Visibility_VISIBLE = 0
+------------------------------------------------------------------------------
 -- 99 is the z-order set in UI HUD blueprint in UE5 editor
 -- 100 is the z-order set in UI Spawn blueprint in UE5 editor
 -- should be high enough to be on top of everything
 function ToggleModUI()
     if ModUIHUDVisible then
-        cache.ui_hud:RemoveFromParent()
+        cache.ui_hud:SetVisibility(Visibility_HIDDEN)
         ModUIHUDVisible = false
     else
-        cache.ui_hud:AddToViewport(99)
+        cache.ui_hud:SetVisibility(Visibility_VISIBLE)
         ModUIHUDVisible = true
     end
     if ModUISpawnVisible then
-        cache.ui_spawn:RemoveFromParent()
+        cache.ui_spawn:SetVisibility(Visibility_HIDDEN)
         ModUISpawnVisible = false
     else
-        cache.ui_spawn:AddToViewport(100)
+        cache.ui_spawn:SetVisibility(Visibility_VISIBLE)
         ModUISpawnVisible = true
     end
 end
@@ -732,70 +746,101 @@ end
 -- Killing is actually despawning for now
 -- That is OK as the weapons get dropped on the ground
 function KillAllNPCs()
-    -- First the ones spawned by player
-    UndoAllPlayerSpawnedCharacters()
-    -- Then the ones spawned by the game
-    if cache.map['Enemy Array'] then
-        local npc = cache.map['Enemy Array']
-        -- Logf("Enemy Array: %s\n", tostring(npc))
-        -- Logf("Enemy Array size: %d\n", npc:GetArrayNum())
-        if npc:GetArrayNum() > 0 then
-            npc:ForEach(function(Index, Elem)
-                if npc:IsValid() then
-                    Logf("Destroying NPC [%i]: %s\n", Index - 1, Elem:get():GetFullName())
-                    Elem:get():K2_DestroyActor()
-                end
-            end)
-        end
-    end
-    -- Then the boss if we are in a boss arena and the boss is alive
-    -- The killing of the boss will not count as a player kill, though
-    if cache.map['Current Boss Arena'] then
-        if cache.map['Boss Alive'] then
-            local boss = cache.map['Current Boss Arena']['Boss']
-            if boss:IsValid() then
-                Logf("Destroying Boss: %s\n", boss:GetFullName())
-                boss:K2_DestroyActor()
-            end
-        end
-    end
+    ExecuteForAllNPCs(function(NPC)
+        NPC['Explode Head']()
+        NPC['Spill Guts']()
+    end)
+end
+
+function DespawnAllNPCs()
+    ExecuteForAllNPCs(function(NPC)
+        NPC:K2_DestroyActor()
+    end)
 end
 
 function FreezeAllNPCs()
     Frozen = not Frozen
+
+    ExecuteForAllNPCs(function(NPC)
+        NPC['CustomTimeDilation'] = Frozen and 0.0 or 1.0
+    end)
+
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_NPCsFrozen_Value'] = Frozen
+    end
+end
+
+------------------------------------------------------------------------------
+-- Does not seem to actually remove the armor stats, only the meshes
+function RemoveAllArmor(player)
+    -- It seems that any object inherited from BP_Armor_Master_C will work here, for some reason
+    local panties = StaticFindObject("/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Panties.BP_Armor_Panties_C")
+    local SpawnTransform = { Rotation = { W = 0.0, X = 0.0, Y = 0.0, Z = 0.0 }, Translation = { X = 0.0, Y = 0.0, Z = 0.0 }, Scale3D = { X = 1.0, Y = 1.0, Z = 1.0 } }
+    -- There are 10 values in the enum, from 0 to 9
+    -- 0, Helmet
+    -- 1, Neck
+    -- 2, Body
+    -- 3, Body 2
+    -- 4, Shoulders
+    -- 5, Arms
+    -- 6, Hands
+    -- 7, Legs
+    -- 8, Legs 2
+    -- 9, Feet
+    for i = 0, 9, 1 do
+        local key = i
+        local out1 = {}
+        player['Remove Armor'](
+            player,
+            panties,
+            SpawnTransform,
+            out1,
+            key
+        )
+    end
+end
+
+------------------------------------------------------------------------------
+function ExecuteForAllNPCs(callback)
     if cache.map['Enemy Array'] then
         local npc = cache.map['Enemy Array']
         if npc:GetArrayNum() > 0 then
             npc:ForEach(function(Index, Elem)
                 if npc:IsValid() then
-                    Logf("Freezing/Unfreezing NPC [%i]: %s\n", Index - 1, Elem:get():GetFullName())
-                    Elem:get()['CustomTimeDilation'] = Frozen and 0.0 or 1.0
+                    Logf("Executing for NPC [%i]: %s\n", Index - 1, Elem:get():GetFullName())
+                    callback(Elem:get())
                 end
             end)
         end
     end
     -- Then freeze the boss if we are in a boss arena and the boss is alive
-    if cache.map['Current Boss Arena'] then
+    if cache.map['Current Boss Arena'] and cache.map['Current Boss Arena']:IsValid() then
         if cache.map['Boss Alive'] then
             local boss = cache.map['Current Boss Arena']['Boss']
             if boss:IsValid() then
-                Logf("Freezing Boss: %s\n", boss:GetFullName())
-                boss['CustomTimeDilation'] = Frozen and 0.0 or 1.0
+                Logf("Executing for Boss: %s\n", boss:GetFullName())
+                callback(boss)
             end
+        end
+        local npc = cache.map['Current Boss Arena']['Spawned Enemies']
+        if npc and npc:GetArrayNum() > 0 then
+            npc:ForEach(function(Index, Elem)
+                if npc:IsValid() then
+                    Logf("Executing for Boss Spawned NPC [%i]: %s\n", Index - 1, Elem:get():GetFullName())
+                    callback(Elem:get())
+                end
+            end)
         end
     end
     if spawned_things then
         for i = #spawned_things, 1, -1 do
-            local actorToFreezeRecord = spawned_things[i]
-            local actorToFreeze = actorToFreezeRecord.Object
-            if actorToFreeze and actorToFreeze:IsValid() and actorToFreezeRecord.IsCharacter then
-                Logf("Despawning NPC actor: %s\n", actorToFreeze:GetFullName())
-                actorToFreeze['CustomTimeDilation'] = Frozen and 0.0 or 1.0
+            local actorToProcessRecord = spawned_things[i]
+            local actorToProcess = actorToProcessRecord.Object
+            if actorToProcess and actorToProcess:IsValid() and actorToProcessRecord.IsCharacter then
+                Logf("Executing for NPC actor: %s\n", actorToProcess:GetFullName())
+                callback(actorToProcess)
             end
         end
-    end
-    if ModUIHUDVisible then
-        cache.ui_hud['HUD_NPCsFrozen_Value'] = Frozen
     end
 end
 
@@ -872,7 +917,7 @@ end
 -- used to mark those that are not useful (not visible, etc.)
 function PopulateArmorComboBox()
     local ComboBox_Armor = cache.ui_spawn['ComboBox_Armor']
-
+    ComboBox_Armor:ClearOptions()
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_armor.txt", "r");
     for line in file:lines() do
         if not line:starts_with('[BAD]') then
@@ -886,6 +931,7 @@ end
 
 function PopulateWeaponComboBox()
     local ComboBox_Weapon = cache.ui_spawn['ComboBox_Weapon']
+    ComboBox_Weapon:ClearOptions()
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_weapons.txt", "r");
     for line in file:lines() do
@@ -900,6 +946,7 @@ end
 
 function PopulateNPCComboBox()
     local ComboBox_NPC = cache.ui_spawn['ComboBox_NPC']
+    ComboBox_NPC:ClearOptions()
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_characters.txt", "r");
     for line in file:lines() do
@@ -914,6 +961,7 @@ end
 
 function PopulateObjectComboBox()
     local ComboBox_Object = cache.ui_spawn['ComboBox_Object']
+    ComboBox_Object:ClearOptions()
 
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\all_objects.txt", "r");
     for line in file:lines() do
@@ -963,10 +1011,10 @@ function ToggleCrosshair()
     if crosshair and crosshair:IsValid() then
         CrosshairVisible = crosshair:GetVisibility() == 0 and true or false
         if CrosshairVisible then
-            crosshair:SetVisibility(2)
+            crosshair:SetVisibility(Visibility_HIDDEN)
             CrosshairVisible = false
         else
-            crosshair:SetVisibility(0)
+            crosshair:SetVisibility(Visibility_VISIBLE)
             CrosshairVisible = true
         end
     end
@@ -1225,17 +1273,49 @@ function HUD_CacheProjectile()
 end
 
 ------------------------------------------------------------------------------
+-- Resurrection may not guarantee a complete revival, doesn't seem to work for NPCs yet
+function ResurrectWillie(player)
+    player['DED'] = false
+    player['Consciousness'] = 100.0
+    player['All Body Tonus'] = 100.0
+
+    player['Health'] = 100.0
+
+    player['Head Health'] = 100.0
+    player['Neck Health'] = 100.0
+    player['Body Health'] = 100.0
+    player['Arm_R Health'] = 100.0
+    player['Arm_L Health'] = 100.0
+    player['Leg_R Health'] = 100.0
+    player['Leg_L Health'] = 100.0
+
+    player['Pain'] = 0.0
+    player['Bleeding'] = 0.0
+
+    -- Not sure if those functions do anything but let's call them just in case
+    player['Reset Dismemberment']()
+    player['Reset Sustained Damage']()
+
+    local controller = player['Controller']
+    controller:Possess(player)
+end
+
+------------------------------------------------------------------------------
 -- This has to be called when the DED screen is triggered, not before
 function RemovePlayerOneDeathScreen()
     -- We don't use the caching of those objects just in case
     local HUD = FindFirstOf("UI_HUD_C")
     if HUD and HUD:IsValid() then
-        HUD:RemoveFromViewport()
+        -- It is better to hide the HUD
+        -- HUD:RemoveFromViewport()
+        HUD:SetVisibility(Visibility_HIDDEN)
         Logf("Removing HUD\n")
-    end    
+    end
     local DED = FindFirstOf("UI_DED_C")
     if DED and DED:IsValid() then
+        -- It is better to remove the DED screen as it blocks the menu UI with it (cannot restart otherwise)
         DED:RemoveFromViewport()
+        -- DED:SetVisibility(Visibility_HIDDEN)
         Logf("Removing Death screen\n")
         if GetGameplayStatics():IsGamePaused(GetWorldContextObject()) then
             GetGameplayStatics():SetGamePaused(GetWorldContextObject(), false)
@@ -1394,6 +1474,10 @@ function AllKeybindHooks()
         UndoLastSpawn()
     end)
 
+    RegisterKeyBind(Key.F6, function()
+        DespawnAllNPCs()
+    end)
+
     RegisterKeyBind(Key.K, function()
         ExecuteInGameThread(function()
             KillAllNPCs()
@@ -1471,6 +1555,14 @@ function AllKeybindHooks()
 
     RegisterKeyBind(Key.U, { ModifierKey.CONTROL }, function()
         RemovePlayerOneDeathScreen()
+    end)
+
+    RegisterKeyBind(Key.J, { ModifierKey.CONTROL }, function()
+        ExecuteInGameThread(function()
+            --- @class AWillie_BP_C
+            local player = cache.map['Player Willie']
+            ResurrectWillie(player)
+        end)
     end)
 
     Log("Keybinds registered\n")
