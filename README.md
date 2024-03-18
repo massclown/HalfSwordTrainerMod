@@ -272,6 +272,18 @@ The projectiles are currently hardcoded in the mod to account for scaling, launc
 
 Press `Ctrl + U` to skip the death screen and unpause the game. You can still control the camera and enjoy the views, and apply the mod functions to the NPCs if needed.
 
+## Resurrect the player
+
+Press `Ctrl + J` to attempt to resurrect the player (after you removed the death screen, of course). 
+
+Having exploded head or being decapitated still appears to be fatal in the current version, as are some other injuries.
+
+Resurrection may be repeated as needed.
+
+> **NOTE:** You may need to activate Invulnerability before or after that, as some injuries will drain the health / tonus / other stats and kill the player again.
+
+> **WARNING!** NPCs may continue attacking the dead player, so be prepared.
+
 ## Other good things
 
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 

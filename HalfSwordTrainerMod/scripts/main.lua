@@ -1402,6 +1402,10 @@ function AllCustomEventHooks()
         UndoLastSpawn()
     end)
 
+    RegisterCustomEvent("HSTM_DespawnNPCs", function(ParamContext, ParamMessage)
+        UndoLastSpawn()
+    end)
+
     RegisterCustomEvent("HSTM_ToggleSlowMotion", function(ParamContext, ParamMessage)
         ToggleSlowMotion()
     end)
