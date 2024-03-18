@@ -282,6 +282,8 @@ Resurrection may be repeated as needed.
 
 > **NOTE:** You may need to activate Invulnerability before or after that, as some injuries will drain the health / tonus / other stats and kill the player again.
 
+> **NOTE:** Resurrection is known to break some of the mod's functionality, use with caution.
+
 > **WARNING!** NPCs may continue attacking the dead player, so be prepared.
 
 ## Other good things
@@ -318,7 +320,7 @@ Resurrection may be repeated as needed.
 
 * No ability to un-glitch yourself (weapons stuck in slots, player body joints stuck in unnatural positions, etc.). Invulnerability helps, though.
 
-* No ability to fly or jump.
+* No ability to fly (for jumping see above).
 
 # FAQ
 

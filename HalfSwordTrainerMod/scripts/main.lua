@@ -1,4 +1,4 @@
--- Half Sword Trainer Mod v0.7 by massclown
+-- Half Sword Trainer Mod v0.8 by massclown
 -- https://github.com/massclown/HalfSwordTrainerMod
 -- Requirements: UE4SS 2.5.2 (or newer) and a Blueprint mod HSTM_UI (see repo)
 ------------------------------------------------------------------------------
@@ -80,11 +80,8 @@ local spawned_things = {}
 -- The actors from the hook
 --local intercepted_actors = {}
 
--- Last selected items for spawning when UI is hidden
-local LastSelectedSpawnArmor = nil
-local LastSelectedSpawnWeapon = nil
-local LastSelectedSpawnNPC = nil
-local LastSelectedSpawnItem = nil
+-- Flag to distinguish between normal client restarts and resurrection
+local ResurrectionWasRequested = false
 
 -- Item/NPC tables for the spawn menus in the UI
 local all_armor = {}
@@ -318,6 +315,12 @@ local globalRestartCount = 0
 -- but we still have to call it once if the user restarts soon, hence the miminum timeout of that 1 second.
 -- So don't restart faster than once every two seconds, or this will break too.
 function InitMyMod()
+    -- If the restart is triggered by a resurrection, exit
+    if ResurrectionWasRequested then
+        ResurrectionWasRequested = false
+        return
+    end
+    -- Otherwise, continue with the normal restart
     local curInitTimestamp = os.clock()
     local delta = curInitTimestamp - lastInitTimestamp
     if lastInitTimestamp == -1 or (delta > 1) then
@@ -1301,15 +1304,25 @@ function ResurrectWillie(player)
 end
 
 ------------------------------------------------------------------------------
+function ResurrectPlayer()
+    Logf("Resurrecting player\n")
+    ResurrectionWasRequested = true
+    local player = cache.map['Player Willie']
+    ResurrectWillie(player)
+end
+
+------------------------------------------------------------------------------
 -- This has to be called when the DED screen is triggered, not before
 function RemovePlayerOneDeathScreen()
     -- We don't use the caching of those objects just in case
     local HUD = FindFirstOf("UI_HUD_C")
     if HUD and HUD:IsValid() then
-        -- It is better to hide the HUD
         -- HUD:RemoveFromViewport()
-        HUD:SetVisibility(Visibility_HIDDEN)
-        Logf("Removing HUD\n")
+        -- It is better to hide the black death screen on the HUD
+        -- Damage HUD and crosshair are still visible
+        HUD['Black']:SetVisibility(Visibility_HIDDEN)
+        HUD['Vignette_WakeUp']:SetVisibility(Visibility_HIDDEN)
+        Logf("Removing HUD Black screen\n")
     end
     local DED = FindFirstOf("UI_DED_C")
     if DED and DED:IsValid() then
@@ -1583,9 +1596,7 @@ function AllKeybindHooks()
 
     RegisterKeyBind(Key.J, { ModifierKey.CONTROL }, function()
         ExecuteInGameThread(function()
-            --- @class AWillie_BP_C
-            local player = cache.map['Player Willie']
-            ResurrectWillie(player)
+            ResurrectPlayer()
         end)
     end)
 
