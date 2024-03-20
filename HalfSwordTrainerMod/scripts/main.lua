@@ -1143,6 +1143,8 @@ function ShootProjectile()
         elseif selected_actor:contains("Scythe") then
             baseRotation = { Pitch = 90.0, Yaw = 0.0, Roll = 0.0 }
             offset.X = offset.X + 120
+        elseif selected_actor:contains("Pitchfork") then
+            offset.X = offset.X + 20
         elseif selected_actor:contains("Sickle") then
             baseRotation = { Pitch = 0.0, Yaw = 180.0, Roll = 0.0 }
         elseif selected_actor:contains("Pavise") then
@@ -1166,7 +1168,10 @@ function ShootProjectile()
                 if WeaponScaleZ then
                     offset.X = offset.X * WeaponScaleMultiplier
                 end
-                forceMultiplier = forceMultiplier * WeaponScaleMultiplier
+                -- Only scale up the force if the object is scaled across all axes
+                if WeaponScaleX and WeaponScaleY and WeaponScaleZ then
+                    forceMultiplier = forceMultiplier * WeaponScaleMultiplier
+                end
             end
         else
             -- Just to be safer against longer weapons
@@ -1275,9 +1280,43 @@ function HUD_CacheProjectile()
     end
 end
 
+function PossessNearestNPC()
+    local currentLocation = GetPlayerLocation()
+    local AllNPCs = {}
+    ExecuteForAllNPCs(function(NPC)
+        table.insert(AllNPCs, { Pawn = NPC, Location = NPC:K2_GetActorLocation() })
+    end)
+    -- Totally arbitrary large value, in fact a couple tiles' worth of units should be enough but YOLO
+    local minDelta = 10e23
+    local closestNPCidx = -1
+    for idx, NPC in ipairs(AllNPCs) do
+        local thisLocation = NPC.Location
+        local delta = maf.vec3.distance(vec2maf(currentLocation), vec2maf(thisLocation))
+        if delta < minDelta then
+            minDelta = delta
+            closestNPCidx = idx
+        end
+    end
+    if closestNPCidx ~= -1 then
+        local pawnToPossess = AllNPCs[closestNPCidx].Pawn
+        ResurrectionWasRequested = true
+        myGetPlayerController():Possess(pawnToPossess)
+    else
+        ErrLogf("Could not find the closest NPC\n")
+    end
+end
+
+function RepossessPlayer()
+    -- ExecuteForAllNPCs(function(NPC)
+    --     NPC['Controller']:UnPossess()
+    -- end)
+    ResurrectionWasRequested = true
+    myGetPlayerController():Possess(cache.map['Player Willie'])
+end
+
 ------------------------------------------------------------------------------
 -- Resurrection may not guarantee a complete revival, doesn't seem to work for NPCs yet
-function ResurrectWillie(player)
+function ResurrectWillie(player, forcePlayerController)
     player['DED'] = false
     player['Consciousness'] = 100.0
     player['All Body Tonus'] = 100.0
@@ -1298,17 +1337,37 @@ function ResurrectWillie(player)
     -- Not sure if those functions do anything but let's call them just in case
     player['Reset Dismemberment']()
     player['Reset Sustained Damage']()
-
-    local controller = player['Controller']
-    controller:Possess(player)
+    if forcePlayerController then
+        -- Possess this willie with a PlayerController instead of the last controller
+        local playerController = myGetPlayerController()
+        playerController:Possess(player)
+    else
+        -- Just reuse the last controller.
+        local controller = player['Controller']
+        if controller and controller:IsValid() then
+            controller:Possess(player)
+        else
+            ErrLogf("Cannot resurrect Willie, invalid controller\n")
+        end
+    end
 end
 
 ------------------------------------------------------------------------------
 function ResurrectPlayer()
+    -- TODO handle detecting and bypassing the death screen
     Logf("Resurrecting player\n")
     ResurrectionWasRequested = true
     local player = cache.map['Player Willie']
-    ResurrectWillie(player)
+    ResurrectWillie(player, true)
+end
+
+function ResurrectPlayerByController()
+    -- TODO handle detecting and bypassing the death screen
+    Logf("Resurrecting player using default PlayerController\n")
+    local PlayerController = myGetPlayerController()
+    local player = PlayerController['Pawn']
+    ResurrectionWasRequested = true
+    ResurrectWillie(player, true)
 end
 
 ------------------------------------------------------------------------------
@@ -1569,11 +1628,30 @@ function AllKeybindHooks()
         end)
     end)
 
+    RegisterKeyBind(Key.SPACE, { ModifierKey.CONTROL }, function()
+        ExecuteInGameThread(function()
+            PlayerJump()
+        end)
+    end)
+
     RegisterKeyBind(Key.MIDDLE_MOUSE_BUTTON, function()
         ExecuteInGameThread(function()
             ShootProjectile()
         end)
     end)
+
+    RegisterKeyBind(Key.MIDDLE_MOUSE_BUTTON, { ModifierKey.CONTROL }, function()
+        ExecuteInGameThread(function()
+            ShootProjectile()
+        end)
+    end)
+
+    -- Not sure why, but holding down SHIFT still triggers the other hooks, so let's not double things up
+    -- RegisterKeyBind(Key.MIDDLE_MOUSE_BUTTON, { ModifierKey.SHIFT }, function()
+    --     ExecuteInGameThread(function()
+    --         ShootProjectile()
+    --     end)
+    -- end)
 
     RegisterKeyBind(Key.TAB, function()
         ChangeProjectile()
@@ -1596,8 +1674,18 @@ function AllKeybindHooks()
 
     RegisterKeyBind(Key.J, { ModifierKey.CONTROL }, function()
         ExecuteInGameThread(function()
-            ResurrectPlayer()
+            --ResurrectPlayer()
+            -- Attempt to resurrect the Willie that is currently possessed by the Player, not the OG Willie
+            ResurrectPlayerByController()
         end)
+    end)
+
+    RegisterKeyBind(Key.END, { ModifierKey.CONTROL }, function()
+        PossessNearestNPC()
+    end)
+
+    RegisterKeyBind(Key.HOME, { ModifierKey.CONTROL }, function()
+        RepossessPlayer()
     end)
 
     Log("Keybinds registered\n")
