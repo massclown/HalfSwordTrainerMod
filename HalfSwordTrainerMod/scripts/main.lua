@@ -370,6 +370,19 @@ function InitMyMod()
         SlowMotionEnabled = false
         SuperStrength = false
 
+        -- Attempt to intercept auto-spawned enemies and do something about that
+        -- Somehow if we hook this, it makes the game spawn MORE enemies (faster)
+        -- Needs further investigation
+        --
+        -- RegisterHook("/Game/Maps/Abyss_Map_Open.Abyss_Map_Open_C:Spawn NPC", function(self, SpawnTransform, WeaponLoadout, ReturnValue)
+        --     local class = self:get():GetFullName()
+        --     local transform = SpawnTransform:get():GetFullName()
+        --     local loadout = WeaponLoadout:get()
+        --     local retval = ReturnValue
+        --     Logf("Spawn NPC hooked: self [%s], SpawnTransform [%s], WeaponLoadout [%s], ReturnValue [%s],\n", class, transform, loadout, retval)
+        -- end)
+        --
+
         -- This starts a thread that updates the HUD in background.
         -- It only exits if we retrn true from the lambda, which we don't
         local myRestartCounter = globalRestartCount
@@ -408,7 +421,8 @@ end
 --   and not yet merged into the master branch either (https://github.com/UE4SS-RE/RE-UE4SS/pull/301)
 -- On the other hand, the stable UE4SS 2.5.2 crashes less with Half Sword, so all this is justified.
 function HUD_UpdatePlayerStats()
-    local player                            = cache.map['Player Willie']
+    -- TODO handle possession
+    local player                            = GetActivePlayer()
     PlayerHealth                            = player['Health']
     Invulnerable                            = player['Invulnerable']
     cache.ui_hud['HUD_HP_Value']            = PlayerHealth
@@ -485,7 +499,8 @@ end
 
 ------------------------------------------------------------------------------
 function ToggleSuperStrength()
-    local player = cache.map['Player Willie']
+    -- TODO handle possession
+    local player = GetActivePlayer()
     SuperStrength = not SuperStrength
     if SuperStrength then
         savedRSR = player['Running Speed Rate']
@@ -506,7 +521,8 @@ end
 -- We also increase regeneration rate together with invulnerability
 -- to prevent the player from dying from past wounds
 function ToggleInvulnerability()
-    local player = cache.map['Player Willie']
+    -- TODO handle possession
+    local player = GetActivePlayer()
     Invulnerable = player['Invulnerable']
     Invulnerable = not Invulnerable
     if Invulnerable then
@@ -634,6 +650,13 @@ function UndoAllPlayerSpawnedCharacters()
             end
         end
     end
+end
+
+------------------------------------------------------------------------------
+-- This takes possession into account
+function GetActivePlayer()
+    local FirstPlayerController = myGetPlayerController()
+    return FirstPlayerController.Pawn
 end
 
 ------------------------------------------------------------------------------
@@ -1082,7 +1105,7 @@ function PlayerJump()
     local curJumpTimestamp = os.clock()
     local delta = curJumpTimestamp - lastJumpTimestamp
     -- Logf("TS = %f, LJTS = %f, delta = %f\n", curJumpTimestamp, lastJumpTimestamp, delta)
-    local player = cache.map['Player Willie']
+    local player = GetActivePlayer()
     if player['Fallen'] then
         -- TODO what if the player is laying down? Currently we do nothing
     else
@@ -1280,6 +1303,18 @@ function HUD_CacheProjectile()
     end
 end
 
+------------------------------------------------------------------------------
+function IsPossessing()
+    local player = cache.map['Player Willie']
+    local possessedPawn = myGetPlayerController()['Pawn']
+    return player == possessedPawn
+end
+
+function IsThisNPCPossessed(NPC)
+    local possessedPawn = myGetPlayerController()['Pawn']
+    return NPC == possessedPawn
+end
+
 function PossessNearestNPC()
     local currentLocation = GetPlayerLocation()
     local AllNPCs = {}
@@ -1304,6 +1339,7 @@ function PossessNearestNPC()
     else
         ErrLogf("Could not find the closest NPC\n")
     end
+    SetAllPlayerOneHUDVisibility(Visibility_HIDDEN)
 end
 
 function RepossessPlayer()
@@ -1312,6 +1348,7 @@ function RepossessPlayer()
     -- end)
     ResurrectionWasRequested = true
     myGetPlayerController():Possess(cache.map['Player Willie'])
+    SetAllPlayerOneHUDVisibility(Visibility_VISIBLE)
 end
 
 ------------------------------------------------------------------------------
@@ -1357,7 +1394,7 @@ function ResurrectPlayer()
     -- TODO handle detecting and bypassing the death screen
     Logf("Resurrecting player\n")
     ResurrectionWasRequested = true
-    local player = cache.map['Player Willie']
+    local player = GetActivePlayer()
     ResurrectWillie(player, true)
 end
 
@@ -1380,7 +1417,9 @@ function RemovePlayerOneDeathScreen()
         -- It is better to hide the black death screen on the HUD
         -- Damage HUD and crosshair are still visible
         HUD['Black']:SetVisibility(Visibility_HIDDEN)
+        HUD['Vignette']:SetVisibility(Visibility_HIDDEN)
         HUD['Vignette_WakeUp']:SetVisibility(Visibility_HIDDEN)
+        HUD['Vignette_Pain']:SetVisibility(Visibility_HIDDEN)
         Logf("Removing HUD Black screen\n")
     end
     local DED = FindFirstOf("UI_DED_C")
@@ -1393,6 +1432,31 @@ function RemovePlayerOneDeathScreen()
             GetGameplayStatics():SetGamePaused(GetWorldContextObject(), false)
             Logf("Unpausing game after death screen\n")
         end
+    end
+end
+
+function SetAllPlayerOneHUDVisibility(NewVisibility)
+    -- We don't use the caching of those objects just in case
+    local HUD = FindFirstOf("UI_HUD_C")
+    if HUD and HUD:IsValid() then
+        -- crosshair
+        HUD['Aim']:SetVisibility(NewVisibility)
+        -- damage HUD
+        HUD['ArmLDmg']:SetVisibility(NewVisibility)
+        HUD['ArmRDmg']:SetVisibility(NewVisibility)
+        HUD['HeadDmg']:SetVisibility(NewVisibility)
+        HUD['HPDmg1']:SetVisibility(NewVisibility)
+        HUD['HPDmg2']:SetVisibility(NewVisibility)
+        HUD['HPDmg3']:SetVisibility(NewVisibility)
+        HUD['LegLDmg']:SetVisibility(NewVisibility)
+        HUD['LegRDmg']:SetVisibility(NewVisibility)
+        -- shock/death vignette
+        HUD['Black']:SetVisibility(NewVisibility)
+        HUD['Vignette']:SetVisibility(NewVisibility)
+        HUD['Vignette_WakeUp']:SetVisibility(NewVisibility)
+        HUD['Vignette_Pain']:SetVisibility(NewVisibility)
+
+        Logf("Toggling visibility for Player one HUD\n")
     end
 end
 
