@@ -772,23 +772,38 @@ end
 -- Killing is actually despawning for now
 -- That is OK as the weapons get dropped on the ground
 function KillAllNPCs()
+    local player = GetActivePlayer()
     ExecuteForAllNPCs(function(NPC)
-        NPC['Explode Head']()
-        NPC['Spill Guts']()
+        if UEAreObjectsEqual(player, NPC) then
+            -- this is a possessed NPC, don't
+        else
+            NPC['Explode Head']()
+            NPC['Spill Guts']()
+        end
     end)
 end
 
 function DespawnAllNPCs()
+    local player = GetActivePlayer()
     ExecuteForAllNPCs(function(NPC)
-        NPC:K2_DestroyActor()
+        if UEAreObjectsEqual(player, NPC) then
+            -- this is a possessed NPC, don't
+        else
+            NPC:K2_DestroyActor()
+        end
     end)
 end
 
 function FreezeAllNPCs()
     Frozen = not Frozen
+    local player = GetActivePlayer()
 
     ExecuteForAllNPCs(function(NPC)
-        NPC['CustomTimeDilation'] = Frozen and 0.0 or 1.0
+        if UEAreObjectsEqual(player, NPC) then
+            -- this is a possessed NPC, don't
+        else
+            NPC['CustomTimeDilation'] = Frozen and 0.0 or 1.0
+        end
     end)
 
     if ModUIHUDVisible then
