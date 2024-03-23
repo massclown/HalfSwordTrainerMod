@@ -105,7 +105,7 @@ Copy the entire `LogicMods` folder of the release into the `Content\Paks` folder
 ## 5. Enable the mod
 
 Enable the `HalfSwordTrainerMod` and `BPModLoaderMod` in your UE4SS mod loader configuration (`\Mods\mods.txt`).
-The new lines in the middle of the file should look like this:
+The new two lines in the middle of the file should look like this (better to copy-paste them to avoid typos, but don't copy the "...", of course):
 ```
 ...
 BPModLoaderMod : 1
@@ -182,7 +182,8 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `]`           | Increase game speed for Slow Motion |
 | `Space`       | Jump (at your own risk) |
 | Mouse Wheel Click   | Shoot projectile |
-| `Tab`         | Change projectile to next one |
+| `Tab`         | Change projectile to the next one |
+| `Shift + Tab`         | Change projectile to the previous one |
 
 ## Changing difficulty
 
@@ -253,7 +254,7 @@ Jump does not work well when changing the game speed.
 
 This is not a true throwing of objects, but more like shooting them for maximum damage.
 
-Use mouse wheel (click) to shoot a projectile, and `Tab` to change to next projectile type. 
+Use mouse wheel (click) to shoot a projectile, and `Tab` to change to next projectile type, `Shift + Tab` for the previous projectile type.
 
 Shooting is more accurate in first person view.
 
@@ -267,6 +268,11 @@ The projectiles are currently hardcoded in the mod to account for scaling, launc
 * mallet
 * stool
 * buckler
+* breakable barrel
+* bench
+* table
+* live NPC
+* NPC body
 
 ## Skip the death screen
 
@@ -359,7 +365,7 @@ Make sure UE4SS loads and observe its logs. It should mention `HalfSwordTrainerM
 * If it does not, check that you have the mod files in the right places as explained above.
 * If it does, but the mod does not show UI or does not react to the keyboard shortcuts, check the logs for errors related to `HalfSwordTrainerMod`.
 
-## I see the HUD/UI of the mod, but values are zero, UI buttons don't work and menus are empty
+## I see the HUD/UI of the mod, but number values are zero, UI buttons don't work and drop-down menus are empty
 
 > If you are on UE4SS 3.x.x, check that you have patched `BPModLoaderMod` as described in the installation instructions above.
 
@@ -378,11 +384,11 @@ HSTM UI version mismatch: mod version 0.x, HUD version 0.y
 ```
 then you have copied different parts of the mod from different versions. Re-install the mod from the version you want as described above.
 
-## I see the HUD/UI of the mod and the UI buttons work, but the hotkeys don't work
+## I see the HUD/UI of the mod, the numbers are correct and the UI buttons and drop-down menus work, but the keyboard hotkeys don't work
 
 Unfortunately, this happens sometimes, usually a reboot helps.
 
-## I don't see the HUD/UI of the mod, but some hotkeys still work
+## I don't see the HUD/UI of the mod on screen, but some hotkeys still work
 
 That means that the `BPModLoaderMod` did not work or could not find the Blueprint mod, and therefore did not load our Blueprint mod that is the UI, 
 while Lua mod named `HalfSwordTrainerMod` succeeded. 
@@ -390,7 +396,7 @@ while Lua mod named `HalfSwordTrainerMod` succeeded.
 `BPModLoaderMod` probably couldn't work due to one of the possible reasons: 
 * either it is missing in the `Mods` folder entirely, probably with all other folders out of the UE4SS package
 * or it is not enabled in the `Mods\mods.txt`, 
-* or the `LogicMods` folder is missing from `\Half Sword Demo\HalfSwordUE5\Content\Paks`, or its contents are wrong,
+* or the `LogicMods` folder is missing from `\Half Sword Demo\HalfSwordUE5\Content\Paks`, or its contents are wrong (e.g. wrong version of Blueprints in `LogicMods`, see above),
 * or the mod cannot start due to some error. 
 
 Check which of these things might have happened on your system, and also look inside `UE4SS.log` and see if there are any error lines saying something suspicious right after the line:

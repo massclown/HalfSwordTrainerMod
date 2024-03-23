@@ -1282,8 +1282,13 @@ function ShootProjectile()
     end)
 end
 
-function ChangeProjectile()
+function ChangeProjectileNext()
     selectedProjectile = math.fmod(selectedProjectile, #projectiles) + 1
+    HUD_CacheProjectile()
+end
+
+function ChangeProjectilePrev()
+    selectedProjectile = math.fmod(#projectiles + selectedProjectile - 2, #projectiles) + 1
     HUD_CacheProjectile()
 end
 
@@ -1302,24 +1307,39 @@ function HUD_CacheProjectile()
         cache.ui_hud['HUD_Projectile_Value'] = projectileShortName
     end
 end
-
+------------------------------------------------------------------------------
+-- We check equality of non-static objects by their full names, 
+-- which includes the unique numbered name of an instance of a class (something like My_Object_C_123456789)
+-- Horrible, but a bit better than using their address (UE4SS and Lua don't help there)
+function UEAreObjectsEqual(a, b)
+    local aa = tostring(a:GetFullName())
+    local bb = tostring(b:GetFullName())
+    -- Logf("[%s] == [%s]?\n", aa, bb)
+    return aa == bb
+end
 ------------------------------------------------------------------------------
 function IsPossessing()
     local player = cache.map['Player Willie']
     local possessedPawn = myGetPlayerController()['Pawn']
-    return player == possessedPawn
+    return UEAreObjectsEqual(player, possessedPawn)
 end
 
 function IsThisNPCPossessed(NPC)
     local possessedPawn = myGetPlayerController()['Pawn']
-    return NPC == possessedPawn
+    return UEAreObjectsEqual(NPC, possessedPawn)
 end
 
 function PossessNearestNPC()
     local currentLocation = GetPlayerLocation()
+    local currentPawn = GetActivePlayer()
     local AllNPCs = {}
     ExecuteForAllNPCs(function(NPC)
-        table.insert(AllNPCs, { Pawn = NPC, Location = NPC:K2_GetActorLocation() })
+        -- Don't try to re-possess the current, already possessed NPC
+        if UEAreObjectsEqual(NPC, currentPawn) then
+            -- TODO process a currently possessed NPC or not?
+        else
+            table.insert(AllNPCs, { Pawn = NPC, Location = NPC:K2_GetActorLocation() })
+        end
     end)
     -- Totally arbitrary large value, in fact a couple tiles' worth of units should be enough but YOLO
     local minDelta = 10e23
@@ -1718,7 +1738,7 @@ function AllKeybindHooks()
     -- end)
 
     RegisterKeyBind(Key.TAB, function()
-        ChangeProjectile()
+        ChangeProjectileNext()
     end)
 
     -- Also make sure we can still shoot while sprinting with Shift held down
@@ -1729,7 +1749,7 @@ function AllKeybindHooks()
     end)
 
     RegisterKeyBind(Key.TAB, { ModifierKey.SHIFT }, function()
-        ChangeProjectile()
+        ChangeProjectilePrev()
     end)
 
     RegisterKeyBind(Key.U, { ModifierKey.CONTROL }, function()
