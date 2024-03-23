@@ -157,33 +157,35 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 
 ## Keyboard shortcuts of this mod
 
-| Shortcut    | Description |
-| ----------- | ----------- |
-| `U`           | Show/hide the UI (HUD) of the mod |
-| `Ctrl + U`    | Skip the death screen (only when dead) |
-| `Ctrl + J`    | Try to resurrect the player (only when dead) |
-| `H`           | Show/hide the crosshair |
-| `I`           | Toggle Invulnerability on/off |
-| `T`           | Toggle Super Strength on/off |
-| `L`           | Spawn a loadout around the player |
-| `+`           | Increase the current level of enemies |
-| `-`           | Decrease the current level of enemies |
-| `F1`          | Spawn selected Armor |
-| `F2`          | Spawn selected Weapon |
-| `F3`          | Spawn selected NPC |
-| `F4`          | Spawn selected Object |
-| `F5`          | Undo last spawn (can be repeated) |
-| `F6`          | Despawn all NPCs |
-| `B`           | Spawn the Boss Arena fence around the player's location (only the fence) |
-| `K`           | Kill all NPCs currently on the map |
-| `Z`           | Freeze or unfreeze all NPCs currently on the map |
-| `M`           | Toggle Slow Motion mode |
-| `[`           | Decrease game speed for Slow Motion |
-| `]`           | Increase game speed for Slow Motion |
-| `Space`       | Jump (at your own risk) |
-| Mouse Wheel Click   | Shoot projectile |
-| `Tab`         | Change projectile to the next one |
-| `Shift + Tab`         | Change projectile to the previous one |
+| Shortcut           | Description        |
+| ------------------ | ------------------ |
+| `U`                | Show/hide the UI (HUD) of the mod |
+| `Ctrl + U`         | Skip the death screen (only when dead) |
+| `Ctrl + J`         | Try to resurrect the player (only when dead) |
+| `H`                | Show/hide the crosshair |
+| `I`                | Toggle Invulnerability on/off |
+| `T`                | Toggle Super Strength on/off |
+| `L`                | Spawn a loadout around the player |
+| `+`                | Increase the current level of enemies |
+| `-`                | Decrease the current level of enemies |
+| `F1`               | Spawn selected Armor |
+| `F2`               | Spawn selected Weapon |
+| `F3`               | Spawn selected NPC |
+| `F4`               | Spawn selected Object |
+| `F5`               | Undo last spawn (can be repeated) |
+| `F6`               | Despawn all NPCs |
+| `B`                | Spawn the Boss Arena fence around the player's location (only the fence) |
+| `K`                | Kill all NPCs currently on the map |
+| `Z`                | Freeze or unfreeze all NPCs currently on the map |
+| `M`                | Toggle Slow Motion mode |
+| `[`                | Decrease game speed for Slow Motion |
+| `]`                | Increase game speed for Slow Motion |
+| `Space`            | Jump (at your own risk) |
+| Mouse Wheel Click  | Shoot projectile |
+| `Tab`              | Change projectile to the next one |
+| `Shift + Tab`      | Change projectile to the previous one |
+| `Ctrl + End`       | Possess the NPC closest to player |
+| `Ctrl + Home`      | Possess the original player character |
 
 ## Changing difficulty
 
@@ -193,7 +195,7 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 
 * Invulnerability does not need much explanation. Regeneration is also applied when Invulnerable.
 
-> Note that the game itself (not the mod!) makes your player invulnerable for a few seconds during spawn (maybe to avoid dying due to physics of the game?), and then removes invulnerability.
+> Note that the game itself (not the mod!) makes your player invulnerable for a first few seconds during spawn (maybe to avoid dying due to physics of the game?), and then removes invulnerability.
 
 ## Spawning things
 
@@ -292,6 +294,14 @@ Resurrection may be repeated as needed.
 
 > **WARNING!** NPCs may continue attacking the dead player, so be prepared.
 
+## Possessing NPCs
+
+You can take control of other NPCs by "possessing" them
+
+Press `Ctrl + End` to possess the closest NPC to the currently possessed one, and `Ctrl + Home` to jump back to the original player.
+
+> **NOTE:** Sometimes the NPC you possess may be bugged. 
+
 ## Other good things
 
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 
@@ -327,6 +337,8 @@ Resurrection may be repeated as needed.
 * No ability to un-glitch yourself (weapons stuck in slots, player body joints stuck in unnatural positions, etc.). Invulnerability helps, though.
 
 * No ability to fly (for jumping see above).
+
+* Possessing or un-possessing NPCs may leave them bugged.
 
 # FAQ
 
