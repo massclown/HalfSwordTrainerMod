@@ -385,6 +385,10 @@ function InitMyMod()
 
         -- This starts a thread that updates the HUD in background.
         -- It only exits if we retrn true from the lambda, which we don't
+        --
+        -- TODO: handle resurrection after NPC possession: the loop must still reflect the current player!
+        -- TODO: we should probably cache the PlayerController at time of loop creation to detect and restart stale loops?
+        -- 
         local myRestartCounter = globalRestartCount
         if ModUIHUDUpdateLoopEnabled then
             LoopAsync(250, function()
@@ -1370,6 +1374,7 @@ function PossessNearestNPC()
     if closestNPCidx ~= -1 then
         local pawnToPossess = AllNPCs[closestNPCidx].Pawn
         ResurrectionWasRequested = true
+        Logf("Possessing NPC: %s\n", pawnToPossess:GetFullName())
         myGetPlayerController():Possess(pawnToPossess)
     else
         ErrLogf("Could not find the closest NPC\n")
@@ -1377,11 +1382,13 @@ function PossessNearestNPC()
     SetAllPlayerOneHUDVisibility(Visibility_HIDDEN)
 end
 
+-- Re-possession breaks AI control of previously possessed NPCs
 function RepossessPlayer()
     -- ExecuteForAllNPCs(function(NPC)
     --     NPC['Controller']:UnPossess()
     -- end)
     ResurrectionWasRequested = true
+    Logf("Possessing player Willie back: %s\n",cache.map['Player Willie']:GetFullName())
     myGetPlayerController():Possess(cache.map['Player Willie'])
     SetAllPlayerOneHUDVisibility(Visibility_VISIBLE)
 end
