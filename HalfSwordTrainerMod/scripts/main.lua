@@ -1774,7 +1774,7 @@ function AllKeybindHooks()
         ChangeProjectilePrev()
     end)
 
-    RegisterKeyBind(Key.U, { ModifierKey.CONTROL }, function()
+    RegisterKeyBind(Key.U, { ModifierKey.ALT }, function()
         RemovePlayerOneDeathScreen()
     end)
 
