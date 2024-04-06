@@ -17,7 +17,7 @@ The mod is written in Lua, so you can understand and modify its functionality.
 
 # Installation (easy mode)
 
-# One-click automatic installer at https://github.com/massclown/HalfSwordModInstaller/releases/latest/download
+# One-click automatic installer at https://github.com/massclown/HalfSwordModInstaller/releases/latest/download/HalfSwordModInstaller.exe
 
 # Automatic installer documentation at https://github.com/massclown/HalfSwordModInstaller
 
