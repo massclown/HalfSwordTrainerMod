@@ -11,15 +11,21 @@ The mod requires [UE4SS](https://github.com/UE4SS-RE/RE-UE4SS) (version 2.5.2 or
 
 The mod is written in Lua, so you can understand and modify its functionality.
 
-# License
-
-Distributed under the MIT License. See `LICENSE` file for more information.
-
 # Showcase
 
 [![YouTube video of Half Sword Trainer Mod](https://img.youtube.com/vi/DMWCSHe60dA/hqdefault.jpg)](https://www.youtube.com/watch?v=DMWCSHe60dA)
 
-# Installation
+# Installation (easy mode)
+
+# One-click automatic installer at https://github.com/massclown/HalfSwordModInstaller/releases/latest/download
+
+# Automatic installer documentation at https://github.com/massclown/HalfSwordModInstaller
+
+# Installation (hard mode)
+<details>
+  <summary>Click to see the full installation instructions (hard mode)</summary>
+
+You probably want the easy mode above. If you really really want to install everything manually, read below.
 
 ## Video tutorial: https://www.youtube.com/watch?v=4gSp87ET6x4
 
@@ -139,23 +145,9 @@ Delete the files that you copied as described above, or just reinstall the entir
     * Disable or enable **both** `HalfSwordTrainerMod` and `BPModLoaderMod` in `\Mods\mods.txt`, otherwise you will still see the broken UI of the mod.
 * Alternatively, you can rename `xinput1_3.dll` (or `UE4SS.dll` if you are on UE4SS 3.x.x) to something else, say, `xinput1_3.dll.backup` to completely disable UE4SS and all the mods it loads.
 
-# How does the mod look on screen
+</details>
 
-![Alt text](images/hud_v0.7_2K.jpg?raw=true "Screenshot of mod UI v0.7")
-
-# How to use the mod
-
-The mod has a custom UI that can be hidden when needed, and can also hide the crosshair (cursor).
-
-The mod adds a HUD on top of the game on the left side of the screen to show you various player stats.
-
-* The body figure in the bottom left corner is the health of the body parts.
-
-The mod adds a spawn menu on top of the game on the right side of the screen with some drop-down menus and buttons.
-
-The mod also adds a few keyboard shortcuts to trigger its functions.
-
-## Keyboard shortcuts of this mod
+# Keyboard shortcuts of this mod
 
 | Shortcut           | Description        |
 | ------------------ | ------------------ |
@@ -186,6 +178,23 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 | `Shift + Tab`      | Change projectile to the previous one |
 | `Ctrl + End`       | Possess the NPC closest to player |
 | `Ctrl + Home`      | Possess the original player character |
+
+
+# How does the mod look on screen
+
+![Alt text](images/hud_v0.7_2K.jpg?raw=true "Screenshot of mod UI v0.7")
+
+# How to use the mod
+
+The mod has a custom UI that can be hidden when needed, and can also hide the crosshair (cursor).
+
+The mod adds a HUD on top of the game on the left side of the screen to show you various player stats.
+
+* The body figure in the bottom left corner is the health of the body parts.
+
+The mod adds a spawn menu on top of the game on the right side of the screen with some drop-down menus and buttons.
+
+The mod also adds a few keyboard shortcuts to trigger its functions.
 
 ## Changing difficulty
 
@@ -428,6 +437,10 @@ File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 
 File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 
+# License
+
+Distributed under the MIT License. See `LICENSE` file for more information.
+
 # Acknowledgements
 
 * Half Sword developers, https://halfswordgames.com/
@@ -435,3 +448,5 @@ File an issue here, at https://github.com/massclown/HalfSwordTrainerMod/issues
 * Bjorn Swenson, developer of `maf`, https://github.com/bjornbytes/maf which is used for vector rotation here.
 * TheLich from NexusMods for caching code
 * @glassoflimesoda from Half Sword Discord for the screenshot install tutorial at https://imgur.com/a/3RFOQiS
+* The community members of the Half Sword Discord for inspiration and bug reports.
+
