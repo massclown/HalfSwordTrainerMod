@@ -231,6 +231,7 @@ function myGetPlayerController()
     if PlayerController and PlayerController:IsValid() then
         return PlayerController
     else
+        -- TODO: not sure if this is fatal or not at the moment. Error handling needs improvement
         error("No PlayerController found\n")
     end
 end
@@ -1125,14 +1126,17 @@ function PlayerJump()
     local delta = curJumpTimestamp - lastJumpTimestamp
     -- Logf("TS = %f, LJTS = %f, delta = %f\n", curJumpTimestamp, lastJumpTimestamp, delta)
     local player = GetActivePlayer()
+    local mesh = player['Mesh']
+
     if player['Fallen'] then
-        -- TODO what if the player is laying down? Currently we do nothing
+        -- TODO what if the player is laying down? Currently we do a small boost just in case
+        local jumpImpulse = 1000.0 * GameSpeed
+        mesh:AddImpulse({ X = 0.0, Y = 0.0, Z = jumpImpulse }, FName("None"), true)
     else
         -- Only jump if the last jump happened long enough ago
         if delta >= deltaJumpCooldown then
             -- Update last successful jump timestamp
             lastJumpTimestamp = curJumpTimestamp
-            local mesh = player['Mesh']
             -- The jump impulse value has been selected to jump high enough for a table or boss fence
             -- We also compensate for the current game speed linearly, by decreasing the impulse (otherwise slomo means jump into space)
             local jumpImpulse = 25000.0 * GameSpeed
