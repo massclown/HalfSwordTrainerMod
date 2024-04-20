@@ -152,7 +152,7 @@ Delete the files that you copied as described above, or just reinstall the entir
 | Shortcut           | Description        |
 | ------------------ | ------------------ |
 | `U`                | Show/hide the UI (HUD) of the mod |
-| `Alt + U`         | Skip the death screen (only when dead) |
+| `Alt + U`          | Skip the death screen (only when dead) |
 | `Ctrl + J`         | Try to resurrect the player (only when dead) |
 | `H`                | Show/hide the crosshair |
 | `I`                | Toggle Invulnerability on/off |
@@ -314,26 +314,28 @@ Press `Ctrl + End` to possess the closest NPC to the currently possessed one, an
 ## Other good things
 
 * UE4SS also enables the Unreal Engine console, which can be shown by pressing `F10` or `@`. It is useful to change video settings that are not exposed in Half Sword original UI. 
-    * When you know which settings you like, you can save then in the game's `.ini` files in 
+    * When you know which settings you like, you can edit them permanently in the game's `.ini` files in 
 `%LOCALAPPDATA%\HalfSwordUE5\Saved\Config\Windows\Engine.ini` or other config files in that folder (so most probably in `C:\Users\%USERNAME%\AppData\Local\HalfSwordUE5\Saved\Config\Windows\`)
-    * Some examples of the settings you might want to change in those files (or in the console, on the fly) are:
+    * Some examples of the settings you might want to change in those files (or in the console, on the fly) are, for `Engine.ini`:
     ```
+    [SystemSettings]
     r.fog=0
     r.atmosphere=0
     r.AntiAliasingMethod=1
     ```
 * UE4SS has a lot of useful functionality for game modders, read [their docs](https://docs.ue4ss.com/) and have fun.
+    * You can open the UE4SS's graphical console, find Unreal Engine objects, and modify their attributes (like the score, for example).
 
 
 # Know issues and TODOs
 
-* No error handling whatsoever. Use at your own risk. **It will crash the game at some point!** Don't spawn too many things, etc.
+* No error handling whatsoever. Use at your own risk. **It will crash the game at some point!** Don't spawn too many things, or more than 10-15 NPCs, etc.
 
-* The mod's keybinds don't work if you keep holding down the game standard keybinds (like when running with A/W/S/D).
+* The mod's keybinds don't work if you keep holding down the game standard keybinds (like when running with A/W/S/D). Some keybinds have been modified to work while holding `Shift` or `Ctrl`, but may be unstable.
 
 * Auto-spawned NPCs and boss fights will keep spawning. 
 
-* Loadout is spawned in the map, not on the player.
+* The custom loadout is spawned in the map, not on the player.
 
 * Freezing only freezes the bottom part of the NPCs, they can still use weapons on the player.
 

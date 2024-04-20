@@ -846,6 +846,11 @@ function RemoveAllArmor(player)
     end
 end
 
+function RemovePlayerArmor()
+    local player = GetActivePlayer()
+    RemoveAllArmor(player)
+end
+
 ------------------------------------------------------------------------------
 function ExecuteForAllNPCs(callback)
     if cache.map['Enemy Array'] then
@@ -1755,6 +1760,12 @@ function AllKeybindHooks()
             ShootProjectile()
         end)
     end)
+
+    -- RegisterKeyBind(Key.J, function()
+    --     ExecuteInGameThread(function()
+    --         RemovePlayerArmor()
+    --     end)
+    -- end)
 
     -- Not sure why, but holding down SHIFT still triggers the other hooks, so let's not double things up
     -- RegisterKeyBind(Key.MIDDLE_MOUSE_BUTTON, { ModifierKey.SHIFT }, function()
