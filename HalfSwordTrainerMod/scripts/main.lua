@@ -1143,7 +1143,7 @@ function PlayerJump()
 
     if player['Fallen'] then
         -- TODO what if the player is laying down? Currently we do a small boost just in case
-        local jumpImpulse = 1000.0 * GameSpeed
+        local jumpImpulse = 1000.0 --* GameSpeed
         mesh:AddImpulse({ X = 0.0, Y = 0.0, Z = jumpImpulse }, FName("None"), true)
     else
         -- Only jump if the last jump happened long enough ago
@@ -1151,8 +1151,7 @@ function PlayerJump()
             -- Update last successful jump timestamp
             lastJumpTimestamp = curJumpTimestamp
             -- The jump impulse value has been selected to jump high enough for a table or boss fence
-            -- We also compensate for the current game speed linearly, by decreasing the impulse (otherwise slomo means jump into space)
-            local jumpImpulse = 25000.0 * GameSpeed
+            local jumpImpulse = 25000.0 --* GameSpeed
             mesh:AddImpulse({ X = 0.0, Y = 0.0, Z = jumpImpulse }, FName("None"), true)
         end
     end
@@ -1203,7 +1202,7 @@ function PlayerDash(direction)
 
     if player['Fallen'] then
         -- TODO what if the player is laying down? Currently we do a small boost just in case
-        local dashImpulse = 1000.0 * GameSpeed
+        local dashImpulse = 1000.0 --* GameSpeed
         local dashImpulseVector = maf.vec3(dashImpulse, 0.0, 0.0)
 
         dashImpulseVector:rotate(liftoffRotator)
@@ -1217,7 +1216,7 @@ function PlayerDash(direction)
         if delta >= deltaDashCooldown then
             -- Update last successful dash timestamp
             lastDashTimestamp = curDashTimestamp
-            local dashImpulse = dashForces[direction] * GameSpeed
+            local dashImpulse = dashForces[direction] --* GameSpeed
             local dashImpulseVector = maf.vec3(dashImpulse, 0.0, 0.0)
 
             dashImpulseVector:rotate(liftoffRotator)
