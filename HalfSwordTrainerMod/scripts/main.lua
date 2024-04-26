@@ -179,6 +179,14 @@ function rot2mafrotator(vector)
     return maf.quat(X, Y, Z, W)
 end
 
+function LogMafVec(mafVector)
+    Logf("{X=%f, Y=%f, Z=%f}\n", mafVector.x, mafVector.y, mafVector.z)
+end
+
+function LogUEVec(UEVec)
+    Logf("{X=%f, Y=%f, Z=%f}\n", UEVec.X, UEVec.Y, UEVec.Z)
+end
+
 ------------------------------------------------------------------------------
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
 local default_loadout = {
@@ -389,7 +397,7 @@ function InitMyMod()
         --
         -- TODO: handle resurrection after NPC possession: the loop must still reflect the current player!
         -- TODO: we should probably cache the PlayerController at time of loop creation to detect and restart stale loops?
-        -- 
+        --
         local myRestartCounter = globalRestartCount
         if ModUIHUDUpdateLoopEnabled then
             LoopAsync(250, function()
@@ -1151,6 +1159,78 @@ function PlayerJump()
 end
 
 ------------------------------------------------------------------------------
+local DASH_FORWARD = 0
+local DASH_BACK = 1
+local DASH_LEFT = 2
+local DASH_RIGHT = 4
+local lastDashTimestamp = -1
+local deltaDashCooldown = 1.0
+-- The dash moves the player horizontally in the selected direction
+function PlayerDash(direction)
+    local curDashTimestamp = os.clock()
+    local delta = curDashTimestamp - lastDashTimestamp
+    -- Logf("TS = %f, LJTS = %f, delta = %f\n", curJumpTimestamp, lastDashTimestamp, delta)
+    local player = GetActivePlayer()
+    local PlayerRotation = GetPlayerViewRotation()
+    local mesh = player['Mesh']
+
+    local angles = { [DASH_FORWARD] = 0.0, [DASH_BACK] = 2.0 * math.pi, [DASH_LEFT] = -math.pi, [DASH_RIGHT] = math.pi }
+    -- The liftoff angles for the dash compensate for the ground friction and legs grappling the ground, hopefully
+    local liftoffAnglesDeg = { [DASH_FORWARD] = 15.0, [DASH_BACK] = 15.0, [DASH_LEFT] = 30.0, [DASH_RIGHT] = 30.0 }
+    -- The dash forces have been tuned to provide a decent movement while not tripping the player (hopefully)
+    local dashForces = { [DASH_FORWARD] = 15000.0, [DASH_BACK] = 12000.0, [DASH_LEFT] = 40000.0, [DASH_RIGHT] = 40000.0 }
+
+    local direction_rotator = maf.rotation.fromAngleAxis(
+        angles[direction] / 2.0,
+        0.0,
+        0.0,
+        1.0
+    )
+
+    local viewRotator = maf.rotation.fromAngleAxis(
+        math.rad(PlayerRotation.Yaw),
+        0.0,
+        0.0,
+        1.0
+    )
+
+    local liftoffRotator = maf.rotation.fromAngleAxis(
+        -math.rad(liftoffAnglesDeg[direction]),
+        0.0,
+        1.0,
+        0.0
+    )
+
+    if player['Fallen'] then
+        -- TODO what if the player is laying down? Currently we do a small boost just in case
+        local dashImpulse = 1000.0 * GameSpeed
+        local dashImpulseVector = maf.vec3(dashImpulse, 0.0, 0.0)
+
+        dashImpulseVector:rotate(liftoffRotator)
+        dashImpulseVector:rotate(viewRotator)
+        dashImpulseVector:rotate(direction_rotator)
+        local dashVector = maf2vec(dashImpulseVector)
+
+        mesh:AddImpulse(dashVector, FName("None"), true)
+    else
+        -- Only dash if the last dash happened long enough ago
+        if delta >= deltaDashCooldown then
+            -- Update last successful dash timestamp
+            lastDashTimestamp = curDashTimestamp
+            local dashImpulse = dashForces[direction] * GameSpeed
+            local dashImpulseVector = maf.vec3(dashImpulse, 0.0, 0.0)
+
+            dashImpulseVector:rotate(liftoffRotator)
+            dashImpulseVector:rotate(viewRotator)
+            dashImpulseVector:rotate(direction_rotator)
+            local dashVector = maf2vec(dashImpulseVector)
+
+            mesh:AddImpulse(dashVector, FName("None"), true)
+        end
+    end
+end
+
+------------------------------------------------------------------------------
 local selectedProjectile = 1
 local DEFAULT_PROJECTILE = "/CURRENTLY_SELECTED.CURRENTLY_SELECTED_DEFAULT"
 local projectiles = {
@@ -1335,8 +1415,9 @@ function HUD_CacheProjectile()
         cache.ui_hud['HUD_Projectile_Value'] = projectileShortName
     end
 end
+
 ------------------------------------------------------------------------------
--- We check equality of non-static objects by their full names, 
+-- We check equality of non-static objects by their full names,
 -- which includes the unique numbered name of an instance of a class (something like My_Object_C_123456789)
 -- Horrible, but a bit better than using their address (UE4SS and Lua don't help there)
 function UEAreObjectsEqual(a, b)
@@ -1345,6 +1426,7 @@ function UEAreObjectsEqual(a, b)
     -- Logf("[%s] == [%s]?\n", aa, bb)
     return aa == bb
 end
+
 ------------------------------------------------------------------------------
 function IsPossessing()
     local player = cache.map['Player Willie']
@@ -1397,7 +1479,7 @@ function RepossessPlayer()
     --     NPC['Controller']:UnPossess()
     -- end)
     ResurrectionWasRequested = true
-    Logf("Possessing player Willie back: %s\n",cache.map['Player Willie']:GetFullName())
+    Logf("Possessing player Willie back: %s\n", cache.map['Player Willie']:GetFullName())
     myGetPlayerController():Possess(cache.map['Player Willie'])
     SetAllPlayerOneHUDVisibility(Visibility_VISIBLE)
 end
@@ -1761,11 +1843,11 @@ function AllKeybindHooks()
         end)
     end)
 
-    -- RegisterKeyBind(Key.J, function()
-    --     ExecuteInGameThread(function()
-    --         RemovePlayerArmor()
-    --     end)
-    -- end)
+    RegisterKeyBind(Key.J, function()
+        ExecuteInGameThread(function()
+            RemovePlayerArmor()
+        end)
+    end)
 
     -- Not sure why, but holding down SHIFT still triggers the other hooks, so let's not double things up
     -- RegisterKeyBind(Key.MIDDLE_MOUSE_BUTTON, { ModifierKey.SHIFT }, function()
@@ -1807,6 +1889,30 @@ function AllKeybindHooks()
 
     RegisterKeyBind(Key.HOME, { ModifierKey.CONTROL }, function()
         RepossessPlayer()
+    end)
+
+    RegisterKeyBind(Key.NUM_EIGHT, function()
+        ExecuteInGameThread(function()
+            PlayerDash(DASH_FORWARD)
+        end)
+    end)
+
+    RegisterKeyBind(Key.NUM_TWO, function()
+        ExecuteInGameThread(function()
+            PlayerDash(DASH_BACK)
+        end)
+    end)
+
+    RegisterKeyBind(Key.NUM_FOUR, function()
+        ExecuteInGameThread(function()
+            PlayerDash(DASH_LEFT)
+        end)
+    end)
+
+    RegisterKeyBind(Key.NUM_SIX, function()
+        ExecuteInGameThread(function()
+            PlayerDash(DASH_RIGHT)
+        end)
     end)
 
     Log("Keybinds registered\n")
