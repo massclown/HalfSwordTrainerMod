@@ -93,6 +93,7 @@ local custom_loadout = {}
 
 local NullRotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
 local NullLocation = { X = 0.0, Y = 0.0, Z = 0.0 }
+local DefaultScale1x = { X = 1.0, Y = 1.0, Z = 1.0 }
 ------------------------------------------------------------------------------
 function Log(Message)
     print("[HalfSwordTrainerMod] " .. Message)
@@ -193,20 +194,20 @@ end
 ------------------------------------------------------------------------------
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
 local default_loadout = {
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",                               { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Shoes_A.BP_Armor_Shoes_A_C",                                             { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Doublet_Arming.BP_Armor_Doublet_Arming_C",                               { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuisse_B.BP_Armor_Cuisse_B_C",                                           { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuirass_C.BP_Armor_Cuirass_C_C",                                         { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Vambrace_A.BP_Armor_Vambrace_A_C",                                       { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Bevor.BP_Armor_Bevor_C",                                                 { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Pauldron_A.BP_Armor_Pauldron_A_C",                                       { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Sallet_Solid_C_002.BP_Armor_Sallet_Solid_C_002_C",                       { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Gauntlets.BP_Armor_Gauntlets_C",                                         { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Pavise1.Pavise1_C",                                                           { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 { X = 1.0, Y = 1.0, Z = 1.0 } },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C", { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",                               DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Shoes_A.BP_Armor_Shoes_A_C",                                             DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Doublet_Arming.BP_Armor_Doublet_Arming_C",                               DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuisse_B.BP_Armor_Cuisse_B_C",                                           DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuirass_C.BP_Armor_Cuirass_C_C",                                         DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Vambrace_A.BP_Armor_Vambrace_A_C",                                       DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Bevor.BP_Armor_Bevor_C",                                                 DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Pauldron_A.BP_Armor_Pauldron_A_C",                                       DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Sallet_Solid_C_002.BP_Armor_Sallet_Solid_C_002_C",                       DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Gauntlets.BP_Armor_Gauntlets_C",                                         DefaultScale1x },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Pavise1.Pavise1_C",                                                           DefaultScale1x },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C", DefaultScale1x },
 }
 
 -- Read custom loadout from a text file containing class names
@@ -228,7 +229,7 @@ function LoadCustomLoadout()
                         table.insert(custom_loadout,
                             { class, { X = tonumber(scaleX), Y = tonumber(scaleY), Z = tonumber(scaleZ) } })
                     else
-                        table.insert(custom_loadout, { line, { X = 1.0, Y = 1.0, Z = 1.0 } })
+                        table.insert(custom_loadout, { line, DefaultScale1x })
                     end
                 end
             end
@@ -606,9 +607,9 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
     end
     local DefaultLocation = { X = 100.0, Y = 100.0, Z = 100.0 }
     local CurrentLocation = SpawnLocation == nil and DefaultLocation or SpawnLocation
-    local DefaultScaleMultiplier = { X = 1.0, Y = 1.0, Z = 1.0 }
+    local DefaultScaleMultiplier = DefaultScale1x
     local SpawnScaleMultiplier = SpawnScale == nil and DefaultScaleMultiplier or SpawnScale
-    local DefaultRotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
+    local DefaultRotation = NullRotation
     local CurrentRotation = SpawnRotation == nil and DefaultRotation or SpawnRotation
     local ActorClass = StaticFindObject(FullClassPath)
     if ActorClass == nil or not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
@@ -693,7 +694,7 @@ end
 function GetPlayerLocation()
     local FirstPlayerController = myGetPlayerController()
     if not FirstPlayerController then
-        return { X = 0.0, Y = 0.0, Z = 0.0 }
+        return NullLocation
     end
     local Pawn = FirstPlayerController.Pawn
     local location = Pawn:K2_GetActorLocation()
@@ -703,7 +704,7 @@ end
 function GetPlayerViewRotation()
     local FirstPlayerController = myGetPlayerController()
     if not FirstPlayerController then
-        return { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
+        return NullRotation
     end
     local rotation = FirstPlayerController['ControlRotation']
     return rotation
@@ -759,8 +760,8 @@ function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer, scale)
         Z = PlayerLocation.Z + rotatedDelta.z
     }
     local lookingAtPlayerRotation = { Yaw = 180.0 + PlayerRotation.Yaw, Pitch = 0.0, Roll = 0.0 }
-    local SpawnRotation = lookingAtPlayer and lookingAtPlayerRotation or { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
-    local SpawnScale = scale == nil and { X = 1.0, Y = 1.0, Z = 1.0 } or scale
+    local SpawnRotation = lookingAtPlayer and lookingAtPlayerRotation or NullRotation
+    local SpawnScale = scale == nil and DefaultScale1x or scale
     ExecuteInGameThread(function()
         _ = SpawnActorByClassPath(classpath, SpawnLocation, SpawnRotation, SpawnScale)
     end)
@@ -1859,11 +1860,11 @@ function AllKeybindHooks()
         end)
     end)
 
-    RegisterKeyBind(Key.J, function()
-        ExecuteInGameThread(function()
-            RemovePlayerArmor()
-        end)
-    end)
+    -- RegisterKeyBind(Key.J, function()
+    --     ExecuteInGameThread(function()
+    --         RemovePlayerArmor()
+    --     end)
+    -- end)
 
     -- Not sure why, but holding down SHIFT still triggers the other hooks, so let's not double things up
     -- RegisterKeyBind(Key.MIDDLE_MOUSE_BUTTON, { ModifierKey.SHIFT }, function()
