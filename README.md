@@ -229,6 +229,15 @@ Mods\HalfSwordTrainerMod\data\custom_loadout.txt
 It contains the list of Unreal Engine class names that will be loaded. Look around in the files in the `\data\` folder for examples. Note that these are full class names, not the shortened ones on-screen.
 A default loadout is also hardcoded in the mod itself, in case the custom loadout file gets deleted.
 
+You can also prefix the class names in custom loadout text file with the scaling factor, in round parentheses:
+```
+(5.0)/Game/Assets/Weapons/Blueprints/Built_Weapons/Buckler4.Buckler4_C
+(1.0,5.0,1.0)/Game/Assets/Weapons/Blueprints/Built_Weapons/Buckler4.Buckler4_C
+
+```
+A single number in parentheses means equal scaling in all directions, three numbers is independent scaling in X,Y,Z order.
+The scale is optional, default scale is 1.0 == no scale.
+
 ## Despawning things
 
 Use `F5` or the on-screen button to undo the last spawned thing. It can be used repeatedly to undo many things.

@@ -90,6 +90,9 @@ local all_characters = {}
 local all_objects = {}
 
 local custom_loadout = {}
+
+local NullRotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
+local NullLocation = { X = 0.0, Y = 0.0, Z = 0.0 }
 ------------------------------------------------------------------------------
 function Log(Message)
     print("[HalfSwordTrainerMod] " .. Message)
@@ -190,20 +193,20 @@ end
 ------------------------------------------------------------------------------
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
 local default_loadout = {
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Shoes_A.BP_Armor_Shoes_A_C",
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Doublet_Arming.BP_Armor_Doublet_Arming_C",
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuisse_B.BP_Armor_Cuisse_B_C",
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuirass_C.BP_Armor_Cuirass_C_C",
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Vambrace_A.BP_Armor_Vambrace_A_C",
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Bevor.BP_Armor_Bevor_C",
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Pauldron_A.BP_Armor_Pauldron_A_C",
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Sallet_Solid_C_002.BP_Armor_Sallet_Solid_C_002_C",
-    "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Gauntlets.BP_Armor_Gauntlets_C",
-    "/Game/Assets/Weapons/Blueprints/Built_Weapons/Pavise1.Pavise1_C",
-    "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",
-    "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",
-    "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C"
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",                               { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Shoes_A.BP_Armor_Shoes_A_C",                                             { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Doublet_Arming.BP_Armor_Doublet_Arming_C",                               { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuisse_B.BP_Armor_Cuisse_B_C",                                           { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuirass_C.BP_Armor_Cuirass_C_C",                                         { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Vambrace_A.BP_Armor_Vambrace_A_C",                                       { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Bevor.BP_Armor_Bevor_C",                                                 { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Pauldron_A.BP_Armor_Pauldron_A_C",                                       { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Sallet_Solid_C_002.BP_Armor_Sallet_Solid_C_002_C",                       { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Gauntlets.BP_Armor_Gauntlets_C",                                         { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Pavise1.Pavise1_C",                                                           { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 { X = 1.0, Y = 1.0, Z = 1.0 } },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C", { X = 1.0, Y = 1.0, Z = 1.0 } },
 }
 
 -- Read custom loadout from a text file containing class names
@@ -214,7 +217,20 @@ function LoadCustomLoadout()
         Logf("Loading custom loadout...\n")
         for line in file:lines() do
             if not line:starts_with('[BAD]') then
-                table.insert(custom_loadout, line)
+                local _, _, scale, class = string.find(line, "%(([%d%.]+)%)([/%w_%.]+)$")
+                if scale and class then
+                    local mult = tonumber(scale)
+                    table.insert(custom_loadout, { class, { X = mult, Y = mult, Z = mult } })
+                else
+                    local _, _, scaleX, scaleY, scaleZ, class = string.find(line,
+                        "%(%s*([%d%.]+),%s*([%d%.]+),%s*([%d%.]+)%s*%)([/%w_%.]+)$")
+                    if scaleX and scaleY and scaleZ and class then
+                        table.insert(custom_loadout,
+                            { class, { X = tonumber(scaleX), Y = tonumber(scaleY), Z = tonumber(scaleZ) } })
+                    else
+                        table.insert(custom_loadout, { line, { X = 1.0, Y = 1.0, Z = 1.0 } })
+                    end
+                end
             end
         end
         Logf("Custom loadout loaded, %d items\n", #custom_loadout)
@@ -707,6 +723,7 @@ function SpawnLoadoutAroundPlayer()
     end
     local rotator = maf.rotation.fromAngleAxis(((math.pi * 2) / #loadout), 0.0, 0.0, 1.0)
     for index, value in ipairs(loadout) do
+        local class, scale = table.unpack(value)
         local SpawnLocation = {
             X = PlayerLocation.X + rotatedDelta.x,
             Y = PlayerLocation.Y + rotatedDelta.y,
@@ -714,7 +731,7 @@ function SpawnLoadoutAroundPlayer()
         }
         ExecuteWithDelay((index - 1) * 300, function()
             ExecuteInGameThread(function()
-                _ = SpawnActorByClassPath(value, SpawnLocation)
+                _ = SpawnActorByClassPath(class, SpawnLocation, NullRotation, scale)
             end)
         end)
         rotatedDelta:rotate(rotator)
