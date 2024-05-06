@@ -1,8 +1,8 @@
--- Half Sword Trainer Mod v0.8 by massclown
+-- Half Sword Trainer Mod v0.9 by massclown
 -- https://github.com/massclown/HalfSwordTrainerMod
 -- Requirements: UE4SS 2.5.2 (or newer) and a Blueprint mod HSTM_UI (see repo)
 ------------------------------------------------------------------------------
-local mod_version = "0.8"
+local mod_version = "0.9"
 ------------------------------------------------------------------------------
 local maf = require 'maf'
 local UEHelpers = require("UEHelpers")
@@ -24,13 +24,17 @@ local DefaultSloMoGameSpeed = 0.5
 local SloMoGameSpeed = DefaultSloMoGameSpeed
 ------------------------------------------------------------------------------
 -- Variables tracking things we change or want to observe and display in HUD
-local AutoSpawnEnabled = true -- this is the default, UI is 'HSTM_Flag_AutospawnNPCs'
-local SpawnFrozenNPCs = false -- we can change it, UI flag is 'HSTM_Flag_SpawnFrozenNPCs'
+local AutoSpawnEnabled = true          -- this is the default, UI is 'HSTM_Flag_AutospawnNPCs'
+local AutoSpawnChangeRequested = false -- this handles the restoring of scores and levels when resuming NPC autospawn and level progression
+local SpawnFrozenNPCs = false          -- we can change it, UI flag is 'HSTM_Flag_SpawnFrozenNPCs'
 
 local SlowMotionEnabled = false
 local Frozen = false
 local SuperStrength = false
 -- Those are copies of player's (or level's) object properties
+local OGWillie = nil
+local OGlevel = 0
+local OGscore = 0
 local GameSpeed = 1.0
 local Invulnerable = false
 local level = 0
@@ -396,7 +400,11 @@ function InitMyMod()
         SlowMotionEnabled = false
         SuperStrength = false
 
+        -- cache the original Willie so that we can go back to it when repossessing
+        OGWillie = cache.map['Player Willie']
+
         -- Attempt to intercept auto-spawned enemies and do something about that
+        -- Don't use that, the below method works OK
         -- Somehow if we hook this, it makes the game spawn MORE enemies (faster)
         -- Needs further investigation
         --
@@ -416,6 +424,42 @@ function InitMyMod()
         -- TODO: we should probably cache the PlayerController at time of loop creation to detect and restart stale loops?
         --
         local myRestartCounter = globalRestartCount
+
+        -- This loop attempts to take care of NPC autospawn in a "better" way
+        -- This is still horrible but appears to work and prevent boss fights from spawning
+        -- BUG when you turn autospawn back on after disabling it, a boss fight will spawn for some reason
+        LoopAsync(1000, function()
+            if myRestartCounter ~= globalRestartCount then
+                -- This is a loop initiated from a past restart hook, exit it
+                Logf("Exiting NPC Autospawn prevention update loop leftover from restart #%d\n", myRestartCounter)
+                return true
+            end
+            if AutoSpawnEnabled ~= cache.ui_spawn['HSTM_Flag_AutospawnNPCs'] then
+                AutoSpawnChangeRequested = true
+            end
+            AutoSpawnEnabled = cache.ui_spawn['HSTM_Flag_AutospawnNPCs']
+            if AutoSpawnEnabled == true then
+                if AutoSpawnChangeRequested then
+                    ExecuteInGameThread(function()
+                        cache.map['Score'] = OGscore
+                        cache.map['Level'] = OGlevel
+                        cache.map['Easy Spawn'] = true
+                    end)
+                    AutoSpawnChangeRequested = false
+                else
+                    OGlevel = cache.map['Level']
+                    OGscore = cache.map['Score']
+                end
+            else
+                cache.map['Level'] = -1
+                cache.map['Score'] = 9999
+                level = -1
+                cache.map['Easy Spawn'] = false
+                AutoSpawnChangeRequested = false
+            end
+            return false
+        end)
+
         if ModUIHUDUpdateLoopEnabled then
             LoopAsync(250, function()
                 if myRestartCounter ~= globalRestartCount then
@@ -1484,9 +1528,14 @@ function PossessNearestNPC()
         ResurrectionWasRequested = true
         Logf("Possessing NPC: %s\n", pawnToPossess:GetFullName())
         myGetPlayerController():Possess(pawnToPossess)
+        -- TODO fix the player X and Y and map's link to the player character
+        -- currently we use the stored one to be able to repossess it, but game progression is broken if you keep the new character
+        -- we should probably fix it
+        cache.map['Player Willie'] = pawnToPossess
     else
         ErrLogf("Could not find the closest NPC\n")
     end
+    -- Not sure why we are doing this
     SetAllPlayerOneHUDVisibility(Visibility_HIDDEN)
 end
 
@@ -1496,9 +1545,14 @@ function RepossessPlayer()
     --     NPC['Controller']:UnPossess()
     -- end)
     ResurrectionWasRequested = true
-    Logf("Possessing player Willie back: %s\n", cache.map['Player Willie']:GetFullName())
-    myGetPlayerController():Possess(cache.map['Player Willie'])
-    SetAllPlayerOneHUDVisibility(Visibility_VISIBLE)
+    if OGWillie ~= nil and OGWillie:IsValid() then
+        Logf("Possessing player Willie back: %s\n", OGWillie:GetFullName())
+        myGetPlayerController():Possess(OGWillie)
+        cache.map['Player Willie'] = OGWillie
+        SetAllPlayerOneHUDVisibility(Visibility_VISIBLE)
+    else
+        Logf("[ERROR]: Cannot repossess the original Willie, aborting.\n")
+    end
 end
 
 ------------------------------------------------------------------------------
