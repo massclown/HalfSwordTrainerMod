@@ -2006,8 +2006,12 @@ function SanityCheckAndInit()
         if bpml_file then
             local file_size = bpml_file:seek("end")
             --            Logf("BMPL size: %d\n", file_size)
-            -- Yes, this is horrible
-            if file_size ~= 7819 then
+            -- Yes, this is horrible.
+            -- The file contains 203 lines
+            -- 7819 is the size of that file with CRLF (Windows style) endings and 
+            -- 7616 is the size of that file with LF (unix style) endings (7616 + 203 = 7819)
+            -- If you download the master branch from github you get the LF, otherwise CRLF.
+            if file_size ~= 7819 and file_size~= 7616 then
                 error("You are using UE4SS 3.x.x, please copy Mods\\BPModLoaderMod\\Scripts\\main.lua from UE4SS 2.5.2!")
             end
         else
