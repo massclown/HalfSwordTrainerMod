@@ -1665,6 +1665,42 @@ function SetAllPlayerOneHUDVisibility(NewVisibility)
 end
 
 ------------------------------------------------------------------------------
+local freeCameraMode = false
+-- set freezePlayerFreeCamera to false if you need the player to move with free camera (e.g. to keep fighting)
+local freezePlayerFreeCamera = true
+-- This attempts to reuse the built-in photo mode's "free camera" and gives control to the player in game
+-- The player will be frozen or not, depending on freezePlayerFreeCamera
+function ToggleFreeCamera()
+    local UI_PhotoMode_C = FindFirstOf("UI_PhotoMode_C")
+    local controller = myGetPlayerController()
+    local player = GetActivePlayer()
+    if UI_PhotoMode_C ~= nil then
+        if freeCameraMode == false then
+            -- enable Free Camera
+            UI_PhotoMode_C:ChangeFreeCameraFOV(100)
+            UI_PhotoMode_C:OpenFreeCamera()
+            freeCameraMode = true
+            -- prevent the player character from moving
+            if freezePlayerFreeCamera then
+                player:DisableInput(controller)
+            end
+            -- hide the on-screen pain/blood UI
+            SetAllPlayerOneHUDVisibility(Visibility_HIDDEN)
+        else
+            -- disable Free Camera
+            UI_PhotoMode_C:CloseFreeCamera()
+            freeCameraMode = false
+            -- re-enable the player character movement
+            if freezePlayerFreeCamera then
+                player:EnableInput(controller)
+            end
+            -- restore the on-screen pain/blood UI
+            SetAllPlayerOneHUDVisibility(Visibility_VISIBLE)
+        end
+    end
+end
+
+------------------------------------------------------------------------------
 function AllHooks()
     CriticalHooks()
     AllCustomEventHooks()
@@ -1986,6 +2022,12 @@ function AllKeybindHooks()
         end)
     end)
 
+    RegisterKeyBind(Key.MULTIPLY, function()
+        ExecuteInGameThread(function()
+            ToggleFreeCamera()
+        end)
+    end)
+
     Log("Keybinds registered\n")
 end
 
@@ -2008,10 +2050,10 @@ function SanityCheckAndInit()
             --            Logf("BMPL size: %d\n", file_size)
             -- Yes, this is horrible.
             -- The file contains 203 lines
-            -- 7819 is the size of that file with CRLF (Windows style) endings and 
+            -- 7819 is the size of that file with CRLF (Windows style) endings and
             -- 7616 is the size of that file with LF (unix style) endings (7616 + 203 = 7819)
             -- If you download the master branch from github you get the LF, otherwise CRLF.
-            if file_size ~= 7819 and file_size~= 7616 then
+            if file_size ~= 7819 and file_size ~= 7616 then
                 error("You are using UE4SS 3.x.x, please copy Mods\\BPModLoaderMod\\Scripts\\main.lua from UE4SS 2.5.2!")
             end
         else
