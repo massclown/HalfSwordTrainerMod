@@ -1926,7 +1926,7 @@ function AllKeybindHooks()
         end)
     end)
 
-    RegisterKeyBind(Key.H, function()
+    RegisterKeyBind(Key.OEM_PERIOD, function()
         ExecuteInGameThread(function()
             ToggleCrosshair()
         end)

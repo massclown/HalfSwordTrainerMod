@@ -154,7 +154,7 @@ Delete the files that you copied as described above, or just reinstall the entir
 | `U`                | Show/hide the UI (HUD) of the mod |
 | `Alt + U`          | Skip the death screen (only when dead) |
 | `Ctrl + J`         | Try to resurrect the player (only when dead) |
-| `H`                | Show/hide the crosshair |
+| `.`                | Show/hide the crosshair |
 | `I`                | Toggle Invulnerability on/off |
 | `T`                | Toggle Super Strength on/off |
 | `L`                | Spawn a loadout around the player |
@@ -178,6 +178,8 @@ Delete the files that you copied as described above, or just reinstall the entir
 | `Shift + Tab`      | Change projectile to the previous one |
 | `Ctrl + End`       | Possess the NPC closest to player |
 | `Ctrl + Home`      | Possess the original player character |
+| NumPad 4/6/8/2     | Dash Left/Right/Forward/Backward |
+| `*` on NumPad      | Pause/Unpause the game. Use that in Photo Mode to have free cam in battle |
 
 
 # How does the mod look on screen
@@ -319,6 +321,11 @@ You can take control of other NPCs by "possessing" them
 Press `Ctrl + End` to possess the closest NPC to the currently possessed one, and `Ctrl + Home` to jump back to the original player.
 
 > **NOTE:** Sometimes the NPC you possess may be bugged. 
+
+## Pause/unpause the game to get free camera
+Enter Photo Mode (press `C`), then enter free camera (press `F`), then press `*` on NumPad to unpause the game.
+
+This allows you to use filters, etc. of the photo mode with the free camera while the battle is ongoing.
 
 ## Other good things
 
