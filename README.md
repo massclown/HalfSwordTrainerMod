@@ -180,6 +180,8 @@ Delete the files that you copied as described above, or just reinstall the entir
 | `Ctrl + Home`      | Possess the original player character |
 | NumPad 4/6/8/2     | Dash Left/Right/Forward/Backward |
 | `*` on NumPad      | Pause/Unpause the game. Use that in Photo Mode to have free cam in battle |
+| `+` on NumPad      | Switch player team to the next one |
+| `-` on NumPad      | Switch player team to the previous one |
 
 
 # How does the mod look on screen
@@ -208,6 +210,19 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 
 > Note that the game itself (not the mod!) makes your player invulnerable for a first few seconds during spawn (maybe to avoid dying due to physics of the game?), and then removes invulnerability.
 
+## Changing teams
+
+Press `+` or `-` on NumPad to cycle the player between available teams (0, 1, 2).
+
+You can select any team for the player or for NPCs you spawn.
+
+* By default, the player is in **Team 0**. 
+* **Team 0** is **"deathmatch"**: every NPC in Team 0 will be hostile towards each other and the player, even if the player is in Team 0. The player is in Team 0 by default.
+* **Team 1** does not seem to be used by the game currently (but we can use it for the player and NPC we spawn). Team 1 does not attack Team 1.
+* **Team 2** is all the **auto-spawned NPCs and bosses**. Move your player to this team if you don't want to be attacked by what the game auto-spawns against you. Team 2 does not attack Team 2.
+
+The above can also be summarized as the following: the game treats everybody in Team 0 as "deathmatch", and Team 1 vs Team 2 is classic "team deathmatch".
+
 ## Spawning things
 
 * You can either spawn a complete "chef's choice" loadout around yourself (press `L`),
@@ -217,6 +232,8 @@ The mod also adds a few keyboard shortcuts to trigger its functions.
 Use the buttons on screen to spawn items while the game is paused, or use `F1` - `F4` to spawn the selected things in each category (armor, weapons, NPCs, objects) when the game is running.
 
 Player's viewpoint direction is used to place the spawned object in the world. NPCs are placed a bit further than items.
+
+When spawning NPCs, you can select which team to spawn them in. By default, the NPCs spawned from the mod are in Team 0 (deathmatch, everybody hostile to everybody including the player)
 
 The on-screen spawn menu also has a custom weapon size slider. With the checkboxes X/Y/Z, select which coordinate axes you want to apply the scale to. Z is the top-bottom axis, X is the left-right and Y is the front-back. Scaling proportionately gives best results for comedic effect, but sometimes weapons become too thick to grab for the player.
 

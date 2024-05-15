@@ -39,6 +39,7 @@ local GameSpeed = 1.0
 local Invulnerable = false
 local level = 0
 local PlayerScore = 0
+local PlayerTeam = 0
 local PlayerHealth = 0
 local PlayerConsciousness = 0
 local PlayerTonus = 0
@@ -72,6 +73,9 @@ local FRJH = 0 -- "Foot R Joint Health"
 local TLJH = 0 -- "Thigh L Joint Health"
 local LLJH = 0 -- "Leg L Joint Health"
 local FLJH = 0 -- "Foot L Joint Health"
+
+-- Chosen NPC team from the UI dropdown
+local NPCTeam = 0
 
 -- Various UI-related stuff
 local ModUIHUDVisible = true
@@ -386,6 +390,7 @@ function InitMyMod()
         PopulateArmorComboBox()
         PopulateWeaponComboBox()
         PopulateNPCComboBox()
+        PopulateNPCTeamComboBox()
         PopulateObjectComboBox()
 
         -- if intercepted_actors then
@@ -497,8 +502,10 @@ end
 function HUD_UpdatePlayerStats()
     -- TODO handle possession
     local player                            = GetActivePlayer()
+    PlayerTeam                              = player['Team Int']
     PlayerHealth                            = player['Health']
     Invulnerable                            = player['Invulnerable']
+    cache.ui_hud['HUD_Player_Team_Value']   = PlayerTeam
     cache.ui_hud['HUD_HP_Value']            = PlayerHealth
     cache.ui_hud['HUD_Invuln_Value']        = Invulnerable
     cache.ui_hud['HUD_SuperStrength_Value'] = SuperStrength
@@ -675,6 +682,8 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
             if SpawnFrozenNPCs then
                 Actor['CustomTimeDilation'] = 0.0
             end
+            -- Try to apply the chosen NPC Team
+            Actor['Team Int'] = NPCTeam
         else
             -- We don't really care if this is a weapon, but we try anyway
             -- Some actors already have non-default scale, so we don't override that
@@ -844,6 +853,41 @@ function IncreaseLevel()
 end
 
 ------------------------------------------------------------------------------
+function HUD_SetPlayerTeam(Team)
+    local player = GetActivePlayer()
+    player['Team Int'] = Team
+    Logf("Set Player Team = %d\n", Team)
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_Player_Team_Value'] = Team
+    end
+end
+
+function HUD_CachePlayerTeam()
+    local player = GetActivePlayer()
+    local Team = player['Team Int']
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_Player_Team_Value'] = Team
+    end
+end
+
+function ChangePlayerTeamDown()
+    HUD_CachePlayerTeam()
+    if PlayerTeam > 0 then
+        PlayerTeam = PlayerTeam - 1
+        HUD_SetPlayerTeam(PlayerTeam)
+    end
+end
+
+function ChangePlayerTeamUp()
+    HUD_CachePlayerTeam()
+    if PlayerTeam < 2 then
+        PlayerTeam = PlayerTeam + 1
+        HUD_SetPlayerTeam(PlayerTeam)
+    end
+end
+
+
+------------------------------------------------------------------------------
 -- Killing is actually despawning for now
 -- That is OK as the weapons get dropped on the ground
 function KillAllNPCs()
@@ -1003,6 +1047,7 @@ end
 function SpawnSelectedNPC()
     -- Update the flag from the Spawn HUD
     SpawnFrozenNPCs = cache.ui_spawn['HSTM_Flag_SpawnFrozenNPCs']
+    NPCTeam = tonumber(cache.ui_spawn['Selected_Spawn_NPC_Team']:ToString())
     local Selected_Spawn_NPC = cache.ui_spawn['Selected_Spawn_NPC']:ToString()
     --Logf("Spawning NPC key [%s]\n", Selected_Spawn_NPC)
     --    if not Selected_Spawn_NPC == nil and not Selected_Spawn_NPC == "" then
@@ -1079,6 +1124,17 @@ function PopulateNPCComboBox()
     end
     ComboBox_NPC:SetSelectedIndex(0)
 end
+
+function PopulateNPCTeamComboBox()
+    local ComboBox_NPC_Team = cache.ui_spawn['ComboBox_NPC_Team']
+    ComboBox_NPC_Team:ClearOptions()
+
+    for TeamIndex = 0,2 do
+        ComboBox_NPC_Team:AddOption(tostring(TeamIndex))
+    end
+    ComboBox_NPC_Team:SetSelectedIndex(0)
+end
+
 
 function PopulateObjectComboBox()
     local ComboBox_Object = cache.ui_spawn['ComboBox_Object']
@@ -2052,6 +2108,18 @@ function AllKeybindHooks()
         ExecuteInGameThread(function()
             ToggleGamePaused()
             --ToggleFreeCamera()
+        end)
+    end)
+
+    RegisterKeyBind(Key.ADD, function()
+        ExecuteInGameThread(function()
+            ChangePlayerTeamUp()
+        end)
+    end)
+
+    RegisterKeyBind(Key.SUBTRACT, function()
+        ExecuteInGameThread(function()
+            ChangePlayerTeamDown()
         end)
     end)
 
