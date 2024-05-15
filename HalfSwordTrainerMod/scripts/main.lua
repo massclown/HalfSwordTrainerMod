@@ -1665,18 +1665,32 @@ function SetAllPlayerOneHUDVisibility(NewVisibility)
 end
 
 ------------------------------------------------------------------------------
+-- This is intended to be used mostly to get free camera from PhotoMode
+-- But can be used to unpause from death screen as well
+-- The function is trying to be smart and hide the HUD with blood when in free camera mode, and bring it back when you exit it from PhotoMode.
+-- Note that if you just exit the photomode with ESC, the HUD will probably stay disabled.
 function ToggleGamePaused()
+    local UI_PhotoMode_C = FindFirstOf("UI_PhotoMode_C")
     if GetGameplayStatics():IsGamePaused(GetWorldContextObject()) then
+        if UI_PhotoMode_C ~= nil and UI_PhotoMode_C:IsValid() and UI_PhotoMode_C['bUsingFreeCamera'] == true then
+            -- Let the camera fly further away, default is 1000
+            UI_PhotoMode_C['FreeCameraActor']['MaximumDistance'] = 5000
+            SetAllPlayerOneHUDVisibility(Visibility_HIDDEN)
+        end
         GetGameplayStatics():SetGamePaused(GetWorldContextObject(), false)
         Logf("Unpausing game\n")
     else
+        if UI_PhotoMode_C ~= nil and UI_PhotoMode_C:IsValid() and UI_PhotoMode_C['bUsingFreeCamera'] == true then
+            SetAllPlayerOneHUDVisibility(Visibility_VISIBLE)
+        end
         GetGameplayStatics():SetGamePaused(GetWorldContextObject(), true)
         Logf("Pausing game\n")
     end
 end
+
 ------------------------------------------------------------------------------
--- The code below is commented as a better free camera implementation can be enabled straight from PhotoMode by unpausing the game
--- 
+-- The code below is commented as a better free camera implementation above can be enabled straight from PhotoMode by unpausing the game
+--
 -- local freeCameraMode = false
 -- -- set freezePlayerFreeCamera to false if you need the player to move with free camera (e.g. to keep fighting)
 -- local freezePlayerFreeCamera = true
