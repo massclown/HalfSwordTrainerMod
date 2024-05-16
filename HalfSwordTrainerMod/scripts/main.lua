@@ -1350,6 +1350,8 @@ end
 ------------------------------------------------------------------------------
 local selectedProjectile = 1
 local DEFAULT_PROJECTILE = "/CURRENTLY_SELECTED.CURRENTLY_SELECTED_DEFAULT"
+local DEFAULT_NPC_PROJECTILE = "/CURRENTLY_SELECTED_NPC.CURRENTLY_SELECTED_NPC_DEFAULT"
+
 local projectiles = {
     { DEFAULT_PROJECTILE,                                                                                            { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_Spear.ModularWeaponBP_Spear_C",                 { X = 0.5, Y = 0.5, Z = 0.5 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
@@ -1362,8 +1364,9 @@ local projectiles = {
     { "/Game/Assets/Destructible/Dest_Barrel_1_BP.Dest_Barrel_1_BP_C",                                               { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 },
     { "/Game/Assets/Props/Furniture/Meshes/BM_Prop_Furniture_Small_Bench_001.BM_Prop_Furniture_Small_Bench_001_C",   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 },
     { "/Game/Assets/Props/Furniture/Meshes/BP_Prop_Furniture_Small_Table_001.BP_Prop_Furniture_Small_Table_001_C",   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 },
-    { "/Game/Character/Blueprints/Willie_BP.Willie_BP_C",                                                            { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   500 },
-    { "/Game/Character/Blueprints/Willie_Torso_BP.Willie_Torso_BP_C",                                                { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   500 },
+    { DEFAULT_NPC_PROJECTILE,                                                                                        { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   500 },
+    --    { "/Game/Character/Blueprints/Willie_BP.Willie_BP_C",                                                            { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   500 },
+    --    { "/Game/Character/Blueprints/Willie_Torso_BP.Willie_Torso_BP_C",                                                { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   500 },
     --    ,{ "/Game/Assets/Props/Barrels/Meshes/BP_Prop_Barrel_002.BP_Prop_Barrel_002_C",                                   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 }
 }
 
@@ -1425,6 +1428,12 @@ function ShootProjectile()
             -- Just to be safer against longer weapons
             offset.X = offset.X + 10
         end
+        class = selected_actor
+    elseif class == DEFAULT_NPC_PROJECTILE then
+        SpawnFrozenNPCs = cache.ui_spawn['HSTM_Flag_SpawnFrozenNPCs']
+        NPCTeam = tonumber(cache.ui_spawn['Selected_Spawn_NPC_Team']:ToString())
+        local Selected_Spawn_NPC = cache.ui_spawn['Selected_Spawn_NPC']:ToString()
+        local selected_actor = all_characters[Selected_Spawn_NPC]
         class = selected_actor
     end
 
@@ -1521,12 +1530,17 @@ function HUD_CacheProjectile()
     local class, _, _, _ = table.unpack(projectiles[selectedProjectile])
     local classname = class
     if class == DEFAULT_PROJECTILE then
-        selectedWeapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
+        local selectedWeapon = cache.ui_spawn['Selected_Spawn_Weapon']:ToString()
         classname = all_weapons[selectedWeapon]
+    elseif class == DEFAULT_NPC_PROJECTILE then
+        local Selected_Spawn_NPC = cache.ui_spawn['Selected_Spawn_NPC']:ToString()
+        classname = all_characters[Selected_Spawn_NPC]
     end
     local projectileShortName = ExtractHumanReadableNameShorter(classname)
     if class == DEFAULT_PROJECTILE then
-        projectileShortName = projectileShortName .. " (menu)"
+        projectileShortName = projectileShortName .. " (Weapon menu)"
+    elseif class == DEFAULT_NPC_PROJECTILE then
+        projectileShortName = projectileShortName .. " (NPC menu)"
     end
     if ModUIHUDVisible then
         cache.ui_hud['HUD_Projectile_Value'] = projectileShortName
