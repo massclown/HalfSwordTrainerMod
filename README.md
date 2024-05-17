@@ -291,7 +291,7 @@ Jump does not work well when changing the game speed.
 
 ## Shooting projectiles
 
-This is not a true throwing of objects, but more like shooting them for maximum damage.
+This is not a "true" throwing of objects, but more like shooting or launching them for maximum damage.
 
 Use mouse wheel (click) to shoot a projectile, and `Tab` to change to next projectile type, `Shift + Tab` for the previous projectile type.
 
@@ -310,8 +310,13 @@ The projectiles are currently hardcoded in the mod to account for scaling, launc
 * breakable barrel
 * bench
 * table
-* live NPC
-* NPC body
+* Your currently selected NPC from the Spawn menu (including current NPC team!)
+
+> **WARNING!** Launching NPCs may lead to a crash soon.
+
+> **WARNING!** Launching large objects like full-size scythes, spears, greatswords, polearms, etc. can damage the player!
+
+> **WARNING!** Beware of ricochets!
 
 ## Skip the death screen
 
@@ -340,9 +345,12 @@ Press `Ctrl + End` to possess the closest NPC to the currently possessed one, an
 > **NOTE:** Sometimes the NPC you possess may be bugged. 
 
 ## Pause/unpause the game to get free camera
+
 Enter Photo Mode (press `C`), then enter free camera (press `F`), then press `*` on NumPad to unpause the game.
 
-This allows you to use filters, etc. of the photo mode with the free camera while the battle is ongoing.
+This allows you to use all filters and effects of the photo mode with the free camera while the battle is ongoing.
+
+Together with player and NPC team selection and freezing NPCs on spawn or with a button (`Z`), you can set up team battles in advance.
 
 ## Other good things
 

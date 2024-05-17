@@ -886,18 +886,24 @@ function ChangePlayerTeamUp()
     end
 end
 
-
 ------------------------------------------------------------------------------
--- Killing is actually despawning for now
--- That is OK as the weapons get dropped on the ground
+-- Killing is actually exploding head and spilling guts
+-- That is resource intensive and may lead to crashes sometimes
+-- Alternative killing method below
+local silentKill = false
 function KillAllNPCs()
     local player = GetActivePlayer()
     ExecuteForAllNPCs(function(NPC)
         if UEAreObjectsEqual(player, NPC) then
             -- this is a possessed NPC, don't
         else
-            NPC['Explode Head']()
-            NPC['Spill Guts']()
+            if silentKill then
+                NPC['Health'] = -1.0
+                NPC['Death']()
+            else
+                NPC['Explode Head']()
+                NPC['Spill Guts']()
+            end
         end
     end)
 end
@@ -1129,12 +1135,11 @@ function PopulateNPCTeamComboBox()
     local ComboBox_NPC_Team = cache.ui_spawn['ComboBox_NPC_Team']
     ComboBox_NPC_Team:ClearOptions()
 
-    for TeamIndex = 0,2 do
+    for TeamIndex = 0, 2 do
         ComboBox_NPC_Team:AddOption(tostring(TeamIndex))
     end
     ComboBox_NPC_Team:SetSelectedIndex(0)
 end
-
 
 function PopulateObjectComboBox()
     local ComboBox_Object = cache.ui_spawn['ComboBox_Object']
@@ -1198,6 +1203,21 @@ function ToggleCrosshair()
 end
 
 ------------------------------------------------------------------------------
+function ToggleClassicSlowMotion()
+    local worldsettings = cache.worldsettings
+    local player = GetActivePlayer()
+    player['Slomo Timeline']['SetTimelineLength'](1.0)
+    SlowMotionEnabled = not SlowMotionEnabled
+    if SlowMotionEnabled then
+        player['Slomo Timeline']['PlayFromStart']()
+    else
+        player['Slomo Timeline']['ReverseFromEnd']()
+    end
+    if ModUIHUDVisible then
+        cache.ui_hud['HUD_SlowMotion_Value'] = SlowMotionEnabled
+    end
+end
+
 function ToggleSlowMotion()
     local worldsettings = cache.worldsettings
     SlowMotionEnabled = not SlowMotionEnabled
