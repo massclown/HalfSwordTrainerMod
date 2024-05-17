@@ -186,7 +186,7 @@ Delete the files that you copied as described above, or just reinstall the entir
 
 # How does the mod look on screen
 
-![Alt text](images/hud_v0.7_2K.jpg?raw=true "Screenshot of mod UI v0.7")
+![Alt text](images/hud_v0.9_2K.jpg?raw=true "Screenshot of mod UI v0.9")
 
 # How to use the mod
 
