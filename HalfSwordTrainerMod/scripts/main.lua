@@ -8,6 +8,8 @@ local maf = require 'maf'
 local UEHelpers = require("UEHelpers")
 local GetGameplayStatics = UEHelpers.GetGameplayStatics
 local GetWorldContextObject = UEHelpers.GetWorldContextObject
+local GetKismetSystemLibrary = UEHelpers.GetKismetSystemLibrary
+local GetKismetMathLibrary = UEHelpers.GetKismetMathLibrary
 ------------------------------------------------------------------------------
 -- Saved copies of player stats before buffs
 local savedRSR = 0
@@ -129,6 +131,15 @@ end
 
 function string:ends_with(ending)
     return ending == "" or self:sub(- #ending) == ending
+end
+
+------------------------------------------------------------------------------
+function table.shallow_copy(t)
+    local t2 = {}
+    for k, v in pairs(t) do
+        t2[k] = v
+    end
+    return t2
 end
 
 ------------------------------------------------------------------------------
@@ -404,9 +415,6 @@ function InitMyMod()
         Frozen = false
         SlowMotionEnabled = false
         SuperStrength = false
-
-        -- cache the original Willie so that we can go back to it when repossessing
-        OGWillie = cache.map['Player Willie']
 
         -- Attempt to intercept auto-spawned enemies and do something about that
         -- Don't use that, the below method works OK
@@ -1593,6 +1601,13 @@ end
 function PossessNearestNPC()
     local currentLocation = GetPlayerLocation()
     local currentPawn = GetActivePlayer()
+
+    if OGWillie == nil then
+        -- cache the original Willie so that we can go back to it when repossessing
+        OGWillie = cache.map['Player Willie']
+        Logf("OGWillie: %s\n", OGWillie:GetFullName())
+    end
+
     local AllNPCs = {}
     ExecuteForAllNPCs(function(NPC)
         -- Don't try to re-possess the current, already possessed NPC
@@ -1815,6 +1830,82 @@ end
 --         end
 --     end
 -- end
+------------------------------------------------------------------------------
+-- The code below is based on UE4SS LineTraceMod
+-- It uses UKismetSystemLibrary::LineTraceSingle() to find the actor under cursor (center of screen)
+-- No actual line is ever drawn on screen as the game is in a shipping build, not debug one
+function TraceObjectFromPlayerCamera()
+    local PlayerController = myGetPlayerController()
+    local PlayerPawn = PlayerController.Pawn
+    local CameraManager = PlayerController.PlayerCameraManager
+    local StartVector = CameraManager:GetCameraLocation()
+    local AddValue = GetKismetMathLibrary():Multiply_VectorInt(
+        GetKismetMathLibrary():GetForwardVector(CameraManager:GetCameraRotation()), 50000.0)
+    local EndVector = GetKismetMathLibrary():Add_VectorVector(StartVector, AddValue)
+    local TraceColor = {
+        ["R"] = 0,
+        ["G"] = 0,
+        ["B"] = 0,
+        ["A"] = 0,
+    }
+    local TraceHitColor = TraceColor
+    local EDrawDebugTrace_Type_None = 0
+    local ETraceTypeQuery_TraceTypeQuery1 = 0
+    local ActorsToIgnore = {}
+    local HitResult = {}
+    local WasHit = GetKismetSystemLibrary():LineTraceSingle(
+        PlayerPawn,
+        StartVector,
+        EndVector,
+        ETraceTypeQuery_TraceTypeQuery1,
+        false,
+        ActorsToIgnore,
+        EDrawDebugTrace_Type_None,
+        HitResult,
+        true,
+        TraceColor,
+        TraceHitColor,
+        0.0
+    )
+
+    if WasHit then
+        HitActor = HitResult.HitObjectHandle.Actor:Get()
+        return HitActor
+    else
+        return nil
+    end
+end
+
+-- We find the actor under cursor (center of screen) and despawn it with K2_DestroyActor
+function DespawnObjectFromPlayerCamera()
+    local actor = TraceObjectFromPlayerCamera()
+    if actor then
+        local actorName = actor:GetFullName()
+        -- Refuse to despawn the floor or the player for obvious reasons
+        if not UEAreObjectsEqual(actor, GetActivePlayer()) and not actorName:contains("BP_Floor_Tile") then
+            Logf("Despawning actor: %s\n", actor:GetFullName())
+            actor:K2_DestroyActor()
+        end
+    end
+end
+
+-- Attempt to command all the NPCs on the same team to move to the player
+function GoToMe()
+    ExecuteForAllNPCs(function(NPC)
+        if NPC and NPC:IsValid() and NPC['Team Int'] == PlayerTeam then
+            local npcController = NPC['Controller']
+            npcController['MoveToActor'](npcController,
+                GetActivePlayer(),
+                200.0,
+                true,
+                true,
+                true,
+                nil,
+                true
+            )
+        end
+    end)
+end
 
 ------------------------------------------------------------------------------
 function AllHooks()
@@ -2154,6 +2245,18 @@ function AllKeybindHooks()
     RegisterKeyBind(Key.SUBTRACT, function()
         ExecuteInGameThread(function()
             ChangePlayerTeamDown()
+        end)
+    end)
+
+    RegisterKeyBind(Key.F, { ModifierKey.CONTROL }, function()
+        ExecuteInGameThread(function()
+            GoToMe()
+        end)
+    end)
+
+    RegisterKeyBind(Key.DEL, function()
+        ExecuteInGameThread(function()
+            DespawnObjectFromPlayerCamera()
         end)
     end)
 
