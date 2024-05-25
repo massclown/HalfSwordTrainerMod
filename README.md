@@ -182,6 +182,8 @@ Delete the files that you copied as described above, or just reinstall the entir
 | `*` on NumPad      | Pause/Unpause the game. Use that in Photo Mode to have free cam in battle |
 | `+` on NumPad      | Switch player team to the next one |
 | `-` on NumPad      | Switch player team to the previous one |
+| `Delete`           | Despawn the object in the center of screen (first person view is better) |
+| `Ctrl + F`         | Command all NPCs in the same team as player to go to the player location |
 
 
 # How does the mod look on screen
@@ -262,6 +264,11 @@ The scale is optional, default scale is 1.0 == no scale.
 Use `F5` or the on-screen button to undo the last spawned thing. It can be used repeatedly to undo many things.
 
 > If you want to find a particular random variant of some item, select it in the menu, then go unpause the game, and repeatedly press the corresponding `F1` - `F4` button, and if you don't like it, press `F5` to undo.
+
+You can use the `Delete` key to also despawn almost anything under the center point of the screen. 
+First person mode works better for that. In the default, third person view, the displayed crosshair is not in the center of the screen, so it is hard to find what you want to despawn. Use first-person view!
+
+> You can despawn weapons right from the NPC's hands or belts if you aim well enough!
 
 ## Killing NPCs
 
@@ -351,6 +358,10 @@ Enter Photo Mode (press `C`), then enter free camera (press `F`), then press `*`
 This allows you to use all filters and effects of the photo mode with the free camera while the battle is ongoing.
 
 Together with player and NPC team selection and freezing NPCs on spawn or with a button (`Z`), you can set up team battles in advance.
+
+## Commanding friendly NPCs
+
+Press `Ctrl + F` to command all NPCs of the same team to go to the player location. It often does not work, e.g. if the NPCs are busy with something (like looking at a half-dead enemy NPC from another team).
 
 ## Other good things
 
