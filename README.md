@@ -254,7 +254,6 @@ You can also prefix the class names in custom loadout text file with the scaling
 ```
 (5.0)/Game/Assets/Weapons/Blueprints/Built_Weapons/Buckler4.Buckler4_C
 (1.0,5.0,1.0)/Game/Assets/Weapons/Blueprints/Built_Weapons/Buckler4.Buckler4_C
-
 ```
 A single number in parentheses means equal scaling in all directions, three numbers is independent scaling in X,Y,Z order.
 The scale is optional, default scale is 1.0 == no scale.
@@ -271,7 +270,7 @@ Use `F5` or the on-screen button to undo the last spawned thing. It can be used 
 > If you want to find a particular random variant of some item, select it in the menu, then go unpause the game, and repeatedly press the corresponding `F1` - `F4` button, and if you don't like it, press `F5` to undo.
 
 You can use the `Delete` key to also despawn almost anything under the center point of the screen. 
-First person mode works better for that. In the default, third person view, the displayed crosshair is not in the center of the screen, so it is hard to find what you want to despawn. Use first-person view!
+First person mode works better for that. In the default third person view, the displayed crosshair is not in the center of the screen, so it is hard to find what you want to despawn. Use first-person view!
 
 > You can despawn weapons right from the NPC's hands or belts if you aim well enough!
 

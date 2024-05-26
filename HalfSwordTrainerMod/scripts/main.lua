@@ -916,7 +916,7 @@ end
 ------------------------------------------------------------------------------
 -- Killing is actually exploding head and spilling guts
 -- That is resource intensive and may lead to crashes sometimes
--- Alternative killing method below
+-- Alternative killing method below, slow animation but also cool
 local silentKill = false
 function KillAllNPCs()
     local player = GetActivePlayer()
