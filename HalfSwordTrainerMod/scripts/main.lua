@@ -216,6 +216,14 @@ function LogUEVec(UEVec)
     Logf("{X=%f, Y=%f, Z=%f}\n", UEVec.X, UEVec.Y, UEVec.Z)
 end
 
+function UEVecToStr(UEVec)
+    return string.format("{X=%f, Y=%f, Z=%f}", UEVec.X, UEVec.Y, UEVec.Z)
+end
+
+function MafVecToStr(mafVector)
+    return string.format("{X=%f, Y=%f, Z=%f}", mafVector.x, mafVector.y, mafVector.z)
+end
+
 ------------------------------------------------------------------------------
 -- The caching code logic is taken from TheLich at nexusmods (Grounded QoL mod)
 local cache = {}
@@ -689,7 +697,7 @@ function LoadCustomLoadout()
 end
 
 ------------------------------------------------------------------------------
-function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, SpawnScale, BladeScaleOnly)
+function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, SpawnScale, BladeScaleOnly, AlsoScaleObjects)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
     if FullClassPath == nil or FullClassPath == "" then
@@ -735,7 +743,7 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
                         Actor['head']:SetRelativeScale3D(SpawnScale)
                     end
                 else
-                    if ScaleObjects then
+                    if AlsoScaleObjects then
                         if FullClassPath:contains("_Prop_Furniture") then
                             Actor['SM_Prop']:SetRelativeScale3D(SpawnScale)
                         elseif FullClassPath:contains("Dest_Barrel") then
@@ -857,7 +865,7 @@ end
 
 -- Try to spawn the actor(item) in front of the player
 -- Get player's rotation vector and rotate our offset by its value
-function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer, scale, BladeOnly)
+function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer, scale, BladeOnly, AlsoScaleObjects)
     local defaultOffset = maf.vec3(300.0, 0.0, 0.0)
     local PlayerLocation = GetPlayerLocation()
     local PlayerRotation = GetPlayerViewRotation()
@@ -879,7 +887,7 @@ function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer, scale, Bl
     local SpawnRotation = lookingAtPlayer and lookingAtPlayerRotation or NullRotation
     local SpawnScale = scale == nil and DefaultScale1x or scale
     ExecuteInGameThread(function()
-        _ = SpawnActorByClassPath(classpath, SpawnLocation, SpawnRotation, SpawnScale, BladeOnly)
+        _ = SpawnActorByClassPath(classpath, SpawnLocation, SpawnRotation, SpawnScale, BladeOnly, AlsoScaleObjects)
     end)
 end
 
@@ -1138,11 +1146,27 @@ end
 
 function SpawnSelectedObject()
     local Selected_Spawn_Object = cache.ui_spawn['Selected_Spawn_Object']:ToString()
+    WeaponScaleMultiplier = cache.ui_spawn['HSTM_Slider_WeaponSize']
+    WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
+    WeaponScaleY = cache.ui_spawn['HSTM_Flag_ScaleY']
+    WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
+
+    ScaleObjects = cache.ui_spawn['HSTM_Flag_ScaleObjects']
+
     --Logf("Spawning object key [%s]\n", Selected_Spawn_Object)
     --    if not Selected_Spawn_Object == nil and not Selected_Spawn_Object == "" then
     local selected_actor = all_objects[Selected_Spawn_Object]
     Logf("Spawning object [%s]\n", selected_actor)
-    SpawnActorInFrontOfPlayer(selected_actor, { X = 300.0, Y = 0.0, Z = -60.0 })
+    if WeaponScaleMultiplier ~= 1.0 then
+        local scale = {
+            X = WeaponScaleX and WeaponScaleMultiplier or 1.0,
+            Y = WeaponScaleY and WeaponScaleMultiplier or 1.0,
+            Z = WeaponScaleZ and WeaponScaleMultiplier or 1.0
+        }
+        SpawnActorInFrontOfPlayer(selected_actor, { X = 300.0, Y = 0.0, Z = -60.0 }, nil, scale, nil, ScaleObjects)
+    else
+        SpawnActorInFrontOfPlayer(selected_actor, { X = 300.0, Y = 0.0, Z = -60.0 })
+    end
     --    end
 end
 
@@ -1995,6 +2019,38 @@ function GoToMe()
     end)
 end
 
+-- We find the actor under cursor (center of screen) and try to scale it
+function ScaleObjectUnderCamera()
+    WeaponScaleMultiplier = cache.ui_spawn['HSTM_Slider_WeaponSize']
+    WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
+    WeaponScaleY = cache.ui_spawn['HSTM_Flag_ScaleY']
+    WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
+    if WeaponScaleMultiplier ~= 1.0 then
+        local scale = {
+            X = WeaponScaleX and WeaponScaleMultiplier or 1.0,
+            Y = WeaponScaleY and WeaponScaleMultiplier or 1.0,
+            Z = WeaponScaleZ and WeaponScaleMultiplier or 1.0
+        }
+        local Actor = TraceObjectFromPlayerCamera()
+        if Actor then
+            local actorName = Actor:GetFullName()
+            -- Refuse to scale the floor or the player for obvious reasons
+            if not UEAreObjectsEqual(Actor, GetActivePlayer()) and not actorName:contains("BP_Floor_Tile") then
+                Logf("Scaling actor: %s to %s\n", actorName, UEVecToStr(scale))
+                if actorName:contains("_Prop_Furniture") then
+                    Actor['SM_Prop']:SetRelativeScale3D(scale)
+                elseif actorName:contains("Dest_Barrel") then
+                    Actor['RootComponent']:SetRelativeScale3D(scale)
+                elseif actorName:contains("BP_Prop_Barrel") then
+                    Actor['SM_Barrel']:SetRelativeScale3D(scale)
+                else
+                    Actor:SetActorScale3D(scale)
+                end
+            end
+        end
+    end
+end
+
 ------------------------------------------------------------------------------
 function AllHooks()
     CriticalHooks()
@@ -2347,6 +2403,12 @@ function AllKeybindHooks()
     RegisterKeyBind(Key.DEL, function()
         ExecuteInGameThread(function()
             DespawnObjectFromPlayerCamera()
+        end)
+    end)
+
+    RegisterKeyBind(Key.DECIMAL, function()
+        ExecuteInGameThread(function()
+            ScaleObjectUnderCamera()
         end)
     end)
 
