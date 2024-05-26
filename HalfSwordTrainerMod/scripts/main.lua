@@ -492,6 +492,7 @@ function HUD_UpdatePlayerStats()
     local player = GetActivePlayer()
     -- Attempting to just skip the loop if the player wasn't found for some reasons
     if not player then
+        ErrLogf("Player not found, skipping\n")
         return
     end
     PlayerTeam                              = player['Team Int']
@@ -630,6 +631,8 @@ function ToggleModUI()
     else
         cache.ui_hud:SetVisibility(Visibility_VISIBLE)
         ModUIHUDVisible = true
+        -- If the HUD update loop has crashed, try to update the HUD in the worst case
+        HUD_UpdatePlayerStats()
     end
     if ModUISpawnVisible then
         cache.ui_spawn:SetVisibility(Visibility_HIDDEN)
@@ -2025,6 +2028,8 @@ function ScaleObjectUnderCamera()
     WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
     WeaponScaleY = cache.ui_spawn['HSTM_Flag_ScaleY']
     WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
+    WeaponScaleBladeOnly = cache.ui_spawn['HSTM_Flag_ScaleBladeOnly']
+
     if WeaponScaleMultiplier ~= 1.0 then
         local scale = {
             X = WeaponScaleX and WeaponScaleMultiplier or 1.0,
@@ -2037,7 +2042,12 @@ function ScaleObjectUnderCamera()
             -- Refuse to scale the floor or the player for obvious reasons
             if not UEAreObjectsEqual(Actor, GetActivePlayer()) and not actorName:contains("BP_Floor_Tile") then
                 Logf("Scaling actor: %s to %s\n", actorName, UEVecToStr(scale))
-                if actorName:contains("_Prop_Furniture") then
+                if actorName:contains("/Built_Weapons/ModularWeaponBP") then
+                    if WeaponScaleBladeOnly then
+                        -- Actually not sure which scale we should set, relative or world?
+                        Actor['head']:SetRelativeScale3D(scale)
+                    end
+                elseif actorName:contains("_Prop_Furniture") then
                     Actor['SM_Prop']:SetRelativeScale3D(scale)
                 elseif actorName:contains("Dest_Barrel") then
                     Actor['RootComponent']:SetRelativeScale3D(scale)
