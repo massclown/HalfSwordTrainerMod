@@ -1769,6 +1769,16 @@ function SetAllPlayerOneHUDVisibility(NewVisibility)
     end
 end
 
+-- function RemoveUIHints()
+--     local hint1 = FindFirstOf("UI_Hint_Move_C")
+--     local hint2 = FindFirstOf("UI_Hint_Interact_C")
+--     if hint1 and hint2 then
+--         hint1:RemoveFromViewport()
+--         hint2:RemoveFromViewport()
+--         Logf("Removing hints UI\n")
+--     end
+-- end
+
 ------------------------------------------------------------------------------
 -- This is intended to be used mostly to get free camera from PhotoMode
 -- But can be used to unpause from death screen as well
@@ -1890,19 +1900,22 @@ function DespawnObjectFromPlayerCamera()
 end
 
 -- Attempt to command all the NPCs on the same team to move to the player
+-- TODO should we do something about Team 0 which are hostile to each other?
 function GoToMe()
     ExecuteForAllNPCs(function(NPC)
         if NPC and NPC:IsValid() and NPC['Team Int'] == PlayerTeam then
             local npcController = NPC['Controller']
-            npcController['MoveToActor'](npcController,
-                GetActivePlayer(),
-                200.0,
-                true,
-                true,
-                true,
-                nil,
-                true
-            )
+            if npcController and npcController:IsValid() then
+                npcController['MoveToActor'](npcController,
+                    GetActivePlayer(),
+                    200.0,
+                    true,
+                    true,
+                    true,
+                    nil,
+                    true
+                )
+            end
         end
     end)
 end
