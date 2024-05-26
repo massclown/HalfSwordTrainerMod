@@ -280,8 +280,9 @@ function myGetPlayerController()
     for Index, Controller in pairs(PlayerControllers) do
         if Controller.Pawn:IsValid() and Controller.Pawn:IsPlayerControlled() then
             PlayerController = Controller
+            break
         else
-            Log("Not valid or not player controlled\n")
+            Log("[WARNING] Not valid or not player controlled\n")
         end
     end
     if PlayerController and PlayerController:IsValid() then
@@ -289,8 +290,7 @@ function myGetPlayerController()
     else
         -- TODO: not sure if this is fatal or not at the moment. Error handling needs improvement
         -- error("No PlayerController found\n")
-        -- TODO this is not good, but probably better than bailing out
-        Log("Returning default PlayerController from the map\n")
+        Log("[WARNING] Returning default PlayerController from the map\n")
         return cache.map['Player Willie']['Controller']
     end
 end
@@ -524,8 +524,11 @@ end
 --   and not yet merged into the master branch either (https://github.com/UE4SS-RE/RE-UE4SS/pull/301)
 -- On the other hand, the stable UE4SS 2.5.2 crashes less with Half Sword, so all this is justified.
 function HUD_UpdatePlayerStats()
-    -- TODO handle possession
     local player                            = GetActivePlayer()
+    -- Attempting to just skip the loop if the player wasn't found for some reasons
+    if not player then
+        return
+    end
     PlayerTeam                              = player['Team Int']
     PlayerHealth                            = player['Health']
     Invulnerable                            = player['Invulnerable']
