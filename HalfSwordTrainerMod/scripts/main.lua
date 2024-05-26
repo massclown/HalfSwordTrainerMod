@@ -53,6 +53,7 @@ local WeaponScaleX = true
 local WeaponScaleY = true
 local WeaponScaleZ = true
 local WeaponScaleBladeOnly = false
+local ScaleObjects = false
 
 -- Player body detailed health data
 local HH = 0  -- 'Head Health'
@@ -214,88 +215,6 @@ function LogUEVec(UEVec)
 end
 
 ------------------------------------------------------------------------------
--- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
--- The table structure is: class, {X=scale,Y=scale,Z=scale}, scale_blade_only}
-local default_loadout = {
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",                               DefaultScale1x, false },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Shoes_A.BP_Armor_Shoes_A_C",                                             DefaultScale1x, false },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Doublet_Arming.BP_Armor_Doublet_Arming_C",                               DefaultScale1x, false },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuisse_B.BP_Armor_Cuisse_B_C",                                           DefaultScale1x, false },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuirass_C.BP_Armor_Cuirass_C_C",                                         DefaultScale1x, false },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Vambrace_A.BP_Armor_Vambrace_A_C",                                       DefaultScale1x, false },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Bevor.BP_Armor_Bevor_C",                                                 DefaultScale1x, false },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Pauldron_A.BP_Armor_Pauldron_A_C",                                       DefaultScale1x, false },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Sallet_Solid_C_002.BP_Armor_Sallet_Solid_C_002_C",                       DefaultScale1x, false },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Gauntlets.BP_Armor_Gauntlets_C",                                         DefaultScale1x, false },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Pavise1.Pavise1_C",                                                           DefaultScale1x, false },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x, false },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x, false },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C", DefaultScale1x, false },
-}
-
--- Read custom loadout from a text file containing class names
--- Format:
--- /foo/bar/baz/class
--- (2.0)/foo/bar/baz/class
--- (1.0,2.0,3.0)/foo/bar/baz/class
--- [BladeOnly](2.0)/foo/bar/baz/class
--- [BladeOnly](1.0,2.0,3.0)/foo/bar/baz/class
-
-function LoadCustomLoadout()
-    local file = io.open("Mods\\HalfSwordTrainerMod\\data\\custom_loadout.txt", "r");
-    if file ~= nil then
-        if custom_loadout then custom_loadout = {} end
-        Logf("Loading custom loadout...\n")
-        for line in file:lines() do
-            if not line:starts_with('[BAD]') then
-                local _, _, scale, class = string.find(line, "%(([%d%.]+)%)([/%w_%.]+)$")
-                local blade = line:starts_with('[BladeOnly]')
-                if scale and class then
-                    local mult = tonumber(scale)
-                    table.insert(custom_loadout, { class, { X = mult, Y = mult, Z = mult }, blade })
-                else
-                    local _, _, scaleX, scaleY, scaleZ, class = string.find(line,
-                        "%(%s*([%d%.]+),%s*([%d%.]+),%s*([%d%.]+)%s*%)([/%w_%.]+)$")
-                    if scaleX and scaleY and scaleZ and class then
-                        table.insert(custom_loadout,
-                            { class, { X = tonumber(scaleX), Y = tonumber(scaleY), Z = tonumber(scaleZ) }, blade })
-                    else
-                        table.insert(custom_loadout, { line, DefaultScale1x, false })
-                    end
-                end
-            end
-        end
-        Logf("Custom loadout loaded, %d items\n", #custom_loadout)
-    end
-end
-
-------------------------------------------------------------------------------
--- This is copied from UEHelpers but filtering better, for PlayerController
---- Returns the first valid PlayerController that is currently controlled by a player.
----@return APlayerController
-function myGetPlayerController()
-    local PlayerControllers = FindAllOf("PlayerController")
-    if not PlayerControllers then error("No PlayerController found\n") end
-    local PlayerController = nil
-    for Index, Controller in pairs(PlayerControllers) do
-        if Controller.Pawn:IsValid() and Controller.Pawn:IsPlayerControlled() then
-            PlayerController = Controller
-            break
-        else
-            Log("[WARNING] Not valid or not player controlled\n")
-        end
-    end
-    if PlayerController and PlayerController:IsValid() then
-        return PlayerController
-    else
-        -- TODO: not sure if this is fatal or not at the moment. Error handling needs improvement
-        -- error("No PlayerController found\n")
-        Log("[WARNING] Returning default PlayerController from the map\n")
-        return cache.map['Player Willie']['Controller']
-    end
-end
-
-------------------------------------------------------------------------------
 -- The caching code logic is taken from TheLich at nexusmods (Grounded QoL mod)
 local cache = {}
 cache.objects = {}
@@ -365,6 +284,37 @@ function ValidateCachedObjects()
         return false
     end
     return true
+end
+
+------------------------------------------------------------------------------
+-- This is copied from UEHelpers but filtering better, for PlayerController
+--- Returns the first valid PlayerController that is currently controlled by a player.
+---@return APlayerController
+function myGetPlayerController()
+    local PlayerControllers = FindAllOf("PlayerController")
+    if not PlayerControllers then error("No PlayerController found\n") end
+    local PlayerController = nil
+    for Index, Controller in pairs(PlayerControllers) do
+        if Controller.Pawn:IsValid() and Controller.Pawn:IsPlayerControlled() then
+            PlayerController = Controller
+            break
+        else
+            Log("[WARNING] Not valid or not player controlled\n")
+        end
+    end
+    if PlayerController and PlayerController:IsValid() then
+        return PlayerController
+    else
+        -- TODO: not sure if this is fatal or not at the moment. Error handling needs improvement
+        -- error("No PlayerController found\n")
+        Log("[WARNING] Returning default PlayerController from the map\n")
+        local player = cache.map['Player Willie']
+        if player and player:IsValid() then
+            return player['Controller']
+        else
+            return nil
+        end
+    end
 end
 
 ------------------------------------------------------------------------------
@@ -523,8 +473,10 @@ end
 -- * and for SetText() we also need FText for an argument, the constructor of which is not in the stable UE4SS 2.5.2
 --   and not yet merged into the master branch either (https://github.com/UE4SS-RE/RE-UE4SS/pull/301)
 -- On the other hand, the stable UE4SS 2.5.2 crashes less with Half Sword, so all this is justified.
+-- The mod is also compatible with UE4SS 3.x.x, which should have FText() now, but we use the old implementation anyway
+------------------------------------------------------------------------------
 function HUD_UpdatePlayerStats()
-    local player                            = GetActivePlayer()
+    local player = GetActivePlayer()
     -- Attempting to just skip the loop if the player wasn't found for some reasons
     if not player then
         return
@@ -676,6 +628,62 @@ function ToggleModUI()
 end
 
 ------------------------------------------------------------------------------
+-- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
+-- The table structure is: class, {X=scale,Y=scale,Z=scale}, scale_blade_only}
+local default_loadout = {
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",                               DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Shoes_A.BP_Armor_Shoes_A_C",                                             DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Doublet_Arming.BP_Armor_Doublet_Arming_C",                               DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuisse_B.BP_Armor_Cuisse_B_C",                                           DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuirass_C.BP_Armor_Cuirass_C_C",                                         DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Vambrace_A.BP_Armor_Vambrace_A_C",                                       DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Bevor.BP_Armor_Bevor_C",                                                 DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Pauldron_A.BP_Armor_Pauldron_A_C",                                       DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Sallet_Solid_C_002.BP_Armor_Sallet_Solid_C_002_C",                       DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Gauntlets.BP_Armor_Gauntlets_C",                                         DefaultScale1x, false },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Pavise1.Pavise1_C",                                                           DefaultScale1x, false },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x, false },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x, false },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C", DefaultScale1x, false },
+}
+
+-- Read custom loadout from a text file containing class names
+-- Format:
+-- /foo/bar/baz/class
+-- (2.0)/foo/bar/baz/class
+-- (1.0,2.0,3.0)/foo/bar/baz/class
+-- [BladeOnly](2.0)/foo/bar/baz/class
+-- [BladeOnly](1.0,2.0,3.0)/foo/bar/baz/class
+
+function LoadCustomLoadout()
+    local file = io.open("Mods\\HalfSwordTrainerMod\\data\\custom_loadout.txt", "r");
+    if file ~= nil then
+        if custom_loadout then custom_loadout = {} end
+        Logf("Loading custom loadout...\n")
+        for line in file:lines() do
+            if not line:starts_with('[BAD]') then
+                local _, _, scale, class = string.find(line, "%(([%d%.]+)%)([/%w_%.]+)$")
+                local blade = line:starts_with('[BladeOnly]')
+                if scale and class then
+                    local mult = tonumber(scale)
+                    table.insert(custom_loadout, { class, { X = mult, Y = mult, Z = mult }, blade })
+                else
+                    local _, _, scaleX, scaleY, scaleZ, class = string.find(line,
+                        "%(%s*([%d%.]+),%s*([%d%.]+),%s*([%d%.]+)%s*%)([/%w_%.]+)$")
+                    if scaleX and scaleY and scaleZ and class then
+                        table.insert(custom_loadout,
+                            { class, { X = tonumber(scaleX), Y = tonumber(scaleY), Z = tonumber(scaleZ) }, blade })
+                    else
+                        table.insert(custom_loadout, { line, DefaultScale1x, false })
+                    end
+                end
+            end
+        end
+        Logf("Custom loadout loaded, %d items\n", #custom_loadout)
+    end
+end
+
+------------------------------------------------------------------------------
 function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, SpawnScale, BladeScaleOnly)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
@@ -722,6 +730,15 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
                         Actor['head']:SetRelativeScale3D(SpawnScale)
                     end
                 else
+                    if ScaleObjects then
+                        if FullClassPath:contains("_Prop_Furniture") then
+                            Actor['SM_Prop']:SetRelativeScale3D(SpawnScale)
+                        elseif FullClassPath:contains("Dest_Barrel") then
+                            Actor['RootComponent']:SetRelativeScale3D(SpawnScale)
+                        elseif FullClassPath:contains("BP_Prop_Barrel") then
+                            Actor['SM_Barrel']:SetRelativeScale3D(SpawnScale)
+                        end
+                    end
                     Actor:SetActorScale3D(SpawnScale)
                 end
             end
@@ -874,6 +891,8 @@ function HUD_CacheLevel()
     end
 end
 
+-- We allow the player to use only the levels that are present in the game code
+-- From 0 to 6 inclusive. Level 6 removes the music, which is also convenient.
 function DecreaseLevel()
     HUD_CacheLevel()
     if level > 0 then
@@ -908,6 +927,7 @@ function HUD_CachePlayerTeam()
     end
 end
 
+-- We allow the player to choose between teams 0, 1, 2
 function ChangePlayerTeamDown()
     HUD_CachePlayerTeam()
     if PlayerTeam > 0 then
@@ -962,6 +982,7 @@ function DespawnAllNPCs()
     end)
 end
 
+-- TODO figure out how to freeze the upper half of the NPC as well.
 function FreezeAllNPCs()
     Frozen = not Frozen
     local player = GetActivePlayer()
@@ -1416,6 +1437,7 @@ local selectedProjectile = 1
 local DEFAULT_PROJECTILE = "/CURRENTLY_SELECTED.CURRENTLY_SELECTED_DEFAULT"
 local DEFAULT_NPC_PROJECTILE = "/CURRENTLY_SELECTED_NPC.CURRENTLY_SELECTED_NPC_DEFAULT"
 
+-- The first and the last projectiles in this list are special cases that launch the currently selected weapon and NPC from the menus, respectively
 local projectiles = {
     { DEFAULT_PROJECTILE,                                                                                            { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_Spear.ModularWeaponBP_Spear_C",                 { X = 0.5, Y = 0.5, Z = 0.5 }, { Pitch = -90.0, Yaw = 0.0, Roll = 0.0 }, 100 },
@@ -1434,6 +1456,8 @@ local projectiles = {
     --    ,{ "/Game/Assets/Props/Barrels/Meshes/BP_Prop_Barrel_002.BP_Prop_Barrel_002_C",                                   { X = 1.0, Y = 1.0, Z = 1.0 }, { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 },   100 }
 }
 
+-- The projectile shooting logic attempts to take into account various manual corrections
+-- to try to not kill the player when spawning projectiles.
 function ShootProjectile()
     local offset = { X = 40.0, Y = 0.0, Z = 0.0 }
     local baseImpulseVector = { X = 50.0, Y = 0.0, Z = 0.0 }
@@ -1580,16 +1604,18 @@ function ShootProjectile()
     end)
 end
 
+-- This is some truly horrible attempt to rotate through a list that I should be ashamed of
 function ChangeProjectileNext()
     selectedProjectile = math.fmod(selectedProjectile, #projectiles) + 1
     HUD_CacheProjectile()
 end
-
+-- This, too, is not great but works
 function ChangeProjectilePrev()
     selectedProjectile = math.fmod(#projectiles + selectedProjectile - 2, #projectiles) + 1
     HUD_CacheProjectile()
 end
 
+-- As the UI may not be on screen when we shoot the selected menu items, we try to cache them
 function HUD_CacheProjectile()
     local class, _, _, _ = table.unpack(projectiles[selectedProjectile])
     local classname = class
@@ -2059,6 +2085,8 @@ end
 
 ------------------------------------------------------------------------------
 -- The user-facing key bindings are below.
+-- Most are wrapped in a ExecuteInGameThread() call to not crash, 
+-- the others have that wrapper inside them around the critical sections like spawning
 function AllKeybindHooks()
     RegisterKeyBind(Key.I, function()
         ExecuteInGameThread(function()
@@ -2317,6 +2345,7 @@ function AllKeybindHooks()
 end
 
 ------------------------------------------------------------------------------
+-- The logic below attempts to check if the environment is OK to run in
 function SanityCheckAndInit()
     local UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix = UE4SS.GetVersion()
     local UE4SS_Version_String = string.format("%d.%d.%d", UE4SS_Major, UE4SS_Minor, UE4SS_Hotfix)
