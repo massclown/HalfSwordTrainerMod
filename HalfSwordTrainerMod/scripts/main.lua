@@ -33,6 +33,7 @@ local SpawnFrozenNPCs = false          -- we can change it, UI flag is 'HSTM_Fla
 local SlowMotionEnabled = false
 local Frozen = false
 local SuperStrength = false
+
 -- Those are copies of player's (or level's) object properties
 local OGWillie = nil
 local OGlevel = 0
@@ -45,11 +46,13 @@ local PlayerTeam = 0
 local PlayerHealth = 0
 local PlayerConsciousness = 0
 local PlayerTonus = 0
+
 -- Cached from the spawn UI (HSTM_Slider_WeaponSize)
 local WeaponScaleMultiplier = 1.0
 local WeaponScaleX = true
 local WeaponScaleY = true
 local WeaponScaleZ = true
+local WeaponScaleBladeOnly = false
 
 -- Player body detailed health data
 local HH = 0  -- 'Head Health'
@@ -212,24 +215,32 @@ end
 
 ------------------------------------------------------------------------------
 -- Just some high-tier loadout I like, all the best armor, a huge shield, long polearm and two one-armed swords.
+-- The table structure is: class, {X=scale,Y=scale,Z=scale}, scale_blade_only}
 local default_loadout = {
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",                               DefaultScale1x },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Shoes_A.BP_Armor_Shoes_A_C",                                             DefaultScale1x },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Doublet_Arming.BP_Armor_Doublet_Arming_C",                               DefaultScale1x },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuisse_B.BP_Armor_Cuisse_B_C",                                           DefaultScale1x },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuirass_C.BP_Armor_Cuirass_C_C",                                         DefaultScale1x },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Vambrace_A.BP_Armor_Vambrace_A_C",                                       DefaultScale1x },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Bevor.BP_Armor_Bevor_C",                                                 DefaultScale1x },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Pauldron_A.BP_Armor_Pauldron_A_C",                                       DefaultScale1x },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Sallet_Solid_C_002.BP_Armor_Sallet_Solid_C_002_C",                       DefaultScale1x },
-    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Gauntlets.BP_Armor_Gauntlets_C",                                         DefaultScale1x },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Pavise1.Pavise1_C",                                                           DefaultScale1x },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x },
-    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C", DefaultScale1x },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Hosen_Arming_C.BP_Armor_Hosen_Arming_C_C",                               DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Shoes_A.BP_Armor_Shoes_A_C",                                             DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Doublet_Arming.BP_Armor_Doublet_Arming_C",                               DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuisse_B.BP_Armor_Cuisse_B_C",                                           DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Cuirass_C.BP_Armor_Cuirass_C_C",                                         DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Vambrace_A.BP_Armor_Vambrace_A_C",                                       DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Bevor.BP_Armor_Bevor_C",                                                 DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Pauldron_A.BP_Armor_Pauldron_A_C",                                       DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Sallet_Solid_C_002.BP_Armor_Sallet_Solid_C_002_C",                       DefaultScale1x, false },
+    { "/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Gauntlets.BP_Armor_Gauntlets_C",                                         DefaultScale1x, false },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Pavise1.Pavise1_C",                                                           DefaultScale1x, false },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x, false },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C",                 DefaultScale1x, false },
+    { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C", DefaultScale1x, false },
 }
 
 -- Read custom loadout from a text file containing class names
+-- Format:
+-- /foo/bar/baz/class
+-- (2.0)/foo/bar/baz/class
+-- (1.0,2.0,3.0)/foo/bar/baz/class
+-- [BladeOnly](2.0)/foo/bar/baz/class
+-- [BladeOnly](1.0,2.0,3.0)/foo/bar/baz/class
+
 function LoadCustomLoadout()
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\custom_loadout.txt", "r");
     if file ~= nil then
@@ -238,17 +249,18 @@ function LoadCustomLoadout()
         for line in file:lines() do
             if not line:starts_with('[BAD]') then
                 local _, _, scale, class = string.find(line, "%(([%d%.]+)%)([/%w_%.]+)$")
+                local blade = line:starts_with('[BladeOnly]')
                 if scale and class then
                     local mult = tonumber(scale)
-                    table.insert(custom_loadout, { class, { X = mult, Y = mult, Z = mult } })
+                    table.insert(custom_loadout, { class, { X = mult, Y = mult, Z = mult }, blade })
                 else
                     local _, _, scaleX, scaleY, scaleZ, class = string.find(line,
                         "%(%s*([%d%.]+),%s*([%d%.]+),%s*([%d%.]+)%s*%)([/%w_%.]+)$")
                     if scaleX and scaleY and scaleZ and class then
                         table.insert(custom_loadout,
-                            { class, { X = tonumber(scaleX), Y = tonumber(scaleY), Z = tonumber(scaleZ) } })
+                            { class, { X = tonumber(scaleX), Y = tonumber(scaleY), Z = tonumber(scaleZ) }, blade })
                     else
-                        table.insert(custom_loadout, { line, DefaultScale1x })
+                        table.insert(custom_loadout, { line, DefaultScale1x, false })
                     end
                 end
             end
@@ -657,7 +669,7 @@ function ToggleModUI()
 end
 
 ------------------------------------------------------------------------------
-function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, SpawnScale)
+function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, SpawnScale, BladeScaleOnly)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
     if FullClassPath == nil or FullClassPath == "" then
@@ -697,7 +709,14 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
             -- Some actors already have non-default scale, so we don't override that
             -- Yes, it is not a good idea to compare floats like this, but we do 0.1 increments so this is fine (c)
             if SpawnScale ~= nil then
-                Actor:SetActorScale3D(SpawnScale)
+                if BladeScaleOnly then
+                    if FullClassPath:contains("/Built_Weapons/ModularWeaponBP") then
+                        -- Actually not sure which scale we should set, relative or world?
+                        Actor['head']:SetRelativeScale3D(SpawnScale)
+                    end
+                else
+                    Actor:SetActorScale3D(SpawnScale)
+                end
             end
         end
         Logf("Spawned Actor: %s at {X=%.3f, Y=%.3f, Z=%.3f} rotation {Pitch=%.3f, Yaw=%.3f, Roll=%.3f}\n",
@@ -785,7 +804,7 @@ function SpawnLoadoutAroundPlayer()
     end
     local rotator = maf.rotation.fromAngleAxis(((math.pi * 2) / #loadout), 0.0, 0.0, 1.0)
     for index, value in ipairs(loadout) do
-        local class, scale = table.unpack(value)
+        local class, scale, bladescale = table.unpack(value)
         local SpawnLocation = {
             X = PlayerLocation.X + rotatedDelta.x,
             Y = PlayerLocation.Y + rotatedDelta.y,
@@ -793,7 +812,7 @@ function SpawnLoadoutAroundPlayer()
         }
         ExecuteWithDelay((index - 1) * 300, function()
             ExecuteInGameThread(function()
-                _ = SpawnActorByClassPath(class, SpawnLocation, NullRotation, scale)
+                _ = SpawnActorByClassPath(class, SpawnLocation, NullRotation, scale, bladescale)
             end)
         end)
         rotatedDelta:rotate(rotator)
@@ -802,7 +821,7 @@ end
 
 -- Try to spawn the actor(item) in front of the player
 -- Get player's rotation vector and rotate our offset by its value
-function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer, scale)
+function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer, scale, BladeOnly)
     local defaultOffset = maf.vec3(300.0, 0.0, 0.0)
     local PlayerLocation = GetPlayerLocation()
     local PlayerRotation = GetPlayerViewRotation()
@@ -824,7 +843,7 @@ function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer, scale)
     local SpawnRotation = lookingAtPlayer and lookingAtPlayerRotation or NullRotation
     local SpawnScale = scale == nil and DefaultScale1x or scale
     ExecuteInGameThread(function()
-        _ = SpawnActorByClassPath(classpath, SpawnLocation, SpawnRotation, SpawnScale)
+        _ = SpawnActorByClassPath(classpath, SpawnLocation, SpawnRotation, SpawnScale, BladeOnly)
     end)
 end
 
@@ -1040,6 +1059,7 @@ function SpawnSelectedWeapon()
     WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
     WeaponScaleY = cache.ui_spawn['HSTM_Flag_ScaleY']
     WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
+    WeaponScaleBladeOnly = cache.ui_spawn['HSTM_Flag_ScaleBladeOnly']
     --Logf("Spawning weapon key [%s]\n", Selected_Spawn_Weapon)
     --    if not Selected_Spawn_Weapon == nil and not Selected_Spawn_Weapon == "" then
     local selected_actor = all_weapons[Selected_Spawn_Weapon]
@@ -1051,7 +1071,7 @@ function SpawnSelectedWeapon()
             Y = WeaponScaleY and WeaponScaleMultiplier or 1.0,
             Z = WeaponScaleZ and WeaponScaleMultiplier or 1.0
         }
-        SpawnActorInFrontOfPlayer(selected_actor, nil, nil, scale)
+        SpawnActorInFrontOfPlayer(selected_actor, nil, nil, scale, WeaponScaleBladeOnly)
     else
         SpawnActorInFrontOfPlayer(selected_actor)
     end

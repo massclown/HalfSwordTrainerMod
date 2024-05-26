@@ -237,7 +237,7 @@ Player's viewpoint direction is used to place the spawned object in the world. N
 
 When spawning NPCs, you can select which team to spawn them in. By default, the NPCs spawned from the mod are in Team 0 (deathmatch, everybody hostile to everybody including the player)
 
-The on-screen spawn menu also has a custom weapon size slider. With the checkboxes X/Y/Z, select which coordinate axes you want to apply the scale to. Z is the top-bottom axis, X is the left-right and Y is the front-back. Scaling proportionately gives best results for comedic effect, but sometimes weapons become too thick to grab for the player.
+The on-screen spawn menu also has a custom weapon size slider. With the checkboxes X/Y/Z, select which coordinate axes you want to apply the scale to. Z is the top-bottom axis, X is the left-right and Y is the front-back. Scaling proportionately gives best results for comedic effect, but sometimes weapons become too thick to grab for the player. You also can toggle the "Blade scaling?" checkbox to apply the scaling factor only to the blade of the weapon (helps with grip problems, but may affect the balance of the weapon). Blade scaling only works for swords.
 
 > The names of objects in the on-screen spawn menu have been shortened for better readability.
 
@@ -258,6 +258,11 @@ You can also prefix the class names in custom loadout text file with the scaling
 ```
 A single number in parentheses means equal scaling in all directions, three numbers is independent scaling in X,Y,Z order.
 The scale is optional, default scale is 1.0 == no scale.
+
+Starting the line with the `[BladeOnly]` tag means that only the blade of the weapon will be scaled, a behavior similar to the "Blade scaling?" flag in the mod UI:
+```
+[BladeOnly](2.0)/Game/Assets/Weapons/Blueprints/Built_Weapons/ModularWeaponBP_BastardSword.ModularWeaponBP_BastardSword_C
+```
 
 ## Despawning things
 
