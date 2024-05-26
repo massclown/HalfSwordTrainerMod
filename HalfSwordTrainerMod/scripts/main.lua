@@ -1,8 +1,8 @@
--- Half Sword Trainer Mod v0.9 by massclown
+-- Half Sword Trainer Mod v0.10 by massclown
 -- https://github.com/massclown/HalfSwordTrainerMod
 -- Requirements: UE4SS 2.5.2 (or newer) and a Blueprint mod HSTM_UI (see repo)
 ------------------------------------------------------------------------------
-local mod_version = "0.9"
+local mod_version = "0.10"
 ------------------------------------------------------------------------------
 local maf = require 'maf'
 local UEHelpers = require("UEHelpers")
@@ -288,7 +288,10 @@ function myGetPlayerController()
         return PlayerController
     else
         -- TODO: not sure if this is fatal or not at the moment. Error handling needs improvement
-        error("No PlayerController found\n")
+        -- error("No PlayerController found\n")
+        -- TODO this is not good, but probably better than bailing out
+        Log("Returning default PlayerController from the map\n")
+        return cache.map['Player Willie']['Controller']
     end
 end
 
@@ -336,7 +339,8 @@ function ValidateCachedObjects()
     local map = cache.map
     local ui_hud = cache.ui_hud
     local ui_spawn = cache.ui_spawn
-    local ui_game_hud = cache.ui_game_hud
+    -- The HUD is not loaded at the time of first check, so skipping
+    -- local ui_game_hud = cache.ui_game_hud
     local worldsettings = cache.worldsettings
 
     if not map or not map:IsValid() then
@@ -766,6 +770,10 @@ end
 -- This takes possession into account
 function GetActivePlayer()
     local FirstPlayerController = myGetPlayerController()
+    -- TODO maybe this is not a great idea
+    if not FirstPlayerController then
+        return cache.map['Player Willie']
+    end
     return FirstPlayerController.Pawn
 end
 
@@ -920,6 +928,11 @@ end
 local silentKill = false
 function KillAllNPCs()
     local player = GetActivePlayer()
+    if cache.ui_spawn["HSTM_Flag_KillExplode"] then
+        silentKill = false
+    elseif cache.ui_spawn["HSTM_Flag_KillSlow"] then
+        silentKill = true
+    end
     ExecuteForAllNPCs(function(NPC)
         if UEAreObjectsEqual(player, NPC) then
             -- this is a possessed NPC, don't
@@ -1609,18 +1622,21 @@ end
 ------------------------------------------------------------------------------
 function IsPossessing()
     local player = cache.map['Player Willie']
-    local possessedPawn = myGetPlayerController()['Pawn']
+    local playerController = myGetPlayerController()
+    local possessedPawn = playerController['Pawn']
     return UEAreObjectsEqual(player, possessedPawn)
 end
 
 function IsThisNPCPossessed(NPC)
-    local possessedPawn = myGetPlayerController()['Pawn']
+    local playerController = myGetPlayerController()
+    local possessedPawn = playerController['Pawn']
     return UEAreObjectsEqual(NPC, possessedPawn)
 end
 
 function PossessNearestNPC()
     local currentLocation = GetPlayerLocation()
     local currentPawn = GetActivePlayer()
+    local playerController = myGetPlayerController()
 
     if OGWillie == nil then
         -- cache the original Willie so that we can go back to it when repossessing
@@ -1652,7 +1668,7 @@ function PossessNearestNPC()
         local pawnToPossess = AllNPCs[closestNPCidx].Pawn
         ResurrectionWasRequested = true
         Logf("Possessing NPC: %s\n", pawnToPossess:GetFullName())
-        myGetPlayerController():Possess(pawnToPossess)
+        playerController:Possess(pawnToPossess)
         -- TODO fix the player X and Y and map's link to the player character
         -- currently we use the stored one to be able to repossess it, but game progression is broken if you keep the new character
         -- we should probably fix it
@@ -1669,10 +1685,11 @@ function RepossessPlayer()
     -- ExecuteForAllNPCs(function(NPC)
     --     NPC['Controller']:UnPossess()
     -- end)
+    local playerController = myGetPlayerController()
     ResurrectionWasRequested = true
     if OGWillie ~= nil and OGWillie:IsValid() then
         Logf("Possessing player Willie back: %s\n", OGWillie:GetFullName())
-        myGetPlayerController():Possess(OGWillie)
+        playerController:Possess(OGWillie)
         cache.map['Player Willie'] = OGWillie
         SetAllPlayerOneHUDVisibility(Visibility_VISIBLE)
     else
