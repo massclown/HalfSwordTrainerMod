@@ -119,10 +119,12 @@ end
 
 function ErrLog(Message)
     print("[HalfSwordTrainerMod] [ERROR] " .. Message)
+    print(debug.traceback())
 end
 
 function ErrLogf(...)
     print("[HalfSwordTrainerMod] [ERROR] " .. string.format(...))
+    print(debug.traceback())
 end
 
 function string:contains(sub)
@@ -293,8 +295,7 @@ end
 function myGetPlayerController()
     local PlayerControllers = FindAllOf("PlayerController")
     if not PlayerControllers then
-        Log("[ERROR] No PlayerControllers exist\n")
-        print(debug.traceback())
+        ErrLog("[ERROR] No PlayerControllers exist\n")
         error("No PlayerController found\n")
     end
     local PlayerController = nil
