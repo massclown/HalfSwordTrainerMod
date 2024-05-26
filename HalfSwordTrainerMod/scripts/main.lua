@@ -292,7 +292,11 @@ end
 ---@return APlayerController
 function myGetPlayerController()
     local PlayerControllers = FindAllOf("PlayerController")
-    if not PlayerControllers then error("No PlayerController found\n") end
+    if not PlayerControllers then
+        Log("[ERROR] No PlayerControllers exist\n")
+        print(debug.traceback())
+        error("No PlayerController found\n")
+    end
     local PlayerController = nil
     for Index, Controller in pairs(PlayerControllers) do
         if Controller.Pawn:IsValid() and Controller.Pawn:IsPlayerControlled() then
@@ -792,7 +796,10 @@ function GetActivePlayer()
     local FirstPlayerController = myGetPlayerController()
     -- TODO maybe this is not a great idea
     if not FirstPlayerController then
-        return cache.map['Player Willie']
+        if cache.map then
+            return cache.map['Player Willie']
+        end
+        return nil
     end
     return FirstPlayerController.Pawn
 end
@@ -1609,6 +1616,7 @@ function ChangeProjectileNext()
     selectedProjectile = math.fmod(selectedProjectile, #projectiles) + 1
     HUD_CacheProjectile()
 end
+
 -- This, too, is not great but works
 function ChangeProjectilePrev()
     selectedProjectile = math.fmod(#projectiles + selectedProjectile - 2, #projectiles) + 1
@@ -2085,7 +2093,7 @@ end
 
 ------------------------------------------------------------------------------
 -- The user-facing key bindings are below.
--- Most are wrapped in a ExecuteInGameThread() call to not crash, 
+-- Most are wrapped in a ExecuteInGameThread() call to not crash,
 -- the others have that wrapper inside them around the critical sections like spawning
 function AllKeybindHooks()
     RegisterKeyBind(Key.I, function()
