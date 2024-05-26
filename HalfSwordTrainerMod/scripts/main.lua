@@ -119,12 +119,12 @@ end
 
 function ErrLog(Message)
     print("[HalfSwordTrainerMod] [ERROR] " .. Message)
-    print(debug.traceback())
+    print(debug.traceback() .. "\n")
 end
 
 function ErrLogf(...)
     print("[HalfSwordTrainerMod] [ERROR] " .. string.format(...))
-    print(debug.traceback())
+    print(debug.traceback() .. "\n")
 end
 
 function string:contains(sub)
@@ -303,7 +303,7 @@ end
 function myGetPlayerController()
     local PlayerControllers = FindAllOf("PlayerController")
     if not PlayerControllers then
-        ErrLog("[ERROR] No PlayerControllers exist\n")
+        ErrLog("No PlayerControllers exist\n")
         error("No PlayerController found\n")
     end
     local PlayerController = nil
@@ -2043,6 +2043,8 @@ function ScaleObjectUnderCamera()
                     Actor['RootComponent']:SetRelativeScale3D(scale)
                 elseif actorName:contains("BP_Prop_Barrel") then
                     Actor['SM_Barrel']:SetRelativeScale3D(scale)
+                elseif actorName:contains("BP_Container") then
+                    Actor['Box']:SetRelativeScale3D(scale)
                 else
                     Actor:SetActorScale3D(scale)
                 end
