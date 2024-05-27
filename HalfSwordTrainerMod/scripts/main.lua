@@ -304,7 +304,8 @@ function myGetPlayerController()
     local PlayerControllers = FindAllOf("PlayerController")
     if not PlayerControllers then
         ErrLog("No PlayerControllers exist\n")
-        error("No PlayerController found\n")
+        return nil
+        --error("No PlayerController found\n")
     end
     local PlayerController = nil
     for Index, Controller in pairs(PlayerControllers) do
@@ -2046,6 +2047,8 @@ function ScaleObjectUnderCamera()
                     if WeaponScaleBladeOnly then
                         -- Actually not sure which scale we should set, relative or world?
                         Actor['head']:SetRelativeScale3D(scale)
+                    else
+                        Actor:SetActorScale3D(scale)
                     end
                 elseif actorName:contains("_Prop_Furniture") then
                     Actor['SM_Prop']:SetRelativeScale3D(scale)
