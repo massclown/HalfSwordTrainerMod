@@ -701,6 +701,10 @@ function LoadCustomLoadout()
 end
 
 ------------------------------------------------------------------------------
+-- The function spawns any of the loaded assets by their class name and customizes a few parameters
+-- A lot of them are dirty hacks and should probably be moved elsewhere
+-- We are handling some special cases inside which is not optimal
+-- Also as we often need the return value, this whole function has to be executed in a game thread
 function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, SpawnScale, BladeScaleOnly, AlsoScaleObjects)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
@@ -1509,6 +1513,9 @@ function ShootProjectile()
         WeaponScaleX = cache.ui_spawn['HSTM_Flag_ScaleX']
         WeaponScaleY = cache.ui_spawn['HSTM_Flag_ScaleY']
         WeaponScaleZ = cache.ui_spawn['HSTM_Flag_ScaleZ']
+        WeaponScaleBladeOnly = cache.ui_spawn['HSTM_Flag_ScaleBladeOnly']
+        ScaleObjects = cache.ui_spawn['HSTM_Flag_ScaleObjects']
+
         local selected_actor = all_weapons[Selected_Spawn_Weapon]
         --Logf("Shooting custom weapon [%s]\n", selected_actor)
 
@@ -1613,7 +1620,7 @@ function ShootProjectile()
     -- Then address the horizonal (Yaw) camera movement around Z-axis as done above for spawn location, same for impulse
     ImpulseRotation:rotate(rotator)
 
-    local projectile = SpawnActorByClassPath(class, SpawnLocation, baseRotation, scale)
+    local projectile = SpawnActorByClassPath(class, SpawnLocation, baseRotation, scale, WeaponScaleBladeOnly, ScaleObjects)
     -- Correct the spawned projectile rotation by the camera-specific angles
     projectile:K2_SetActorRotation(SpawnRotation, true)
 
