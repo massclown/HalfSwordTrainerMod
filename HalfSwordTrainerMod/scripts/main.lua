@@ -1547,7 +1547,8 @@ function ShootProjectile()
             if WeaponScaleMultiplier > 1.0 then
                 -- When a long weapon spawns, it is the Z axis that is the longest
                 -- Try to move the projectile away from the player to prevent sudden death
-                if WeaponScaleZ then
+                -- If we only scale the blade, don't move, it should be safe
+                if WeaponScaleZ and not WeaponScaleBladeOnly then
                     offset.X = offset.X * WeaponScaleMultiplier
                 end
                 -- Only scale up the force if the object is scaled across all axes
