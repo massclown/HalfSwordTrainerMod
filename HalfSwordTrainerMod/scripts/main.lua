@@ -55,6 +55,9 @@ local WeaponScaleZ = true
 local WeaponScaleBladeOnly = false
 local ScaleObjects = false
 
+local SpawnOffsetXNPC = 800.0
+local SpawnOffsetXObject = 300.0
+
 -- Player body detailed health data
 local HH = 0  -- 'Head Health'
 local NH = 0  -- 'Neck Health'
@@ -1148,7 +1151,7 @@ function SpawnSelectedNPC()
     --    if not Selected_Spawn_NPC == nil and not Selected_Spawn_NPC == "" then
     local selected_actor = all_characters[Selected_Spawn_NPC]
     Logf("Spawning NPC [%s]\n", selected_actor)
-    SpawnActorInFrontOfPlayer(selected_actor, { X = 800.0, Y = 0.0, Z = 50.0 }, true)
+    SpawnActorInFrontOfPlayer(selected_actor, { X = SpawnOffsetXNPC, Y = 0.0, Z = 50.0 }, true)
     --    end
 end
 
@@ -1165,15 +1168,16 @@ function SpawnSelectedObject()
     --    if not Selected_Spawn_Object == nil and not Selected_Spawn_Object == "" then
     local selected_actor = all_objects[Selected_Spawn_Object]
     Logf("Spawning object [%s]\n", selected_actor)
+    local thisSpawnOffset = { X = SpawnOffsetXObject, Y = 0.0, Z = -60.0 }
     if WeaponScaleMultiplier ~= 1.0 then
         local scale = {
             X = WeaponScaleX and WeaponScaleMultiplier or 1.0,
             Y = WeaponScaleY and WeaponScaleMultiplier or 1.0,
             Z = WeaponScaleZ and WeaponScaleMultiplier or 1.0
         }
-        SpawnActorInFrontOfPlayer(selected_actor, { X = 300.0, Y = 0.0, Z = -60.0 }, nil, scale, nil, ScaleObjects)
+        SpawnActorInFrontOfPlayer(selected_actor, thisSpawnOffset , nil, scale, nil, ScaleObjects)
     else
-        SpawnActorInFrontOfPlayer(selected_actor, { X = 300.0, Y = 0.0, Z = -60.0 })
+        SpawnActorInFrontOfPlayer(selected_actor, thisSpawnOffset)
     end
     --    end
 end
