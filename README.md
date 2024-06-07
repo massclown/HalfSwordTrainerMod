@@ -125,7 +125,7 @@ We need **both** of them to be enabled, as `BPModLoaderMod` will load the user i
 
 # Updating or installing a new release
 
-* You can copy files from the new release of the mod on top of the old one. I do my best to not have any files left from an older version create any problems in the new one.
+* You can copy files from the new release of the mod on top of the old one. I do my best to not make old files cause any problems in the new version.
 * If something weird is still happening:
     * delete the old `HalfSwordTrainerMod` folder in the `Mods` folder of your UE4SS installation
     (probably in your `C:\Program Files (x86)\Steam\steamapps\common\Half Sword Demo\HalfSwordUE5\Binaries\Win64\Mods`)

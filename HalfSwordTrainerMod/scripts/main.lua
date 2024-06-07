@@ -154,6 +154,8 @@ end
 ------------------------------------------------------------------------------
 -- Conversion between UE4SS representation of UE structures and maf
 ------------------------------------------------------------------------------
+-- TODO maybe replace maf with KismetMath one day ???
+
 function vec2maf(vector)
     return maf.vec3(vector.X, vector.Y, vector.Z)
 end
@@ -267,6 +269,7 @@ function ClearCachedObjects()
 end
 
 ------------------------------------------------------------------------------
+-- The function attempts to access all cached objects and call their IsValid() method
 function ValidateCachedObjects()
     local map = cache.map
     local ui_hud = cache.ui_hud
@@ -576,6 +579,7 @@ function HUD_UpdatePlayerStats()
 end
 
 ------------------------------------------------------------------------------
+-- We switch between standard stats and our idea of increased stats, saving the original stats
 function ToggleSuperStrength()
     -- TODO handle possession
     local player = GetActivePlayer()
@@ -607,7 +611,7 @@ function ToggleInvulnerability()
         savedRegenRate = player['Regen Rate']
         player['Regen Rate'] = maxRegenRate
         -- Attempt to undo some of the damage done before to the player and the body model
-        -- Doesn't seem work.
+        -- Doesn't seem to work.
         player['Reset Sustained Damage']()
         player['Reset Blood Bleed']()
         player['Reset Dismemberment']()
@@ -622,6 +626,7 @@ function ToggleInvulnerability()
 end
 
 ------------------------------------------------------------------------------
+-- These are UE enum constants
 local Visibility_HIDDEN = 2
 local Visibility_VISIBLE = 0
 ------------------------------------------------------------------------------
@@ -667,13 +672,17 @@ local default_loadout = {
     { "/Game/Assets/Weapons/Blueprints/Built_Weapons/Tiers/ModularWeaponBP_Polearm_High_Tier.ModularWeaponBP_Polearm_High_Tier_C", DefaultScale1x, false },
 }
 
--- Read custom loadout from a text file containing class names
--- Format:
+-- Read custom loadout from a text file `data\custom_loadout.txt` containing class names to spawn around player
+--
+-- The format of the file is like this:
+-- 
 -- /foo/bar/baz/class
 -- (2.0)/foo/bar/baz/class
 -- (1.0,2.0,3.0)/foo/bar/baz/class
 -- [BladeOnly](2.0)/foo/bar/baz/class
 -- [BladeOnly](1.0,2.0,3.0)/foo/bar/baz/class
+-- 
+-- Use [BAD] in the beginning of the line to comment it
 
 function LoadCustomLoadout()
     local file = io.open("Mods\\HalfSwordTrainerMod\\data\\custom_loadout.txt", "r");
@@ -681,19 +690,24 @@ function LoadCustomLoadout()
         if custom_loadout then custom_loadout = {} end
         Logf("Loading custom loadout...\n")
         for line in file:lines() do
+            -- skip commented lines
             if not line:starts_with('[BAD]') then
                 local _, _, scale, class = string.find(line, "%(([%d%.]+)%)([/%w_%.]+)$")
+                -- Blade-only scaling is passed through to the loadout table as a flag
                 local blade = line:starts_with('[BladeOnly]')
                 if scale and class then
+                    -- The single (all X=Y=Z proportional) scale multiplier is applied if found
                     local mult = tonumber(scale)
                     table.insert(custom_loadout, { class, { X = mult, Y = mult, Z = mult }, blade })
                 else
+                    -- Otherwise, we have individual non-proportional X, Y, Z scale coefficients
                     local _, _, scaleX, scaleY, scaleZ, class = string.find(line,
                         "%(%s*([%d%.]+),%s*([%d%.]+),%s*([%d%.]+)%s*%)([/%w_%.]+)$")
                     if scaleX and scaleY and scaleZ and class then
                         table.insert(custom_loadout,
                             { class, { X = tonumber(scaleX), Y = tonumber(scaleY), Z = tonumber(scaleZ) }, blade })
                     else
+                        -- No scale is supplied, just spawn the actor as is
                         table.insert(custom_loadout, { line, DefaultScale1x, false })
                     end
                 end
@@ -708,6 +722,7 @@ end
 -- A lot of them are dirty hacks and should probably be moved elsewhere
 -- We are handling some special cases inside which is not optimal
 -- Also as we often need the return value, this whole function has to be executed in a game thread
+-- For NPCs, this sometimes leads to crashes https://github.com/UE4SS-RE/RE-UE4SS/issues/527
 function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, SpawnScale, BladeScaleOnly, AlsoScaleObjects)
     -- TODO Load missing assets!
     -- WARN Only spawns loaded assets now!
@@ -721,6 +736,7 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
     local SpawnScaleMultiplier = SpawnScale == nil and DefaultScaleMultiplier or SpawnScale
     local DefaultRotation = NullRotation
     local CurrentRotation = SpawnRotation == nil and DefaultRotation or SpawnRotation
+    -- TODO This assumes the class associated with this asset is loaded!
     local ActorClass = StaticFindObject(FullClassPath)
     if ActorClass == nil or not ActorClass:IsValid() then error("[ERROR] ActorClass is not valid") end
     local isNPC = FullClassPath:contains("/Game/Character/Blueprints/")
@@ -746,7 +762,7 @@ function SpawnActorByClassPath(FullClassPath, SpawnLocation, SpawnRotation, Spaw
         else
             -- We don't really care if this is a weapon, but we try anyway
             -- Some actors already have non-default scale, so we don't override that
-            -- Yes, it is not a good idea to compare floats like this, but we do 0.1 increments so this is fine (c)
+            -- Yes, it is not a good idea to compare floats like this, but we do 0.1 increments so "this is fine" (c)
             if SpawnScale ~= nil then
                 if BladeScaleOnly then
                     if FullClassPath:contains("/Built_Weapons/ModularWeaponBP") then
@@ -847,16 +863,29 @@ end
 
 ------------------------------------------------------------------------------
 -- We spawn the loadout in a circle, rotating a displacement vector a bit
--- with every item, so they all fit nicely
+-- with every item (360 degrees / number of items), so they all fit nicely
 function SpawnLoadoutAroundPlayer()
+    local spawnDeltaDelay = 300 -- in milliseconds
     local PlayerLocation = GetPlayerLocation()
-    local DeltaLocation = maf.vec3(300.0, 0.0, 200.0)
+    local PlayerRotation = GetPlayerViewRotation()
+    local DeltaLocation = maf.vec3(SpawnOffsetXObject, 0.0, 200.0)
+
     local rotatedDelta = DeltaLocation
     local loadout = default_loadout
     if #custom_loadout > 0 then
         loadout = custom_loadout
         Logf("Spawning custom loadout...\n")
     end
+    -- This attempts to start spawning from the direction of the player view
+    local initialRotator = maf.rotation.fromAngleAxis(
+        math.rad(PlayerRotation.Yaw),
+        0.0, -- math.rad(PlayerRotation.Pitch),
+        0.0, -- math.rad(PlayerRotation.Roll),
+        1.0
+    )
+    rotatedDelta:rotate(initialRotator)
+
+    -- This is splitting the spawn circle (360 degrees / number of items) in radians
     local rotator = maf.rotation.fromAngleAxis(((math.pi * 2) / #loadout), 0.0, 0.0, 1.0)
     for index, value in ipairs(loadout) do
         local class, scale, bladescale = table.unpack(value)
@@ -865,7 +894,8 @@ function SpawnLoadoutAroundPlayer()
             Y = PlayerLocation.Y + rotatedDelta.y,
             Z = PlayerLocation.Z + rotatedDelta.z
         }
-        ExecuteWithDelay((index - 1) * 300, function()
+        -- The delays are accumulated, step = 
+        ExecuteWithDelay((index - 1) * spawnDeltaDelay, function()
             ExecuteInGameThread(function()
                 _ = SpawnActorByClassPath(class, SpawnLocation, NullRotation, scale, bladescale)
             end)
@@ -880,6 +910,7 @@ function SpawnActorInFrontOfPlayer(classpath, offset, lookingAtPlayer, scale, Bl
     local defaultOffset = maf.vec3(300.0, 0.0, 0.0)
     local PlayerLocation = GetPlayerLocation()
     local PlayerRotation = GetPlayerViewRotation()
+
     local rotator = maf.rotation.fromAngleAxis(
         math.rad(PlayerRotation.Yaw),
         0.0, -- math.rad(PlayerRotation.Pitch),
@@ -1029,7 +1060,8 @@ end
 
 ------------------------------------------------------------------------------
 -- Does not seem to actually remove the armor stats, only the meshes
-function RemoveAllArmor(player)
+-- Removing armor/clothes may expose gaps in meshes
+function RemoveAllArmor(willie)
     -- It seems that any object inherited from BP_Armor_Master_C will work here, for some reason
     local panties = StaticFindObject("/Game/Assets/Armor/Blueprints/Built_Armor/BP_Armor_Panties.BP_Armor_Panties_C")
     local SpawnTransform = { Rotation = { W = 0.0, X = 0.0, Y = 0.0, Z = 0.0 }, Translation = { X = 0.0, Y = 0.0, Z = 0.0 }, Scale3D = { X = 1.0, Y = 1.0, Z = 1.0 } }
@@ -1047,8 +1079,8 @@ function RemoveAllArmor(player)
     for i = 0, 9, 1 do
         local key = i
         local out1 = {}
-        player['Remove Armor'](
-            player,
+        willie['Remove Armor'](
+            willie,
             panties,
             SpawnTransform,
             out1,
@@ -1063,6 +1095,11 @@ function RemovePlayerArmor()
 end
 
 ------------------------------------------------------------------------------
+-- The idea of this function is to try to find all NPCs that the game knows about
+-- but without enumerating objects in UE, and call a function on those.
+-- We go through the enemy array on the map, enemies+bosses in boss arenas, and
+-- through the array of things we spawned ourselves.
+-- This is useful to despawn or kill all NPCs, etc.
 function ExecuteForAllNPCs(callback)
     if cache.map['Enemy Array'] then
         local npc = cache.map['Enemy Array']
@@ -1107,6 +1144,11 @@ function ExecuteForAllNPCs(callback)
 end
 
 ------------------------------------------------------------------------------
+-- The SpawnSelected* functions take the currently selected object
+-- from the dropdowns in the mod UI on the right side of the screen
+-- and spawn that in the direction fo the player's camera view
+------------------------------------------------------------------------------
+
 function SpawnSelectedArmor()
     local Selected_Spawn_Armor = cache.ui_spawn['Selected_Spawn_Armor']:ToString()
     --Logf("Spawning armor key [%s]\n", Selected_Spawn_Armor)
@@ -1142,6 +1184,7 @@ function SpawnSelectedWeapon()
     --    end
 end
 
+-- WARN Danger, don't spawn too many of them, crashes will happen!
 function SpawnSelectedNPC()
     -- Update the flag from the Spawn HUD
     SpawnFrozenNPCs = cache.ui_spawn['HSTM_Flag_SpawnFrozenNPCs']
@@ -1155,6 +1198,8 @@ function SpawnSelectedNPC()
     --    end
 end
 
+-- Object spawning applies scaling only intended for weapons, 
+-- just for fun, if the corresponding `ScaleObjects` flag is set
 function SpawnSelectedObject()
     local Selected_Spawn_Object = cache.ui_spawn['Selected_Spawn_Object']:ToString()
     WeaponScaleMultiplier = cache.ui_spawn['HSTM_Slider_WeaponSize']
@@ -1168,6 +1213,7 @@ function SpawnSelectedObject()
     --    if not Selected_Spawn_Object == nil and not Selected_Spawn_Object == "" then
     local selected_actor = all_objects[Selected_Spawn_Object]
     Logf("Spawning object [%s]\n", selected_actor)
+    -- TODO the -60 in Z offset comes from player's camera elevation, I believe?
     local thisSpawnOffset = { X = SpawnOffsetXObject, Y = 0.0, Z = -60.0 }
     if WeaponScaleMultiplier ~= 1.0 then
         local scale = {
@@ -1184,6 +1230,7 @@ end
 
 -- Spawns the boss arena fence around the player's location
 -- No bosses will spawn, only the fence. Player is the center, rotation is ignored (aligned with X/Y axes)
+-- Scaling of the boss arena is ignored
 function SpawnBossArena()
     local PlayerLocation = GetPlayerLocation()
     local SpawnLocation = PlayerLocation
@@ -1196,6 +1243,7 @@ end
 ------------------------------------------------------------------------------
 -- All the functions that load spawnable items ignore the ones starting with [BAD]
 -- used to mark those that are not useful (not visible, etc.)
+------------------------------------------------------------------------------
 function PopulateArmorComboBox()
     local ComboBox_Armor = cache.ui_spawn['ComboBox_Armor']
     ComboBox_Armor:ClearOptions()
@@ -1312,6 +1360,8 @@ function ToggleCrosshair()
 end
 
 ------------------------------------------------------------------------------
+-- TODO fix this and use it to transition between normal and slomo
+-- TODO customize the slowmo factor in the timeline float curves
 function ToggleClassicSlowMotion()
     local worldsettings = cache.worldsettings
     local player = GetActivePlayer()
@@ -1327,6 +1377,7 @@ function ToggleClassicSlowMotion()
     end
 end
 
+-- This is our attempt at chaning the game speed instantly
 function ToggleSlowMotion()
     local worldsettings = cache.worldsettings
     SlowMotionEnabled = not SlowMotionEnabled
@@ -1348,6 +1399,8 @@ function IncreaseGameSpeed()
     if SloMoGameSpeed < DefaultGameSpeed * 5 then
         SloMoGameSpeed = SloMoGameSpeed + GameSpeedDelta
     end
+    -- We only update the slowmo factor on screen if we are in slowmo
+    -- TODO should we update it always to help players prepare their favourite slowmo factor in advance?
     if SlowMotionEnabled then
         local worldsettings = cache.worldsettings
         GameSpeed = SloMoGameSpeed
@@ -1363,6 +1416,8 @@ function DecreaseGameSpeed()
     if SloMoGameSpeed > GameSpeedDelta then
         SloMoGameSpeed = SloMoGameSpeed - GameSpeedDelta
     end
+    -- We only update the slowmo factor on screen if we are in slowmo
+    -- TODO should we update it always to help players prepare their favourite slowmo factor in advance?
     if SlowMotionEnabled then
         local worldsettings = cache.worldsettings
         GameSpeed = SloMoGameSpeed
@@ -1412,6 +1467,7 @@ local DASH_RIGHT = 4
 local lastDashTimestamp = -1
 local deltaDashCooldown = 1.0
 -- The dash moves the player horizontally in the selected direction
+-- The dash directions cannot be combined (no diagonals!)
 function PlayerDash(direction)
     local curDashTimestamp = os.clock()
     local delta = curDashTimestamp - lastDashTimestamp
@@ -1433,6 +1489,7 @@ function PlayerDash(direction)
         1.0
     )
 
+    -- We only apply the horizonal, XY-plane-bound view direction (Yaw)
     local viewRotator = maf.rotation.fromAngleAxis(
         math.rad(PlayerRotation.Yaw),
         0.0,
@@ -1477,7 +1534,9 @@ function PlayerDash(direction)
 end
 
 ------------------------------------------------------------------------------
+-- index of the projectile in the table, starts with 1 (because Lua)
 local selectedProjectile = 1
+-- these DEFAULT_* constants allow selecting items from the menu to be launched
 local DEFAULT_PROJECTILE = "/CURRENTLY_SELECTED.CURRENTLY_SELECTED_DEFAULT"
 local DEFAULT_NPC_PROJECTILE = "/CURRENTLY_SELECTED_NPC.CURRENTLY_SELECTED_NPC_DEFAULT"
 
@@ -1698,6 +1757,7 @@ function UEAreObjectsEqual(a, b)
 end
 
 ------------------------------------------------------------------------------
+-- TODO this is unused, the idea was to see if the map's player willie is the one we are actually controlling or not
 function IsPossessing()
     local player = cache.map['Player Willie']
     local playerController = myGetPlayerController()
@@ -1711,6 +1771,12 @@ function IsThisNPCPossessed(NPC)
     return UEAreObjectsEqual(NPC, possessedPawn)
 end
 
+-- Possession is making the PlayerController possess the Pawn of an NPC
+-- Possession is buggy and may break things
+-- An NPC with a weapon may remain buggy when you possess it:
+-- * not allowing you to swing a weapon with the NPC body
+-- * auto-picking up the weapon from the ground 
+-- etc.
 function PossessNearestNPC()
     local currentLocation = GetPlayerLocation()
     local currentPawn = GetActivePlayer()
@@ -1776,7 +1842,8 @@ function RepossessPlayer()
 end
 
 ------------------------------------------------------------------------------
--- Resurrection may not guarantee a complete revival, doesn't seem to work for NPCs yet
+-- Resurrection may not guarantee a complete revival, doesn't seem to work well for NPCs
+-- Being decapitated or sliced in half does not allow resurrection
 function ResurrectWillie(player, forcePlayerController)
     player['DED'] = false
     player['Consciousness'] = 100.0
@@ -1859,6 +1926,7 @@ function RemovePlayerOneDeathScreen()
     end
 end
 
+-- This is the game's standard original HUD, the blood splashes on screen that indicate damage to player
 function SetAllPlayerOneHUDVisibility(NewVisibility)
     -- We don't use the caching of those objects just in case
     local HUD = FindFirstOf("UI_HUD_C")
@@ -2055,6 +2123,7 @@ function ScaleObjectUnderCamera()
             -- Refuse to scale the floor or the player for obvious reasons
             if not UEAreObjectsEqual(Actor, GetActivePlayer()) and not actorName:contains("BP_Floor_Tile") then
                 Logf("Scaling actor: %s to %s\n", actorName, UEVecToStr(scale))
+                -- We apply hacks to find the correct mesh/component to scale if possible
                 if actorName:contains("/Built_Weapons/ModularWeaponBP") then
                     if WeaponScaleBladeOnly then
                         -- Actually not sure which scale we should set, relative or world?
@@ -2079,6 +2148,7 @@ function ScaleObjectUnderCamera()
 end
 
 ------------------------------------------------------------------------------
+-- This function is called when the mod is loaded at the end of this file
 function AllHooks()
     CriticalHooks()
     AllCustomEventHooks()
@@ -2480,6 +2550,12 @@ function SanityCheckAndInit()
     -- Half Sword steam demo is on UE 5.1 currently.
     -- If UE4SS didn't detect the correct UE version, we bail out.
     assert(UnrealVersion.IsEqual(5, 1))
+
+    -- Both return ??? at the moment.
+    -- local gameName = GetKismetSystemLibrary():GetGameName():ToString()
+    -- Logf("Game \"%s\" detected\n", gameName)
+    -- local gameBundle = GetKismetSystemLibrary():GetGameBundleId():ToString()
+    -- Logf("Game bundle \"%s\" detected\n",  gameBundle)
 
     Logf("Sanity check passed!\n")
 end
